@@ -353,7 +353,11 @@ export class Game {
 
   // ───────────────────────── 이벤트 ─────────────────────────
 
+  /** 지금 행동하는 액터의 시각 (이벤트 시각 표시용) */
+  private clock = 0;
+
   emit(e: GameEvent) {
+    e.t ??= this.clock / 100;
     this.events.push(e);
   }
 
@@ -448,8 +452,8 @@ export class Game {
       return false;
     }
     if (w.def.mag !== undefined) w.ammo--;
-    this.emit({ type: 'fx', fx: 'line', x: p.x, y: p.y, tx, ty, element: p.imbue });
-    this.basicAttack(p, t);
+    this.emit({ type: 'shoot', actor: p.id, target: t.id, x: p.x, y: p.y, tx, ty, element: p.imbue });
+    this.basicAttack(p, t, false, true);
     this.endPlayerAction(s.attackCost);
     return true;
   }
@@ -468,6 +472,7 @@ export class Game {
     }
     w.ammo = w.def.mag;
     this.log(`${w.def.name} 재장전 (${w.ammo}/${w.def.mag})`, 'skill');
+    this.emit({ type: 'reload', actor: this.player.id });
     this.fire(this.player, 'wait', {});
     this.endPlayerAction(100);
     return true;
@@ -676,7 +681,7 @@ export class Game {
         this.log('녹의 신의 은총: 장착된 부산물이 단단해졌다.', 'good');
       }
     }
-    this.log(`보급 지점: 부산물 수리 완료. ${REST_NAME[this.restService]}이(가) 열려 있다.`, 'floor');
+    this.log(`보급 지점: 슈트 수리 완료. ${REST_NAME[this.restService]}이(가) 열려 있다.`, 'floor');
   }
 
   buy(i: number): boolean {
@@ -874,7 +879,11 @@ export class Game {
         this.worldTick();
         if (p.dead) return;
       }
-      if (next === p) return;
+      if (next === p) {
+        this.clock = p.time;
+        return;
+      }
+      this.clock = next.time;
       this.actorTurn(next);
     }
   }
@@ -1116,11 +1125,11 @@ export class Game {
 
   // ───────────────────────── 전투 ─────────────────────────
 
-  private basicAttack(a: Actor, t: Actor, bash = false) {
+  private basicAttack(a: Actor, t: Actor, bash = false, shot = false) {
     const s = this.st(a);
     const el = a.imbue;
     a.imbue = undefined;
-    this.emit({ type: 'attack', actor: a.id, target: t.id });
+    if (!shot) this.emit({ type: 'attack', actor: a.id, target: t.id });
     const dmg = bash ? s.damage - s.weapon.damage + FISTS.damage : s.damage;
     this.dealDamage(a, t, Math.max(1, Math.round(dmg * this.dmgMult(a))), el, { dodgeable: true, label: bash ? '개머리판' : undefined });
     this.fire(a, 'attack', { target: t.dead ? undefined : t, element: el, x: t.x, y: t.y });
@@ -1288,7 +1297,7 @@ export class Game {
     }
     if (src?.isPlayer) this.stats.damageDealt += dmg;
     t.hp -= overflow;
-    this.emit({ type: 'damage', target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label });
+    this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label });
     if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}: ${dmg}${el ? ` ${ELEMENT_NAME[el]}` : ''} 피해`, 'bad');
 
     if (el === 'fire' && !t.statuses.burn && this.rng.chance(0.4)) this.addStatus(t, 'burn', 2);

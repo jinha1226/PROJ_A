@@ -20,8 +20,11 @@ npm run build      # 타입체크 + 정적 빌드(dist/)
 | `src/core/dungeon.ts` | 층 생성(방 8~12개), 시야, 경로 |
 | `src/core/stats.ts` | 부산물 → 능력치 (플레이어·적 공용) |
 | `src/core/rng.ts` | 시드 난수 (같은 시드 = 같은 런) |
-| `src/data/` | 부산물 43, 각인 22 (조건 = 공격·이동·피격·대기), 액티브 형태 5×원소 4, MODEL 라인 3, 슈트 프레임 2, 신 2, 적 12 + 보스 2. 코드 식별자는 아직 `relic`이며 2단계(무기 분리)에서 바꾼다 |
-| `src/render/` | three.js 탑뷰. 기본 도형 로우폴리, 부산물에 따라 부위 메시 교체 |
+| `src/data/` | 부산물 43, 무기 8, 각인 22 (조건 = 공격·이동·피격·대기), 액티브 형태 5×원소 4, MODEL 라인 3, 슈트 프레임 2, 신 2, 적 12 + 보스 2. 코드 식별자는 아직 `relic`이며 2단계(무기 분리)에서 바꾼다 |
+| `src/render/projr/` | PROJ_R 격자 렌더러를 그대로 가져온 것 (쥬피터헬풍 조명, Quaternius 캐릭터·던전·무기). `sim.ts`는 PROJ_R 로직 대신 쓰는 호환 모듈 |
+| `src/render/bridge.ts` | 우리 게임 상태·이벤트 → PROJ_R 렌더러의 GridState·GEvent 어댑터 |
+| `src/render/view3d.ts` | 에셋 로드와 렌더러 구동 (main.ts가 쓰는 화면) |
+| `public/assets/` | PROJ_R에서 가져온 CC0 에셋 (출처: `public/assets/ART.md`) |
 | `src/ui/` | HTML/CSS 오버레이 (행동 순서 바, 부산물 슬롯, 각인, 로그, 모달) |
 | `sim/` | 헤드리스 봇 + 시뮬레이터 (`npx tsx sim/trace.ts <시드>`로 한 런 추적) |
 

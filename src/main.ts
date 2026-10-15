@@ -4,14 +4,14 @@ import type { Element, ByproductInst, GroundItem, WeaponInst } from './core/type
 import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_SHORT } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
-import { Renderer } from './render/renderer';
+import { loadAssets, View3D } from './render/view3d';
 import { actorTooltip, esc, Hud, byproductName, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
 import { heldWeapon } from './core/stats';
 
 const view = document.getElementById('view')!;
 const modal = document.getElementById('modal')!;
 const hudEl = document.getElementById('hud')!;
-const renderer = new Renderer(view, document.getElementById('fx')!);
+let renderer!: View3D;
 const hud = new Hud();
 
 let game: Game | null = null;
@@ -81,6 +81,8 @@ function startGame() {
   game = new Game(seed, pickOrigin, pickBody);
   hud.clearLog();
   renderer.setGame(game);
+  // 개발 모드에서만: 브라우저 테스트가 게임 상태를 볼 수 있게
+  if (import.meta.env.DEV) (window as unknown as { __game: Game }).__game = game;
   hudEl.hidden = false;
   modal.hidden = true;
   overlay = null;
@@ -96,7 +98,6 @@ function refresh() {
   const ev = game.drainEvents();
   renderer.handleEvents(ev);
   hud.handleEvents(ev);
-  renderer.sync();
   hud.render(game);
   renderer.setReticle(targeting ? targeting.x : null, targeting?.y);
   if (targeting) hud.setHint('조준 중 — Tab: 다음 대상 · 클릭: 지점 선택 · Enter/같은 키: 발사 · Esc: 취소', true);
@@ -329,7 +330,7 @@ function showRest() {
   if (g.restService === 'engrave' && engraveSel && g.player.engravings.length >= g.engravingCap()) return showEngravePick('각인 기록기', '');
   const items = g.restItems;
   modal.innerHTML = `<div class="box"><h2>보급 지점 — ${REST_NAME[g.restService]}</h2>
-    <p class="lead">${esc(g.depthLabel)}을(를) 지났다. 보급 포드가 부산물을 모두 수리했다. (체력 ${g.player.hp}/${g.st(g.player).maxHp})</p>
+    <p class="lead">${esc(g.depthLabel)}을(를) 지났다. 보급 포드가 슈트를 모두 수리했다. (체력 ${g.player.hp}/${g.st(g.player).maxHp})</p>
     ${body}
     ${items.length ? `<h3>보급 포드 바닥</h3><div class="cards">${items.map((r, i) => `<div class="card">${itemTooltip(r)}<div class="row">${r.kind === 'weapon' ? `<button data-gr="${i}">손에 들기</button>` : `<button data-gr="${i}">장착</button><button class="ghost" data-of="${i}">과부하 (쿨다운 초기화)</button>`}</div></div>`).join('')}</div>` : ''}
     <div class="row"><span style="flex:1"></span><button data-act="leave">다음 층으로 (Enter)</button></div></div>`;
@@ -692,4 +693,15 @@ document.getElementById('hud')!.addEventListener('mousemove', (e) => {
   if (r) hud.showTooltip(itemTooltip(r), e.clientX, e.clientY);
 });
 
-showTitle();
+// 에셋(캐릭터·던전·무기)을 불러온 뒤 타이틀을 연다
+modal.hidden = false;
+modal.innerHTML = '<div class="box title"><h1>MODEL 0</h1><div class="sub">복제 포드 가동 중… (에셋 불러오는 중)</div></div>';
+loadAssets()
+  .then((a) => {
+    renderer = new View3D(view, a);
+    showTitle();
+  })
+  .catch((err) => {
+    modal.innerHTML = `<div class="box"><h2>에셋을 불러오지 못했다</h2><p class="lead">${esc(String(err))}</p></div>`;
+  });
+

@@ -1,0 +1,222 @@
+import * as THREE from 'three';
+import { idx, type GridMap, type GridState } from '../sim';
+import type { DungeonKit, DungeonPiece } from './dungeonKit';
+import { wallFaces, type WallFace } from './gridLayout';
+import { addDecor, cornerColumns, runColumns } from './gridDecor';
+import { chasmMesh, sealMesh } from './toolGates';
+
+/** Metres per grid cell. */
+export const CELL = 1.0;
+export const WALL_H = 1.5;
+const PANEL_DEPTH = 0.25;
+const CAP = new THREE.Color('#77716a');
+const SEEN = 0.3;
+
+export const toWorld = (x: number, y: number): THREE.Vector3 => new THREE.Vector3(x * CELL, 0, y * CELL);
+/** Yaw that turns a model's +z toward `dir` (grid y = world z). */
+export const yawFor = (dir: { x: number; y: number }): number => Math.atan2(dir.x, dir.y);
+
+/** Floor, wall panels and columns from the Quaternius modular dungeon pack, dark wall tops, pillars, doors, chests and exits — all shaded by what the hero has seen. */
+export class GridTerrain {
+  readonly root = new THREE.Group();
+  private readonly instanced: { mesh: THREE.InstancedMesh; cells: number[]; tint?: THREE.Color }[] = [];
+  /** props shown only where the hero has seen (keyed by the cell that reveals them) */
+  private props: [number, THREE.Object3D][] = [];
+  private readonly seals = new Map<number, THREE.Object3D>();
+  private readonly facesOf = new Map<number, number[]>();
+  private faceMesh: THREE.InstancedMesh | null = null;
+  private readonly built: string[];
+  private readonly doors = new Map<number, THREE.Object3D>();
+  private readonly chests = new Map<number, THREE.Object3D>();
+  private readonly exits: THREE.Mesh[] = [];
+  private readonly tmp = new THREE.Color();
+
+  constructor(private readonly m: GridMap, private readonly kit: DungeonKit, decal?: string) {
+    this.built = [...m.tiles];
+    const faces = wallFaces(m);
+    const floors = m.tiles.map((t, i) => [t, i] as const).filter(([t]) => t !== 'wall' && t !== 'chasm').map(([, i]) => i);
+    const q = new THREE.Quaternion();
+    const up = new THREE.Vector3(0, 1, 0);
+    // most cells get the full flagstone, some a loose-brick tile for variety
+    const loose = (i: number) => ((i * 2246822519) >>> 0) % 100 < 14;
+    const tile = (name: DungeonPiece) => (i: number, p: THREE.Vector3) => {
+      const pc = kit.piece(name) ?? kit.piece('Floor_Modular')!;
+      q.setFromAxisAngle(up, ((i * 7) % 4) * (Math.PI / 2));
+      return new THREE.Matrix4().compose(p.setY(-0.1), q, new THREE.Vector3(CELL / pc.size.x, 0.1 / pc.size.y, CELL / pc.size.z));
+    };
+    this.instance('Floor_Modular', floors, tile('Floor_Modular'));
+    // loose bricks lie on top of a few flagstones
+    if (kit.piece('Floor_BricksSeparate')) this.instance('Floor_BricksSeparate', floors.filter(loose), (i, p) => tile('Floor_BricksSeparate')(i, p).premultiply(new THREE.Matrix4().makeTranslation(0, 0.05, 0)));
+    this.instanceFaces(faces);
+    // a thin stone cap on top of each wall panel only, so walls read as walls and not as solid blocks
+    const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(CELL + 0.02, 0.08, PANEL_DEPTH + 0.04), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1 }), faces.length);
+    const capQ = new THREE.Quaternion();
+    faces.forEach((f, k) => {
+      const p = toWorld(f.wall.x + f.dir.x * (0.5 - PANEL_DEPTH / 2), f.wall.y + f.dir.y * (0.5 - PANEL_DEPTH / 2));
+      capQ.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawFor(f.dir));
+      caps.setMatrixAt(k, new THREE.Matrix4().compose(p.setY(WALL_H), capQ, new THREE.Vector3(1, 1, 1)));
+      caps.setColorAt(k, new THREE.Color(0, 0, 0));
+    });
+    this.root.add(caps);
+    this.instanced.push({ mesh: caps, cells: faces.map((f) => idx(m, f.floor)), tint: CAP });
+    for (const c of [...cornerColumns(m, faces), ...runColumns(m, faces)]) {
+      const col = kit.clone('Column', { height: WALL_H * 1.08 });
+      col.position.set(c.at.x * CELL, 0, c.at.y * CELL);
+      this.addProp(c.reveal, col);
+    }
+    this.addProps();
+    for (const [cell, obj] of addDecor(m, faces, kit)) this.addProp(cell, obj);
+    if (decal) this.addLitter(floors, decal);
+  }
+
+  /** Floor litter in the zone's colour (puddles, bone chips, moss) on a fixed scatter of cells. */
+  private addLitter(floors: number[], color: string): void {
+    const cells = floors.filter((i) => ((i * 2654435761) >>> 0) % 100 < 9 && this.m.tiles[i] === 'floor');
+    if (!cells.length) return;
+    const mesh = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 7).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.35, metalness: 0.1 }), cells.length);
+    cells.forEach((i, k) => {
+      const h = ((i * 40503) >>> 0) % 1000 / 1000;
+      const p = toWorld(i % this.m.w, Math.floor(i / this.m.w));
+      const r = CELL * (0.1 + h * 0.22);
+      mesh.setMatrixAt(k, new THREE.Matrix4().compose(new THREE.Vector3(p.x + (h - 0.5) * CELL * 0.5, 0.012, p.z + (((i * 7) % 10) / 10 - 0.5) * CELL * 0.5), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), h * 6), new THREE.Vector3(r * (0.7 + h * 0.6), 1, r)));
+      mesh.setColorAt(k, new THREE.Color(0, 0, 0));
+    });
+    this.root.add(mesh);
+    this.instanced.push({ mesh, cells, tint: new THREE.Color(color) });
+  }
+
+  /** One instanced mesh of a pack piece over many cells; matrices come from `place`. */
+  private instance(name: DungeonPiece, cells: number[], place: (i: number, p: THREE.Vector3) => THREE.Matrix4): void {
+    const pc = this.kit.piece(name);
+    if (!pc || !cells.length) return;
+    const mesh = new THREE.InstancedMesh(pc.geometry, pc.material, cells.length);
+    mesh.receiveShadow = true;
+    cells.forEach((i, k) => {
+      mesh.setMatrixAt(k, place(i, toWorld(i % this.m.w, Math.floor(i / this.m.w))));
+      mesh.setColorAt(k, new THREE.Color(0, 0, 0));
+    });
+    this.root.add(mesh);
+    this.instanced.push({ mesh, cells });
+  }
+
+  /** Wall panels on every wall side facing a walkable cell, inside the wall cell, front at the boundary. */
+  private instanceFaces(faces: WallFace[]): void {
+    const pc = this.kit.piece('Wall_Modular');
+    if (!pc) return;
+    const mesh = new THREE.InstancedMesh(pc.geometry, pc.material, faces.length);
+    mesh.receiveShadow = true;
+    mesh.castShadow = true;
+    const scale = new THREE.Vector3(CELL / pc.size.x, WALL_H / pc.size.y, PANEL_DEPTH / pc.size.z);
+    const q = new THREE.Quaternion();
+    faces.forEach((f, k) => {
+      const p = toWorld(f.wall.x + f.dir.x * (0.5 - PANEL_DEPTH / 2), f.wall.y + f.dir.y * (0.5 - PANEL_DEPTH / 2));
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawFor(f.dir));
+      mesh.setMatrixAt(k, new THREE.Matrix4().compose(p, q, scale));
+      mesh.setColorAt(k, new THREE.Color(0, 0, 0));
+    });
+    this.root.add(mesh);
+    this.instanced.push({ mesh, cells: faces.map((f) => idx(this.m, f.floor)) });
+    this.faceMesh = mesh;
+    faces.forEach((f, k) => { const w = idx(this.m, f.wall); this.facesOf.set(w, [...(this.facesOf.get(w) ?? []), k]); });
+  }
+
+  /** Tiles the sim changed since the floor was built: a cut seal or a scanned wall becomes a doorway. */
+  syncTiles(): void {
+    const m = this.m;
+    m.tiles.forEach((t, i) => {
+      if (this.built[i] === t) return;
+      this.built[i] = t;
+      if (t !== 'door') return;
+      for (const k of this.facesOf.get(i) ?? []) this.faceMesh?.setMatrixAt(k, new THREE.Matrix4().makeScale(0, 0, 0));
+      if (this.faceMesh) this.faceMesh.instanceMatrix.needsUpdate = true;
+      const seal = this.seals.get(i);
+      if (seal) { seal.removeFromParent(); this.props = this.props.filter(([, o]) => o !== seal); }
+      this.addDoor(i);
+    });
+  }
+
+  private addDoor(i: number): void {
+    const m = this.m;
+    const door = this.kit.clone('Arch_Door', { width: CELL });
+    door.scale.y *= 0.85;
+    door.rotation.y = m.tiles[i - 1] === 'wall' && m.tiles[i + 1] === 'wall' ? 0 : Math.PI / 2;
+    door.position.copy(toWorld(i % m.w, Math.floor(i / m.w)));
+    this.doors.set(i, door);
+    this.addProp(i, door);
+  }
+
+  private addProp(cell: number, obj: THREE.Object3D): void {
+    obj.visible = false;
+    this.props.push([cell, obj]);
+    this.root.add(obj);
+  }
+
+  private addProps(): void {
+    const m = this.m;
+    m.tiles.forEach((t, i) => {
+      const p = toWorld(i % m.w, Math.floor(i / m.w));
+      if (t === 'pillar') {
+        const col = this.kit.clone('Column2', { height: WALL_H * 1.1 });
+        col.position.copy(p);
+        this.addProp(i, col);
+      }
+      if (t === 'door') this.addDoor(i);
+      if (t === 'chasm') { const pit = chasmMesh(); pit.position.copy(p); this.addProp(i, pit); }
+      if (t === 'seal') {
+        const seal = sealMesh(this.kit, m.tiles[i - 1] === 'wall' && m.tiles[i + 1] === 'wall');
+        seal.position.copy(p);
+        this.seals.set(i, seal);
+        this.addProp(i, seal);
+      }
+    });
+    for (const c of m.chests) {
+      const chest = this.kit.clone('Chest', { width: CELL * 0.62 });
+      chest.position.copy(toWorld(c.x, c.y));
+      this.chests.set(idx(m, c), chest);
+      this.addProp(idx(m, c), chest);
+    }
+    for (const e of m.exits) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(CELL * 0.42, 0.06, 8, 32), new THREE.MeshStandardMaterial({ color: '#5fe08a', emissive: '#2a9a50', emissiveIntensity: 1.4 }));
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.copy(toWorld(e.x, e.y)).setY(0.06);
+      this.exits.push(ring);
+      this.root.add(ring);
+    }
+  }
+
+  /** Visible tiles in full light, remembered ones dim, unknown ones black; props follow. */
+  shade(s: GridState): void {
+    const level = (i: number) => (s.visible.has(i) ? 1 : s.seen[i] ? SEEN : 0);
+    for (const it of this.instanced) {
+      it.cells.forEach((cell, k) => { const l = level(cell); it.mesh.setColorAt(k, it.tint ? this.tmp.copy(it.tint).multiplyScalar(l > 0 ? Math.max(0.6, l) : 0) : this.tmp.setScalar(l)); });
+      it.mesh.instanceColor!.needsUpdate = true;
+    }
+    for (const [cell, o] of this.props) o.visible = level(cell) > 0;
+    s.map.exits.forEach((e, n) => {
+      const ring = this.exits[n]!;
+      ring.visible = level(idx(this.m, e)) > 0;
+      const closed = s.closedExits.includes(n);
+      const mat = ring.material as THREE.MeshStandardMaterial;
+      mat.color.set(closed ? '#d04a3a' : '#5fe08a');
+      mat.emissive.set(closed ? '#7a1a10' : '#2a9a50');
+    });
+  }
+
+  openDoor(i: number): void {
+    const d = this.doors.get(i);
+    if (d) { d.rotation.y += Math.PI / 2.2; d.position.x += CELL * 0.3; }
+  }
+
+  openChest(i: number): void {
+    const c = this.chests.get(i);
+    if (c) { c.scale.multiplyScalar(0.85); c.position.y = -0.04; }
+  }
+
+  pulseExit(t: number): void {
+    for (const r of this.exits) r.scale.setScalar(1 + Math.sin(t * 8) * 0.06);
+  }
+
+  dispose(): void {
+    for (const it of this.instanced) it.mesh.dispose();
+  }
+}

@@ -214,7 +214,9 @@ export interface GameEvent {
     | 'floor'
     | 'loadout'
     | 'levelup'
-    | 'alert';
+    | 'alert'
+    | 'shoot'
+    | 'reload';
   actor?: number;
   target?: number;
   x?: number;
@@ -227,4 +229,6 @@ export interface GameEvent {
   fx?: 'blast' | 'chain' | 'shards' | 'shield' | 'heal' | 'blink' | 'combo' | 'overload' | 'line' | 'summon';
   radius?: number;
   cls?: string;
+  /** 이벤트가 일어난 게임 시각 (턴 단위, 행동 비용 100 = 1) */
+  t?: number;
 }
