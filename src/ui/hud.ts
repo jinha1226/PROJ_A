@@ -1,5 +1,5 @@
 import { ALERT_THRESHOLDS, BREAK_PENALTY, type Game } from '../core/game';
-import { describeByproduct } from '../core/describe';
+import { infuseOptions, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
 import type { Actor, GameEvent, ByproductInst, GroundItem, Slot, WeaponInst } from '../core/types';
 import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME } from '../core/types';
 import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax } from '../core/stats';
@@ -242,7 +242,9 @@ export class Hud {
       (['body', 'arm', 'leg', 'sense'] as Slot[])
         .map((slot) => {
           const broken = isBroken(p, slot);
-          return `<div class="slot ${broken ? 'damaged' : ''}"><span class="k">${SLOT_NAME[slot]}</span><span class="n">${broken ? '파손' : `장갑 ${p.partArmor[slot]}/${partArmorMax(p, slot)}`}<div class="sub">파손 시: ${BREAK_PENALTY[slot]}</div></span></div>`;
+          const m = p.suitMods![slot];
+          const res = m.resist.length ? ` · ${[...new Set(m.resist)].map((e) => `${ELEMENT_NAME[e]} −${Math.round(Math.min(0.6, 0.2 * m.resist.filter((x) => x === e).length) * 100)}%`).join(' ')}` : '';
+          return `<div class="slot ${broken ? 'damaged' : ''}"><span class="k">${SLOT_NAME[slot]}</span><span class="n">${broken ? '파손' : `장갑 ${p.partArmor[slot]}/${partArmorMax(p, slot)}`}<div class="sub">부여 ${m.n}/${SUIT_INFUSE_MAX}${m.armor ? ` (장갑 +${m.armor})` : ''}${res}</div><div class="sub">파손 시: ${BREAK_PENALTY[slot]}</div></span></div>`;
         })
         .join('');
     return `<div class="box suit"><h2>슈트 — ${esc(p.name)}</h2><div class="cols"><div>${left}</div><div>${right}</div></div>
@@ -299,8 +301,11 @@ function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) 
 }
 
 export function byproductTooltip(r: ByproductInst): string {
-  const lines = describeByproduct(r.def);
-  return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}${r.dormant ? ' (절전)' : ''}</div>${lines.map((l) => `<div class="r">${esc(l)}</div>`).join('')}`;
+  const inf = suitInfusion(r.def);
+  return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</div>
+    <div class="r">${GRADE_NAME[r.def.grade]} · ${SLOT_NAME[r.def.slot]} 부산물 · 강화 재료</div>
+    <div class="r opt"><b>무기 부여</b> ${infuseOptions(r.def).map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')}</div>
+    <div class="r opt cond"><b>슈트 부여</b> ${SLOT_NAME[inf.slot]} 장갑 +${inf.armor}${inf.resist.length ? ` · ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 저항` : ''}</div>`;
 }
 
 export function actorTooltip(g: Game, a: Actor): string {
@@ -333,7 +338,10 @@ export function weaponTooltip(w: WeaponInst): string {
       return `<div class="r opt ${od.kind}"><b>${od.kind === 'cond' ? '◇' : '◆'} ${esc(od.name)}</b> ${esc(od.desc)}</div>`;
     })
     .join('');
-  return `<div class="t g-${d.grade}">⚔ ${esc(d.name)}</div><div class="r">${GRADE_NAME[d.grade]} · ${FAMILY_NAME[d.family]} · ${colors}</div><div class="r">${parts.join(' · ')}</div>${trait}${opts}`;
+  const inf = w.infusion
+    ? `<div class="r opt infused"><b>⬡ 부여: ${esc(w.infusion.from)}</b> ${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')}</div>`
+    : `<div class="r" style="color:var(--dim)">⬡ 부여 칸 비어 있음</div>`;
+  return `<div class="t g-${d.grade}">⚔ ${esc(d.name)}</div><div class="r">${GRADE_NAME[d.grade]} · ${FAMILY_NAME[d.family]} · ${colors}</div><div class="r">${parts.join(' · ')}</div>${trait}${opts}${inf}`;
 }
 
 export function itemTooltip(r: GroundItem): string {

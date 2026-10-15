@@ -1,7 +1,8 @@
 import { Game, REST_NAME, MAX_KITS } from './core/game';
 import type { Color, ByproductInst, GroundItem, OptionId, WeaponInst } from './core/types';
-import { COLOR_NAME } from './core/types';
+import { COLOR_NAME, ELEMENT_NAME, SLOT_NAME } from './core/types';
 import { OPTION_BY_ID, OPTIONS, optionFits } from './data/options';
+import { infuseOptions, SUIT_INFUSE_MAX, suitInfusion } from './data/infuse';
 import { TRAIT_TEXT, WEAPONS } from './data/weapons';
 import { loadAssets, View3D, type Pace } from './render/view3d';
 import { actorTooltip, esc, Hud, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
@@ -49,7 +50,7 @@ function keysHelp() {
     ['o', '오토탐험'],
     ['x', '출구로 자동 이동'],
     ['>', '출구에서 보급 지점으로'],
-    ['g', '발밑 무기 줍기 · 부산물 분해'],
+    ['g', '발밑 무기 줍기 · 부산물 부여(무기·슈트)·분해'],
     ['f', '사격 (원거리 무기, Tab 대상 변경)'],
     ['r', '재장전 (대기로 침)'],
     ['e', '무기 교체 (손 1 ↔ 2)'],
@@ -238,7 +239,7 @@ function showColorPick() {
   modal.querySelectorAll<HTMLElement>('[data-color]').forEach((el) => (el.onclick = () => (g.chooseColor(el.dataset.color as Color), refresh())));
 }
 
-/** [G] 발밑 물건: 무기는 손에 들고, 부산물은 분해한다 (10단계에서 무기·슈트 부여가 들어온다) */
+/** [G] 발밑 물건: 무기는 손에 들고, 부산물은 무기·슈트에 부여하거나 분해한다 */
 function showPickup() {
   const g = game!;
   const items = g.groundHere();
@@ -255,11 +256,34 @@ function showPickup() {
   }
   if (pickItem!.kind === 'weapon') return showTakeWeapon(pickItem as WeaponInst);
   const r = pickItem as ByproductInst;
+  const p = g.player;
+  const opts = infuseOptions(r.def).map((o) => esc(OPTION_BY_ID[o].name)).join(' · ');
+  const inf = suitInfusion(r.def);
+  const sm = p.suitMods![inf.slot];
+  const hands = [0, 1]
+    .map((h) => {
+      const w = p.hands[h];
+      if (!w) return `<div class="card disabled"><div class="nm">손${h + 1} — 비어 있음</div></div>`;
+      return `<div class="card"><span class="key">${h + 1}</span><div class="nm">손${h + 1} ${esc(w.def.name)}에 부여</div>
+        <div class="ds">+ ${opts}${w.infusion ? `<br><span style="color:#e08070">덮어씀: ${esc(w.infusion.from)} (${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')})</span>` : ''}</div>
+        <div class="row"><button data-inf="${h}">부여 (${h + 1})</button></div></div>`;
+    })
+    .join('');
+  const full = sm.n >= SUIT_INFUSE_MAX;
   modal.innerHTML = `<div class="box"><h2>부산물 — ${esc(r.def.name)}</h2>
     <div class="card" style="cursor:default">${byproductTooltip(r)}</div>
-    <p class="lead" style="margin-top:12px">부산물은 무기·슈트 강화 재료다(곧 들어온다). 지금은 분해해 마석으로 바꿀 수 있다.</p>
-    <div class="row"><button data-act="dismantle">분해 (1)</button><button class="ghost" data-act="close">두고 가기 (Esc)</button></div></div>`;
+    <h3>무엇에 쓸까 (1턴)</h3>
+    <div class="cards">${hands}
+      <div class="card ${full ? 'disabled' : ''}"><span class="key">3</span><div class="nm">슈트 ${SLOT_NAME[inf.slot]}에 부여</div>
+        <div class="ds">장갑 최대치 +${inf.armor}${inf.resist.length ? ` · ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 피해 −20%` : ''}<br>${SLOT_NAME[inf.slot]} 부여 ${sm.n}/${SUIT_INFUSE_MAX}</div>
+        <div class="row"><button data-act="suit" ${full ? 'disabled' : ''}>부여 (3)</button></div></div>
+      <div class="card"><span class="key">4</span><div class="nm">분해</div><div class="ds">마석 +${{ common: 2, holy: 4, forbidden: 6 }[r.def.grade]}</div>
+        <div class="row"><button class="ghost" data-act="dismantle">분해 (4)</button></div></div>
+    </div>
+    <div class="row"><span style="flex:1"></span><button class="ghost" data-act="close">두고 가기 (Esc)</button></div></div>`;
+  modal.querySelectorAll<HTMLElement>('[data-inf]').forEach((el) => (el.onclick = () => (g.infuseWeapon(r, Number(el.dataset.inf)), closeOverlay())));
   bind(modal, {
+    suit: () => (g.infuseSuit(r), closeOverlay()),
     dismantle: () => (g.dismantle(r), closeOverlay()),
     close: closeOverlay,
   });
@@ -315,7 +339,7 @@ function showRest() {
   modal.innerHTML = `<div class="box"><h2>보급 지점 — ${REST_NAME[g.restService]}</h2>
     <p class="lead">${esc(g.depthLabel)}을(를) 지났다. 보급 포드가 슈트를 모두 수리했다. (체력 ${g.player.hp}/${g.st(g.player).maxHp})</p>
     ${body}
-    ${items.length ? `<h3>보급 포드 바닥</h3><div class="cards">${items.map((r, i) => `<div class="card">${itemTooltip(r)}<div class="row"><button data-gr="${i}">${r.kind === 'weapon' ? '손에 들기' : '분해'}</button></div></div>`).join('')}</div>` : ''}
+    ${items.length ? `<h3>보급 포드 바닥</h3><div class="cards">${items.map((r, i) => `<div class="card">${itemTooltip(r)}<div class="row"><button data-gr="${i}">${r.kind === 'weapon' ? '손에 들기' : '부여 · 분해'}</button></div></div>`).join('')}</div>` : ''}
     <div class="row"><span style="flex:1"></span><button data-act="leave">다음 층으로 (Enter)</button></div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-buy]').forEach((el) => (el.onclick = () => (g.buy(Number(el.dataset.buy)), refresh())));
   modal.querySelectorAll<HTMLElement>('[data-rf]').forEach(
@@ -329,9 +353,8 @@ function showRest() {
   modal.querySelectorAll<HTMLElement>('[data-gr]').forEach(
     (el) =>
       (el.onclick = () => {
-        const r = items[Number(el.dataset.gr)];
-        if (r.kind === 'weapon') ((pickItem = r), (overlay = 'pickup'));
-        else g.dismantle(r);
+        pickItem = items[Number(el.dataset.gr)];
+        overlay = 'pickup';
         refresh();
       }),
   );
@@ -477,10 +500,8 @@ window.addEventListener('keydown', (e) => {
           closeOverlay();
         }
       } else if (pickItem) {
-        if (i === 0) {
-          g.dismantle(pickItem);
-          closeOverlay();
-        }
+        const done = i <= 1 ? g.infuseWeapon(pickItem, i) : i === 2 ? g.infuseSuit(pickItem) : i === 3 ? g.dismantle(pickItem) : false;
+        if (done) closeOverlay();
       } else {
         const items = g.groundHere();
         if (items[i]) ((pickItem = items[i]), refresh());

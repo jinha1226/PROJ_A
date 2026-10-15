@@ -34,6 +34,7 @@ import { Afterimages } from './afterimage';
 import { sensedFoes } from '../sim';
 import { feel } from './feel';
 import { StrikeFx } from './strikeFx';
+import { Gore } from './gore';
 import { StrikeCues } from './strikeCues';
 let ELEVATION = (45 * Math.PI) / 180;
 /** Scripted views (the comparison demo) may tilt the camera. */
@@ -72,6 +73,8 @@ export class GridRuntime {
   stayInMap = false;
   private readonly ghosts = new Afterimages();
   private readonly strikeFx = new StrikeFx();
+  /** (MODEL 0) 바닥의 피웅덩이 */
+  private readonly decals = new Gore();
   private strikes!: StrikeCues;
   /** dims the screen edge while the game runs slow (an engraving moment) */
   private readonly slowmo = document.createElement('div');
@@ -95,7 +98,7 @@ export class GridRuntime {
     this.torches = new GridTorches(sim.s.map, kit, look.lights, theme ? 0 : look.density, look);
     this.elements = new GridElements(kit, sim.s);
     this.mapRef = sim.s.map;
-    scene.add(this.terrain.root, this.actors.root, this.torches.root, this.particles.root, this.items.root, this.elements.root, this.ghosts.root, this.strikeFx.root);
+    scene.add(this.terrain.root, this.actors.root, this.torches.root, this.particles.root, this.items.root, this.elements.root, this.ghosts.root, this.strikeFx.root, this.decals.root);
     this.slowmo.className = 'grid-slowmo';
     el.appendChild(this.slowmo);
     this.banner.className = 'grid-banner';
@@ -137,6 +140,7 @@ export class GridRuntime {
     this.mapRef = s.map;
     this.playback = new Playback();
     this.pending.clear();
+    this.decals.clear();
     this.actors.sync(s);
     this.center.set(s.hero.pos.x * CELL, 0, s.hero.pos.y * CELL);
     this.banner.textContent = `${s.run.floor}층 · ${zoneOf(s.run.floor).name}`;
@@ -198,6 +202,17 @@ export class GridRuntime {
     this.fx.setAim(aiming.map((f) => [new THREE.Vector3(f.pos.x * CELL, 0, f.pos.y * CELL), hero]));
     // on the ship deck the floating labels name the stations instead
     this.icons = this.stationAt.size ? (s.map.stations ?? []).map((st) => ({ id: `st-${st.id}`, icon: STATIONS[st.id] })) : shown.map((f) => ({ id: f.id, icon: aiming.includes(f) ? '◎' : '!' }));
+  }
+  /** (MODEL 0) 처치: 허리·머리·팔 중 하나를 잘라 날린다 (허리면 상체 덩어리) */
+  private dismember(id: string, p: THREE.Vector3, from?: THREE.Vector3): void {
+    const r = Math.random();
+    const part = r < 0.4 ? 'waist' : r < 0.65 ? 'head' : r < 0.83 ? 'armL' : 'armR';
+    const cut = this.actors.sever(id, part);
+    if (!cut) return;
+    const away = p.clone().sub(from ?? p.clone().add(new THREE.Vector3(Math.random() - 0.5, 0, Math.random() - 0.5))).setY(0);
+    if (away.lengthSq() < 1e-6) away.set(1, 0, 0);
+    this.strikeFx.limb(cut.at, away, cut.color, part === 'waist' ? 'torso' : part === 'head' ? 'head' : 'arm', cut.size);
+    this.gore(cut.at, 12, from);
   }
   /** The dead of the crypt shed bone chips; goblins and orcs bleed. */
   private gore(p: THREE.Vector3, n: number, from?: THREE.Vector3): void {
@@ -264,7 +279,18 @@ export class GridRuntime {
         break;
       }
       case 'reload': a.anim(e.src, 'reload'); break;
-      case 'die': { a.die(e.dst); const p = at(e.dst); if (p && e.dst !== 'hero') { this.gore(p, 18, at(e.src)); this.fx.hitStop(feel().killStop); if (e.dst) this.strikes.kill(e.dst, p); } break; }
+      case 'die': {
+        a.die(e.dst);
+        const p = at(e.dst);
+        if (p && e.dst && e.dst !== 'hero') {
+          this.gore(p, 18, at(e.src));
+          this.fx.hitStop(feel().killStop);
+          // (MODEL 0) 쓰러질 때마다 몸 어딘가가 찢겨 나가고, 그 자리에 피웅덩이가 남는다
+          if (!this.strikes.kill(e.dst, p)) this.dismember(e.dst, p, at(e.src));
+          this.decals.pool(p, 1, speciesOf(this.sim.s.run.floor) === 'skeleton');
+        }
+        break;
+      }
       case 'door': if (e.to) this.terrain.openDoor(idx(this.sim.s.map, e.to)); break;
       case 'open': a.anim('hero', 'interact'); if (e.to) { this.terrain.openChest(idx(this.sim.s.map, e.to)); this.fx.transient.burst(e.to.x * CELL, e.to.y * CELL, '#ffd76a', 0.7, 0.5); } break;
       case 'energy': if (e.to) this.fx.energy(cellVec(e.to), e.amount ?? 0); break;
@@ -296,6 +322,7 @@ export class GridRuntime {
     this.elements.update(dt);
     this.ghosts.update(dt);
     this.strikeFx.update(scaled);
+    this.decals.update(scaled);
     this.strikes.update(dt);
     this.slowmo.classList.toggle('on', this.fx.timeScale < 1);
     this.particles.update(this.fx.frozen ? 0 : scaled, this.center);
@@ -362,6 +389,7 @@ export class GridRuntime {
     this.intro?.dispose();
     this.ghosts.dispose();
     this.strikeFx.dispose();
+    this.decals.dispose();
     this.slowmo.remove();
     this.pixel.dispose();
     this.terrain.dispose();

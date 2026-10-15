@@ -185,3 +185,4 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 .card.colorpick .gain { font-size: 11px; color: var(--dim); margin-top: 4px; } .card.colorpick .gain.up { color: #9fe8b0; }
 .labcol { margin-right: 18px; } .labcol button { padding: 0 8px; }
 .r .up { color: #9fe8b0; }
+.r.opt.infused b { color: #9fe8b0; }

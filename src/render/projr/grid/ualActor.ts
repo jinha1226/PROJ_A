@@ -259,13 +259,22 @@ export class UalActor {
     if (color) this.tint.multiplyScalar(0.45);
   }
 
-  setDead(): void {
+  setDead(speed = 1.3): void {
     if (this.dead) return;
     this.dead = true;
     // a body on its back reads like a raised-arms pose from above: darken it so the dead read as dead
     for (const m of this.mats) m.color.multiplyScalar(0.08); // linear colour: about a third as bright on screen
     this.dropUpper(0.05);
-    this.start(CLIP.death, false, 1.3, 0.05);
+    this.start(CLIP.death, false, speed, 0.05);
+  }
+
+  /** (MODEL 0) 시체가 사라질 때: 0(보임) → 1(사라짐) */
+  fadeOut(k: number): void {
+    for (const m of this.mats) {
+      m.transparent = true;
+      m.opacity = 1 - k;
+      m.depthWrite = k < 0.5;
+    }
   }
 
   /** Cuts a part off at a bone (it and everything below it shrink away); returns where it was and the body colour, or null. */

@@ -1,5 +1,5 @@
 import { Game } from '../src/core/game';
-import type { GroundItem, WeaponInst } from '../src/core/types';
+import type { ByproductInst, GroundItem, WeaponInst } from '../src/core/types';
 import { heldWeapon, magOf } from '../src/core/stats';
 
 // 시뮬레이터용 단순 봇
@@ -22,7 +22,7 @@ export function botStep(g: Game): boolean {
         g.buyKit();
         for (let i = g.shop.length - 1; i >= 0; i--) if (g.shop[i].price <= g.ash) g.buy(i);
       } else g.reforge(p.activeHand, 0);
-      for (const r of [...g.restItems]) tryTake(g, r) || (r.kind === 'byproduct' && g.dismantle(r));
+      for (const r of [...g.restItems]) tryTake(g, r) || (r.kind === 'byproduct' && useByproduct(g, r));
       g.leaveRest();
       return true;
     }
@@ -56,7 +56,7 @@ export function botStep(g: Game): boolean {
   const here = g.groundHere();
   for (const r of here) {
     if (tryTake(g, r)) return true;
-    if (r.kind === 'byproduct') return g.dismantle(r);
+    if (r.kind === 'byproduct') return useByproduct(g, r);
   }
   const dir = g.autoExploreDir();
   if (dir === 'enemy') return g.wait();
@@ -78,3 +78,10 @@ export function tryTake(g: Game, r: GroundItem): boolean {
 }
 
 const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+
+/** 부산물: 든 무기에 부여 칸이 비었으면 무기에, 아니면 슈트에, 슈트 부위가 찼으면 분해 */
+function useByproduct(g: Game, r: ByproductInst): boolean {
+  const p = g.player;
+  if (p.hands[p.activeHand] && !p.hands[p.activeHand]!.infusion) return g.infuseWeapon(r, p.activeHand);
+  return g.infuseSuit(r) || g.dismantle(r);
+}

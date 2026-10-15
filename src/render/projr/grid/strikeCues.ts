@@ -78,16 +78,19 @@ export class StrikeCues {
   }
 
   /** A foe falls: a big blow takes its head or an arm with it, and a shot throws the body back. */
-  kill(id: string, at: THREE.Vector3): void {
+  /** (MODEL 0) 잘라냈으면 true */
+  kill(id: string, at: THREE.Vector3): boolean {
     const blow = this.lastBlow.get(id);
     this.lastBlow.delete(id);
-    if (!blow) return;
+    if (!blow) return false;
+    let cutDone = false;
     const away = at.clone().sub(blow.from);
     if (severs(blow.style, blow.crit)) {
       const part = blow.style === 'cull' || blow.style === 'pierce' || blow.style === 'execute' || blow.crit ? 'head' : (id.charCodeAt(id.length - 1) % 2 ? 'armL' : 'armR');
       const cut = this.actors.sever(id, part);
-      if (cut) { this.fx.limb(cut.at, away, cut.color, part === 'head' ? 'head' : 'arm', cut.size); this.particles.blood(cut.at, 22, blow.from); }
+      if (cut) { this.fx.limb(cut.at, away, cut.color, part === 'head' ? 'head' : 'arm', cut.size); this.particles.blood(cut.at, 22, blow.from); cutDone = true; }
     }
     this.actors.fling(id, blow.from, blow.kind === 'shot' ? 0.45 : 0.2);
+    return cutDone;
   }
 }

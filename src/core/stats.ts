@@ -1,4 +1,4 @@
-import type { Actor, Color, Element, ByproductInst, Slot, WeaponDef, WeaponInst } from './types';
+import type { Actor, Color, Element, ByproductInst, OptionId, Slot, WeaponDef, WeaponInst } from './types';
 import { FISTS } from '../data/weapons';
 import { SLOTS } from './types';
 
@@ -14,7 +14,7 @@ export const HIT_WEIGHT: Record<Slot, number> = { body: 40, arm: 25, leg: 20, se
 
 /** 부위의 최대 슈트 장갑 = 슈트 기본값 + (몸이면) 몸 부산물 장갑. 'fragile' 저주가 있으면 그 부위 절반 */
 export function partArmorMax(a: Actor, slot: Slot): number {
-  let max = a.partArmorBase[slot];
+  let max = a.partArmorBase[slot] + (a.suitMods?.[slot].armor ?? 0);
   for (const r of a.slots[slot]) {
     if (!r || r.dormant) continue;
     if (slot === 'body') max += r.def.stats.integrity ?? 0;
@@ -151,4 +151,9 @@ export function heldWeapon(a: Actor): WeaponInst | null {
 /** 탄창·충전 수 (추가 탄창 옵션 +3) */
 export function magOf(w: WeaponInst): number {
   return w.def.mag === undefined ? 0 : w.def.mag + (w.options.includes('extraAmmo') ? 3 : 0);
+}
+
+/** 무기의 모든 옵션: 떨어질 때 붙은 것 + 부산물 부여 */
+export function allOptions(w: WeaponInst): OptionId[] {
+  return w.infusion ? [...w.options, ...w.infusion.options] : w.options;
 }

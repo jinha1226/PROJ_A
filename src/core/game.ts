@@ -1,6 +1,6 @@
 import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
-import { allByproducts, heldWeapon, magOf, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
+import { allByproducts, allOptions, heldWeapon, magOf, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
   Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color,
 } from './types';
@@ -9,6 +9,7 @@ import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
 import { FISTS, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
 import { CRIT_MULT, OPTION_BY_ID, OPTIONS, STATUS_TURNS, optionFits } from '../data/options';
+import { infuseOptions, RESIST_CAP, RESIST_STEP, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
 import { ENEMIES, ENEMY_BY_ID, ZONES, type EnemyTemplate } from '../data/enemies';
 
 export type Mode = 'play' | 'levelup' | 'rest' | 'dead' | 'won';
@@ -147,6 +148,7 @@ export class Game {
     p.isPlayer = true;
     p.awake = true;
     p.colors = { power: 0, tactics: 0, survival: 0 };
+    p.suitMods = { body: { n: 0, armor: 0, resist: [] }, arm: { n: 0, armor: 0, resist: [] }, leg: { n: 0, armor: 0, resist: [] }, sense: { n: 0, armor: 0, resist: [] } };
     p.partArmorBase = { ...SUIT.armor };
     p.hands = [this.makeWeapon('pistol'), null];
     this.player = p;
@@ -558,13 +560,51 @@ export class Game {
     return true;
   }
 
-  /** 부산물 분해: 마석으로 바꾼다 (10단계에서 무기·슈트 부여가 들어오기 전까지의 임시 사용처) */
-  dismantle(r: ByproductInst): boolean {
+  /** 부산물을 발밑(보급 지점이면 포드 바닥)에서 꺼낸다 */
+  private takeByproduct(r: ByproductInst): boolean {
     if (this.mode !== 'play' && this.mode !== 'rest') return false;
     const g = this.groundHere();
     const gi = g.indexOf(r);
     if (gi < 0) return false;
     g.splice(gi, 1);
+    return true;
+  }
+
+  /** 무기 부여: 손 hand 무기의 부여 칸에 넣는다 (있던 부여는 덮어씀) */
+  infuseWeapon(r: ByproductInst, hand: number): boolean {
+    const w = this.player.hands[hand];
+    if (!w || !this.takeByproduct(r)) return false;
+    const old = w.infusion;
+    w.infusion = { from: r.def.name, options: infuseOptions(r.def) };
+    this.log(`${w.def.name}에 ${r.def.name} 부여: ${w.infusion.options.map((o) => OPTION_BY_ID[o].name).join(' · ')}${old ? ` (${old.from} 부여는 사라졌다)` : ''}`, 'good');
+    this.emit({ type: 'loadout', actor: this.player.id });
+    if (this.mode === 'play') this.endPlayerAction(100);
+    return true;
+  }
+
+  /** 슈트 부여: 부산물의 부위 장갑 최대치와 원소 저항 (부위마다 3회) */
+  infuseSuit(r: ByproductInst): boolean {
+    const p = this.player;
+    const inf = suitInfusion(r.def);
+    const m = p.suitMods![inf.slot];
+    if (m.n >= SUIT_INFUSE_MAX) {
+      this.log(`${SLOT_NAME[inf.slot]} 부위는 이미 ${SUIT_INFUSE_MAX}번 부여했다.`, 'warn');
+      return false;
+    }
+    if (!this.takeByproduct(r)) return false;
+    m.n++;
+    m.armor += inf.armor;
+    m.resist.push(...inf.resist);
+    p.partArmor[inf.slot] += inf.armor;
+    this.log(`슈트 ${SLOT_NAME[inf.slot]}에 ${r.def.name} 부여: 장갑 +${inf.armor}${inf.resist.length ? `, ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 저항` : ''} (${m.n}/${SUIT_INFUSE_MAX})`, 'good');
+    this.emit({ type: 'loadout', actor: p.id });
+    if (this.mode === 'play') this.endPlayerAction(100);
+    return true;
+  }
+
+  /** 부산물 분해: 마석으로 바꾼다 */
+  dismantle(r: ByproductInst): boolean {
+    if (!this.takeByproduct(r)) return false;
     const gain = { common: 2, holy: 4, forbidden: 6 }[r.def.grade];
     this.ash += gain;
     this.log(`${r.def.name} 분해: 마석 +${gain}`, 'item');
@@ -931,7 +971,6 @@ export class Game {
   private actorTurn(a: Actor) {
     // 상태는 tickStatuses가 플레이어 턴마다 줄인다. 기절·빙결이면 차례를 거른다
     const stunned = !!a.statuses.stun || !!a.statuses.freeze;
-    if (a.aura && --a.aura.turns <= 0) a.aura = undefined;
     if (stunned) {
       a.time += 100;
       return;
@@ -1107,7 +1146,8 @@ export class Game {
     const s = this.st(a);
     // 개머리판은 무기 옵션·고유 효과가 붙지 않는다
     const w = bash ? null : heldWeapon(a);
-    const optEl = w?.options.map((o) => OPTION_BY_ID[o].element).find((e) => e);
+    // 부산물 부여의 원소가 먼저, 그다음 무기 옵션의 원소
+    const optEl = w && [...(w.infusion?.options ?? []), ...w.options].map((o) => OPTION_BY_ID[o].element).find((e) => e);
     const el = a.imbue ?? optEl ?? w?.def.element;
     a.imbue = undefined;
     if (!shot) this.emit({ type: 'attack', actor: a.id, target: t.id });
@@ -1140,7 +1180,7 @@ export class Game {
     let crit: string | null = null;
     if (a.blockReady) crit = '막기 반격';
     if (!w) return { mult, crit, critMult: crit ? CRIT_MULT : 1 };
-    const has = (o: OptionId) => w.options.includes(o);
+    const has = (o: OptionId) => allOptions(w).includes(o);
     const st = t.statuses;
     const hpFrac = (b: Actor) => b.hp / this.st(b).maxHp;
     const dist = Math.max(Math.abs(t.x - a.x), Math.abs(t.y - a.y));
@@ -1206,14 +1246,14 @@ export class Game {
     if (t.dead) return;
     const m = this.weaponMods(a, t, w);
     const crit = m.crit ?? (forceCrit ? label : null);
-    const critMult = m.crit ? m.critMult : forceCrit ? (w.options.includes('critDmg') ? 2.5 : CRIT_MULT) : 1;
+    const critMult = m.crit ? m.critMult : forceCrit ? (allOptions(w).includes('critDmg') ? 2.5 : CRIT_MULT) : 1;
     const dmg = Math.max(1, Math.round(base * m.mult * critMult * this.dmgMult(a)));
     this.dealDamage(a, t, dmg, el, { label: crit ? `${label} · 치명타` : label, noTrigger: true, crit: !!crit });
   }
 
   /** 맞힌 뒤: 적중·처치 옵션과 고유 효과 */
   private weaponAfterHit(a: Actor, t: Actor, w: WeaponInst, base: number, dealt: number, el: Element | undefined, wasSlow: boolean, crit: boolean) {
-    const has = (o: OptionId) => w.options.includes(o);
+    const has = (o: OptionId) => allOptions(w).includes(o);
     const killed = this.lastKill === t;
     const tr = w.def.trait;
     const T = STATUS_TURNS;
@@ -1365,12 +1405,13 @@ export class Game {
     if (t.dead || amount <= 0) return 0;
     const ts = this.st(t);
     // 방패 막기 (어느 손에 있든): 막으면 다음 공격 치명타. 방패 옵션은 카운터·화염·빙결
-    const shield = opts.dodgeable && src ? t.hands.find((h) => h?.def.trait === 'block') : undefined;
+    const shield = opts.dodgeable && src ? t.hands.find((h): h is WeaponInst => h?.def.trait === 'block') : undefined;
     if (shield && src && this.rng.chance(0.25)) {
       t.blockReady = true;
-      if (shield.options.includes('counter')) t.counterReady = true;
-      if (shield.options.includes('fireShield')) this.addStatus(src, 'burn', STATUS_TURNS);
-      if (shield.options.includes('iceShield')) this.addStatus(src, 'freeze', STATUS_TURNS);
+      const so = allOptions(shield);
+      if (so.includes('counter')) t.counterReady = true;
+      if (so.includes('fireShield')) this.addStatus(src, 'burn', STATUS_TURNS);
+      if (so.includes('iceShield')) this.addStatus(src, 'freeze', STATUS_TURNS);
       this.emit({ type: 'parry', target: t.id, actor: src.id, x: t.x, y: t.y, text: 'block' });
       if (t.isPlayer) this.log(`방패로 막았다. 다음 공격 치명타.`, 'skill');
       return 0;
@@ -1386,7 +1427,13 @@ export class Game {
     let dmg = amount;
     let pierce = !!opts.pierce;
     // 광기: 이 무기를 든 동안 받는 피해 +100%
-    if (heldWeapon(t)?.options.includes('frenzy')) dmg *= 2;
+    const tw = heldWeapon(t);
+    if (tw && allOptions(tw).includes('frenzy')) dmg *= 2;
+    // 슈트 부여 원소 저항 (플레이어)
+    if (el && t.suitMods) {
+      const n = SLOTS.reduce((k, sl) => k + t.suitMods![sl].resist.filter((r) => r === el).length, 0);
+      dmg *= 1 - Math.min(RESIST_CAP, RESIST_STEP * n);
+    }
     // 몸 파손: 받는 피해 +20%
     if (t.isPlayer && isBroken(t, 'body')) dmg *= 1.2;
     // 기름: 화염에 맞으면 점화 (그 타격 ×1.5 + 화상 4턴)
@@ -1427,7 +1474,7 @@ export class Game {
         dmg *= 1.25;
       }
     } else if (el) {
-      t.aura = { element: el, turns: 3 };
+      t.aura = { element: el, turns: STATUS_TURNS };
     }
     dmg = Math.max(1, Math.round(dmg));
 
@@ -1558,6 +1605,8 @@ export class Game {
   addStatus(a: Actor, s: StatusKind, turns: number) {
     if (a.dead) return;
     if ((s === 'stun' || s === 'freeze') && a.boss) turns = Math.min(turns, 1);
+    // 플레이어에게 걸리는 상태는 길어도 2턴 (중독은 중첩 수라 제외)
+    if (a.isPlayer && s !== 'poison') turns = Math.min(turns, STATUS_TURNS);
     a.statuses[s] = s === 'poison' ? Math.min(5, (a.statuses.poison ?? 0) + turns) : Math.max(a.statuses[s] ?? 0, turns);
     if (this.playerActing) (a.freshStatus ??= new Set()).add(s);
   }
@@ -1574,6 +1623,8 @@ export class Game {
         if (--a.statuses[k]! <= 0) delete a.statuses[k];
       }
       a.freshStatus?.clear();
+      // 원소 잔류도 플레이어 턴 기준 (예전에는 적의 차례에만 줄어 플레이어 잔류가 사라지지 않았다)
+      if (a.aura && !a.dead && --a.aura.turns <= 0) a.aura = undefined;
     }
   }
 

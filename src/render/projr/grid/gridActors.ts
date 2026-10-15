@@ -60,7 +60,14 @@ interface View {
   /** time left in a leap (the figure arcs up and lands when it runs out) */
   air: number;
   dead: boolean;
+  /** (MODEL 0) 쓰러진 뒤 지난 시간: 잠시 누워 있다가 가라앉으며 사라진다 */
+  deadAge?: number;
+  gone?: boolean;
 }
+
+/** (MODEL 0) 시체가 누워 있는 시간과 사라지는 시간 (초) */
+const CORPSE_LINGER = 2.6;
+const CORPSE_FADE = 1.1;
 
 /** One model per entity: chases its cell, faces where it goes, lunges, recoils and flinches on cue. */
 export class GridActors {
@@ -98,9 +105,9 @@ export class GridActors {
   }
 
   /** Cuts a head or an arm off a figure (it must still be standing in the scene). */
-  sever(id: string | undefined, part: 'head' | 'armL' | 'armR'): { at: THREE.Vector3; color: THREE.Color; size: number } | null {
+  sever(id: string | undefined, part: 'head' | 'armL' | 'armR' | 'waist'): { at: THREE.Vector3; color: THREE.Color; size: number } | null {
     const v = this.v(id);
-    return v ? v.actor.sever(part === 'head' ? 'Head' : part === 'armL' ? 'upperarm_l' : 'upperarm_r') : null;
+    return v ? v.actor.sever(part === 'head' ? 'Head' : part === 'armL' ? 'upperarm_l' : part === 'armR' ? 'upperarm_r' : 'spine_02') : null;
   }
 
   /** A body knocked a little way from the blow that killed it (it lies there). */
@@ -275,7 +282,10 @@ export class GridActors {
     const v = this.v(id);
     if (!v || v.dead) return;
     v.dead = true;
-    v.actor.setDead();
+    v.deadAge = 0;
+    // (MODEL 0) 쓰러지는 모습을 조금씩 다르게: 빠르기, 비틀림
+    v.actor.setDead(1.0 + Math.random() * 0.8);
+    v.facing += (Math.random() - 0.5) * 1.6;
     // the ring under a figure marks it as a living threat: the fallen lose it
     for (const c of v.actor.root.children) if (c.userData.ring) c.visible = false;
   }
@@ -283,7 +293,7 @@ export class GridActors {
   /** Foes are shown only on tiles the hero can see (the dead stay where they fell once seen). */
   setVisible(id: string, on: boolean): void {
     const v = this.views.get(id);
-    if (v) v.actor.root.visible = on;
+    if (v) v.actor.root.visible = on && !v.gone;
   }
 
   /** frozen: hit-stop — models hold their pose for a moment. */
@@ -309,6 +319,19 @@ export class GridActors {
         if (v.air === 0) v.actor.play('leapLand', 2);
       }
       v.actor.root.rotation.y = Math.PI / 2 - v.yaw;
+      // (MODEL 0) 시체: 잠시 누워 있다가 바닥으로 가라앉으며 사라진다 (피웅덩이는 남는다)
+      if (v.dead && v.deadAge !== undefined && !v.gone) {
+        v.deadAge += step;
+        const k = (v.deadAge - CORPSE_LINGER) / CORPSE_FADE;
+        if (k > 0) {
+          v.actor.fadeOut(Math.min(1, k));
+          v.actor.root.position.y -= Math.min(1, k) * 0.35;
+        }
+        if (k >= 1) {
+          v.gone = true;
+          v.actor.root.visible = false;
+        }
+      }
       if (!v.dead) v.actor.setLocomotion(v.runHold > 0);
       v.actor.update(step);
     }

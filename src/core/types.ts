@@ -158,6 +158,8 @@ export interface WeaponInst {
   ammo: number;
   /** 옵션 0~2개 (일반 0~1, 정예 1~2, 금지 2) */
   options: OptionId[];
+  /** 부산물 부여 칸 (1칸, 덮어씀) */
+  infusion?: { from: string; options: OptionId[] };
   /** 충전식: 다음 충전까지 지난 턴 */
   charging?: number;
   /** 이 무기로 한 공격 수 (철퇴: 4번째마다 치명타) */
@@ -195,6 +197,8 @@ export interface Actor {
   haste: number; // 다음 행동 비용 감소 %
   marked: boolean;
   dead: boolean;
+  /** 슈트 부여 (플레이어): 부위별 횟수·장갑 증가·원소 저항 */
+  suitMods?: Record<Slot, { n: number; armor: number; resist: Element[] }>;
   /** 색 레벨 (플레이어): 레벨업마다 하나를 +1. 무기는 자기 색 레벨만큼 강해진다 */
   colors?: Record<Color, number>;
   /** 직전에 끝낸 행동 (조건 효과 '기습'·'정조준'용) */

@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 
 interface Item { obj: THREE.Object3D; mat: THREE.MeshBasicMaterial | THREE.MeshStandardMaterial; life: number; total: number; grow: number; fade: boolean }
-interface Limb { obj: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; landed: boolean }
+interface Limb { obj: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; landed: boolean; age: number }
+/** (MODEL 0) 잘린 부위도 시체처럼 잠시 뒤 사라진다 */
+const LIMB_LINGER = 3.2;
+const LIMB_FADE = 1;
 
 const GRAVITY = 14;
 
@@ -77,14 +80,18 @@ export class StrikeFx {
   }
 
   /** A severed part: a chunk in the body's colour that tumbles away from the blow and lies where it lands. */
-  limb(at: THREE.Vector3, away: THREE.Vector3, color: THREE.Color, kind: 'head' | 'arm', size: number): void {
-    const geo = kind === 'head' ? new THREE.IcosahedronGeometry(0.14 * size, 0) : new THREE.CapsuleGeometry(0.06 * size, 0.42 * size, 2, 5);
+  limb(at: THREE.Vector3, away: THREE.Vector3, color: THREE.Color, kind: 'head' | 'arm' | 'torso', size: number): void {
+    const geo =
+      kind === 'head' ? new THREE.IcosahedronGeometry(0.14 * size, 0) :
+      kind === 'torso' ? new THREE.CapsuleGeometry(0.17 * size, 0.38 * size, 3, 6) :
+      new THREE.CapsuleGeometry(0.06 * size, 0.42 * size, 2, 5);
     const obj = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, roughness: 0.9 }));
     obj.position.copy(at);
     obj.castShadow = true;
     this.root.add(obj);
     const dir = away.clone().setY(0).normalize();
-    this.limbs.push({ obj, vel: new THREE.Vector3(dir.x * 3.2, 4.2, dir.z * 3.2), spin: new THREE.Vector3(9, 4, 7), landed: false });
+    const k = kind === 'torso' ? 0.55 : 1;
+    this.limbs.push({ obj, vel: new THREE.Vector3(dir.x * 3.2 * k, 4.2 * k, dir.z * 3.2 * k), spin: new THREE.Vector3(9 * k, 4, 7 * k), landed: false, age: 0 });
   }
 
   update(dt: number): void {
@@ -95,7 +102,16 @@ export class StrikeFx {
       it.obj.scale.multiplyScalar(1 + it.grow * dt);
       if (it.life <= 0) { it.obj.removeFromParent(); (it.obj as THREE.Mesh).geometry.dispose(); it.mat.dispose(); this.items.splice(i, 1); }
     }
-    for (const l of this.limbs) {
+    for (let i = this.limbs.length - 1; i >= 0; i--) {
+      const l = this.limbs[i]!;
+      l.age += dt;
+      const fade = (l.age - LIMB_LINGER) / LIMB_FADE;
+      if (fade > 0) {
+        const m = l.obj.material as THREE.MeshStandardMaterial;
+        m.transparent = true;
+        m.opacity = Math.max(0, 1 - fade);
+        if (fade >= 1) { l.obj.removeFromParent(); l.obj.geometry.dispose(); m.dispose(); this.limbs.splice(i, 1); continue; }
+      }
       if (l.landed) continue;
       l.vel.y -= GRAVITY * dt;
       l.obj.position.addScaledVector(l.vel, dt);
