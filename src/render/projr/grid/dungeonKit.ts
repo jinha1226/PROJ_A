@@ -10,6 +10,23 @@ export type DungeonPiece =
 /** how much brighter the pack's colours are made */
 const LIFT = 1.7;
 
+/**
+ * (MODEL 0) SigilsVault Modular Dungeon Kit v1.0 (CC0): 손으로 그린 트림 시트의 어두운 판타지 던전.
+ * 구조물(벽·바닥·기둥·문·계단)과 소품 일부를 이 킷으로 바꾼다. 새 킷에 없는 것(기름통·횃불·거미줄·깃발 등)은 Quaternius 그대로.
+ */
+const SIGILS: Partial<Record<DungeonPiece, string>> = {
+  Floor_Modular: 'floor_small_01',
+  Wall_Modular: 'wall_small_01',
+  Column: 'pillar_01',
+  Column2: 'pillar_02',
+  Arch_Door: 'door_arched_01_001',
+  Stairs_Modular: 'stairs_small_01',
+  Crate: 'crate',
+  Vase: 'pot',
+};
+/** 새 킷은 이미 어두운 손그림 텍스처라 밝기를 덜 올린다 */
+const SIGILS_LIFT = 2.0;
+
 /** One pack piece, re-centred: footprint centred on the origin, resting on y = 0. */
 export interface Piece { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[]; size: THREE.Vector3 }
 
@@ -17,7 +34,34 @@ export interface Piece { geometry: THREE.BufferGeometry; material: THREE.Materia
 export class DungeonKit {
   private readonly pieces = new Map<string, Piece>();
 
-  private constructor(scene: THREE.Group) {
+  private constructor(scene: THREE.Group, overrides: [DungeonPiece, THREE.Group][] = []) {
+    this.addPieces(scene, (o) => o.name);
+    // the pack is coloured for a bright render; lift it so stone reads under torchlight (once per material)
+    for (const p of this.pieces.values()) for (const m of [p.material].flat() as THREE.MeshStandardMaterial[]) {
+      if (!m.color || m.userData.lifted) continue;
+      m.userData.lifted = true;
+      m.color.multiplyScalar(LIFT);
+    }
+    // (MODEL 0) 예전 킷의 흩어진 벽돌은 새 바닥과 어울리지 않아 뺀다
+    this.pieces.delete('Floor_BricksSeparate');
+    this.pieces.delete('Floor_BricksSeparate2');
+    // (MODEL 0) 새 킷 조각이 같은 이름 자리를 덮어쓴다. 한 파일이 한 조각이라 장면 전체를 한 조각으로 합친다
+    for (const [name, g] of overrides) {
+      const wrap = new THREE.Group();
+      wrap.add(g);
+      wrap.name = name;
+      const holder = new THREE.Group();
+      holder.add(wrap);
+      this.addPieces(holder, () => name);
+      for (const m of [this.pieces.get(name)?.material ?? []].flat() as THREE.MeshStandardMaterial[]) {
+        if (!m.color || m.userData.lifted) continue;
+        m.userData.lifted = true;
+        m.color.multiplyScalar(SIGILS_LIFT);
+      }
+    }
+  }
+
+  private addPieces(scene: THREE.Object3D, nameOf: (o: THREE.Object3D) => string): void {
     scene.updateMatrixWorld(true);
     for (const o of scene.children) {
       // a piece with several materials loads as several meshes: merge them, one group per material
@@ -37,19 +81,18 @@ export class DungeonKit {
       const box = geometry.boundingBox!;
       const c = box.getCenter(new THREE.Vector3());
       geometry.translate(-c.x, -box.min.y, -c.z);
-      this.pieces.set(o.name, { geometry, material, size: box.getSize(new THREE.Vector3()) });
-    }
-    // the pack is coloured for a bright render; lift it so stone reads under torchlight (once per material)
-    for (const p of this.pieces.values()) for (const m of [p.material].flat() as THREE.MeshStandardMaterial[]) {
-      if (!m.color || m.userData.lifted) continue;
-      m.userData.lifted = true;
-      m.color.multiplyScalar(LIFT);
+      this.pieces.set(nameOf(o), { geometry, material, size: box.getSize(new THREE.Vector3()) });
     }
   }
 
   static async load(baseUrl: string): Promise<DungeonKit> {
-    const g = await new GLTFLoader().loadAsync(`${baseUrl}assets/models/qpack/dungeon.glb`);
-    return new DungeonKit(g.scene);
+    const loader = new GLTFLoader();
+    const [g, ...extra] = await Promise.all([
+      loader.loadAsync(`${baseUrl}assets/models/qpack/dungeon.glb`),
+      ...Object.values(SIGILS).map((f) => loader.loadAsync(`${baseUrl}assets/models/sigils/${f}.glb`)),
+    ]);
+    const names = Object.keys(SIGILS) as DungeonPiece[];
+    return new DungeonKit(g!.scene, extra.map((x, i) => [names[i]!, x.scene]));
   }
 
   /** Tints every pack material (the stone of a zone); the pack's own colours are kept to tint from. */
@@ -67,12 +110,15 @@ export class DungeonKit {
   }
 
   /** A standalone copy scaled to a footprint width (or height), resting on the floor. */
-  clone(name: DungeonPiece, fit: { width?: number; height?: number }): THREE.Object3D {
+  clone(name: DungeonPiece, fit: { width?: number; height?: number; maxWidth?: number }): THREE.Object3D {
     const p = this.pieces.get(name);
     if (!p) return new THREE.Group();
     const mesh = new THREE.Mesh(p.geometry, p.material);
     const s = fit.width ? fit.width / Math.max(0.01, Math.max(p.size.x, p.size.z)) : (fit.height ?? 1) / Math.max(0.01, p.size.y);
     mesh.scale.setScalar(s);
+    // (MODEL 0) 높이에 맞춘 조각이 너무 굵으면 가로만 줄인다 (새 킷의 기둥)
+    const w = Math.max(p.size.x, p.size.z) * s;
+    if (fit.maxWidth && w > fit.maxWidth) { mesh.scale.x *= fit.maxWidth / w; mesh.scale.z *= fit.maxWidth / w; }
     mesh.castShadow = mesh.receiveShadow = true;
     const holder = new THREE.Group();
     holder.add(mesh);

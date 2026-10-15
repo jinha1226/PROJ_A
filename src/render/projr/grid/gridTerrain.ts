@@ -60,7 +60,7 @@ export class GridTerrain {
     this.root.add(caps);
     this.instanced.push({ mesh: caps, cells: faces.map((f) => idx(m, f.floor)), tint: CAP });
     for (const c of [...cornerColumns(m, faces), ...runColumns(m, faces)]) {
-      const col = kit.clone('Column', { height: WALL_H * 1.08 });
+      const col = kit.clone('Column', { height: WALL_H * 1.08, maxWidth: CELL * 0.3 });
       col.position.set(c.at.x * CELL, 0, c.at.y * CELL);
       this.addProp(c.reveal, col);
     }
@@ -156,7 +156,7 @@ export class GridTerrain {
     m.tiles.forEach((t, i) => {
       const p = toWorld(i % m.w, Math.floor(i / m.w));
       if (t === 'pillar') {
-        const col = this.kit.clone('Column2', { height: WALL_H * 1.1 });
+        const col = this.kit.clone('Column2', { height: WALL_H * 1.1, maxWidth: CELL * 0.34 });
         col.position.copy(p);
         this.addProp(i, col);
       }

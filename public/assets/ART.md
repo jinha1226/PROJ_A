@@ -43,3 +43,11 @@
 - **KayKit Medieval Hexagon Pack 1.0** — 리비전 `84fa4e91af6a88989be7c99e0891cede11f2ca38` (나무·바위·덤불)
 - **KayKit Halloween Bits 1.0** — 리비전 `6dc69bf6b2fa766a985754f35ec6a0324090e6c6` (묘비·무덤·철책·고목·지하묘지·랜턴·아치·흙바닥)
 - 라이선스: CC0 1.0
+
+## 던전 구조물 (`models/sigils/`) — MODEL 0
+
+- **Modular Dungeon Kit v1.0** — SigilsVault (Kevin Barany), https://sigilsvault.itch.io/modular-dungeon-kit-v10
+- 라이선스: CC0 1.0 (출처 표기 불필요, 감사 표기 환영). 사본: `models/sigils/LICENSE.txt`
+- 쓰는 조각: floor_small_01, wall_small_01, wall_small_02, pillar_01, pillar_02, door_arched_01_001, stairs_small_01, 소품 crate, pot, coffin, Brazier (GLB 원본 그대로, 가공 없음)
+- 렌더러에서 바닥·벽·기둥·문·계단·상자·항아리 자리를 이 조각으로 바꾼다(`src/render/projr/grid/dungeonKit.ts`의 SIGILS).
+
