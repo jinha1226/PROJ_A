@@ -2,6 +2,7 @@
 import type { Game } from '../core/game';
 import type { GameEvent } from '../core/types';
 import { Bridge } from './bridge';
+import './projr/overlay/runtime.css';
 import { DungeonKit } from './projr/grid/dungeonKit';
 import { GridRuntime } from './projr/grid/gridRuntime';
 import { UalLibrary } from './projr/grid/ualActor';
