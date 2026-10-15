@@ -4,6 +4,7 @@ import type { Game } from '../core/game';
 import { Tile as LvTile, type Level } from '../core/dungeon';
 import { heldWeapon } from '../core/stats';
 import { INJECTIONS } from '../data/consumables';
+import { statusBadges } from '../data/statusIcons';
 import type { Actor, GameEvent, WeaponInst } from '../core/types';
 import type { Cell, Ent, FloorItem, FoeKind, GEvent, GridMap, GridSim, GridState, Hero, Tile, TileFx, Weapon, WeaponGroup } from './projr/sim';
 
@@ -125,6 +126,7 @@ export class Bridge {
       elite: a.elite || a.boss,
       marked: a.marked,
       status: { burn: a.statuses.burn ? 1 : 0, freeze: a.statuses.slow || a.statuses.freeze ? 1 : 0, poison: a.statuses.poison || a.statuses.bleed ? 1 : 0 },
+      badges: statusBadges(a.statuses, a.aura),
     };
   }
 
@@ -143,7 +145,8 @@ export class Bridge {
       awake: true,
       group: 0,
       shield: p.shield,
-      status: { burn: p.statuses.burn ? 1 : 0, freeze: p.statuses.slow ? 1 : 0, poison: 0 },
+      status: { burn: p.statuses.burn ? 1 : 0, freeze: p.statuses.slow || p.statuses.freeze ? 1 : 0, poison: p.statuses.poison || p.statuses.bleed ? 1 : 0 },
+      badges: statusBadges(p.statuses, p.aura),
       suit: [],
       gear: { hands: [gear(p.hands[0]), gear(p.hands[1])], active: p.activeHand === 1 ? 1 : 0 },
       exitTime: 0,

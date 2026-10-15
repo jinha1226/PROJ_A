@@ -282,7 +282,7 @@ function showPickup() {
   const r = pickItem as ByproductInst;
   const p = g.player;
   const star = starOf(r.def);
-  const opts = [...(star ? [`★${TRAIT_NAME[star]}`] : []), ...infuseOptions(r.def).map((o) => OPTION_BY_ID[o].name)].map(esc).join(' · ');
+  const opts = [...(star ? [`★ ${TRAIT_TEXT[star]}`] : []), ...infuseOptions(r.def).map((o) => OPTION_BY_ID[o].desc)].map(esc).join('<br>');
   const inf = suitInfusion(r.def);
   const sm = p.suitMods![inf.slot];
   const hands = [0, 1]
@@ -290,7 +290,7 @@ function showPickup() {
       const w = p.hands[h];
       if (!w) return `<div class="card disabled"><div class="nm">손${h + 1} — 비어 있음</div></div>`;
       return `<div class="card"><span class="key">${h + 1}</span><div class="nm">손${h + 1} ${esc(weaponName(w))}에 부여</div>
-        <div class="ds">→ <b>${esc(weaponName({ ...w, infusion: { from: r.def.name, options: infuseOptions(r.def), trait: starOf(r.def) } }))}</b><br>+ ${opts}${w.infusion ? `<br><span style="color:var(--warn)">덮어씀: ${esc(w.infusion.from)} (${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')})</span>` : ''}</div>
+        <div class="ds">→ <b>${esc(weaponName({ ...w, infusion: { from: r.def.name, options: infuseOptions(r.def), trait: starOf(r.def) } }))}</b><br>+ ${opts}${w.infusion ? `<br><span style="color:var(--warn)">덮어씀: ${esc(w.infusion.from)} (${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].desc)).join(' · ')})</span>` : ''}</div>
         <div class="row"><button data-inf="${h}">부여 (${h + 1})</button></div></div>`;
     })
     .join('');

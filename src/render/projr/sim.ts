@@ -51,6 +51,8 @@ export interface Ent {
   summoned?: boolean;
   marked?: boolean;
   buffs?: Partial<Record<BuffKind, number>>;
+  /** (MODEL 0) 머리 위 상태 배지 */
+  badges?: { g: string; c: string; n?: number }[];
 }
 
 // 무기: PROJ_R의 무기 그룹 + 권총

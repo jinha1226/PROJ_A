@@ -7,7 +7,7 @@ import type {
 import { COLOR_NAME, ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
-import { FISTS, SIGNATURE_CRIT, TRAIT_NAME, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
+import { FISTS, SIGNATURE_CRIT, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
 import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
 import { infuseOptions, RESIST_CAP, RESIST_STEP, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
@@ -671,8 +671,8 @@ export class Game {
     if (!w || !this.takeByproduct(r)) return false;
     const old = w.infusion;
     w.infusion = { from: r.def.name, options: infuseOptions(r.def), trait: starOf(r.def) };
-    const star = w.infusion.trait ? `★${TRAIT_NAME[w.infusion.trait]} · ` : '';
-    this.log(`${w.def.name}에 ${r.def.name} 부여 → ${weaponName(w)}: ${star}${w.infusion.options.map((o) => OPTION_BY_ID[o].name).join(' · ')}${old ? ` (${old.from} 부여는 사라졌다)` : ''}`, 'good');
+    const star = w.infusion.trait ? `★ ${TRAIT_TEXT[w.infusion.trait]} · ` : '';
+    this.log(`${w.def.name}에 ${r.def.name} 부여 → ${weaponName(w)}: ${star}${w.infusion.options.map((o) => OPTION_BY_ID[o].desc).join(' · ')}${old ? ` (${old.from} 부여는 사라졌다)` : ''}`, 'good');
     this.emit({ type: 'loadout', actor: this.player.id });
     if (this.mode === 'play') this.endPlayerAction(100);
     return true;

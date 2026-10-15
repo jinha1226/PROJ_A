@@ -228,3 +228,8 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 .r .up { color: var(--g-hi); }
 .r.opt.infused b { color: var(--g-hi); }
 #statusrow .good { color: var(--g-hi); }
+
+/* 상태·옵션 아이콘 배지 */
+.badge-ic { display: inline-block; font: 700 10px/1 "Galmuri11", sans-serif; color: #000; background: var(--bc); border-radius: 3px; padding: 2px 3px 1px; margin-right: 1px; text-shadow: none; pointer-events: auto; }
+.badge-ic i { font-style: normal; font-size: 8px; margin-left: 1px; opacity: 0.8; }
+#br .opts .star { color: var(--hud-accent); pointer-events: auto; }

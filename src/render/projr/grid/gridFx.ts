@@ -104,6 +104,22 @@ export class GridFx {
     this.aim.visible = pts.length > 0;
   }
 
+  /** (MODEL 0) 머리 위 상태 배지: 색 배지에 한 글자 + 남은 턴 */
+  private readonly badgeEls = new Map<string, HTMLDivElement>();
+  setBadges(list: { id: string; at: THREE.Vector3; badges: { g: string; c: string; n?: number }[] }[]): void {
+    const keep = new Set(list.filter((l) => l.badges.length).map((l) => l.id));
+    for (const [id, el] of this.badgeEls) if (!keep.has(id)) { el.remove(); this.badgeEls.delete(id); }
+    for (const l of list) {
+      if (!l.badges.length) continue;
+      let el = this.badgeEls.get(l.id);
+      if (!el) { el = document.createElement('div'); el.className = 'grid-badges'; this.iconLayer.appendChild(el); this.badgeEls.set(l.id, el); }
+      const html = l.badges.map((b) => `<span style="--bc:${b.c}">${b.g}${b.n !== undefined ? `<i>${b.n}</i>` : ''}</span>`).join('');
+      if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
+      const p = this.project(l.at.clone().setY(1.75));
+      el.style.transform = `translate(${p.left}px, ${p.top}px)`;
+    }
+  }
+
   /** Small marks over awake foes: ! closing in, ◎ aiming. */
   setIcons(list: { id: string; at: THREE.Vector3; icon: string }[]): void {
     const keep = new Set(list.map((l) => l.id));

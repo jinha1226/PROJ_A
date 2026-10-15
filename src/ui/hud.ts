@@ -2,6 +2,7 @@ import { ALERT_THRESHOLDS, BREAK_PENALTY, type Game } from '../core/game';
 import { infuseOptions, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
 import type { Actor, GameEvent, ByproductInst, GroundItem, InjectionId, Slot, WeaponInst } from '../core/types';
 import { INJECTION_BY_ID } from '../data/consumables';
+import { badgeHtml, OPTION_ICON, statusBadges } from '../data/statusIcons';
 import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME } from '../core/types';
 import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax, signatureOf, traitsOf, weaponName } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
@@ -143,12 +144,11 @@ export class Hud {
         return `<div class="vrow"><span class="vl">${SLOT_NAME[k]}</span><span class="seg ${broken ? 'broken' : ''}">${segs}</span><span class="vv ${broken ? 'bad' : ''}">${broken ? '파손' : `${cur}/${max}`}</span></div>`;
       })
       .join('');
-    const st = Object.entries(p.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
-    if (p.aura) st.push(`${ELEMENT_NAME[p.aura.element]} 잔류`);
-    if (p.imbue) st.push(`다음 공격 ${ELEMENT_NAME[p.imbue]}`);
-    if (p.haste) st.push(`가속 ${p.haste}%`);
+    // 상태는 아이콘 배지 (마우스를 올리면 이름과 남은 턴), 주사제는 남은 방 수
+    const st = statusBadges(p.statuses, p.aura).map((b) => badgeHtml(b));
+    if (p.imbue) st.push(`<span class="dim">다음 공격 ${ELEMENT_NAME[p.imbue]}</span>`);
     for (const [k, n] of Object.entries(p.injections ?? {})) st.push(`<span class="good">${esc(INJECTION_BY_ID[k as InjectionId].name.replace(' 주사제', ''))} ${n}방</span>`);
-    this.statusRow.innerHTML = `<span class="vl">이상</span><span class="${st.length ? 'bad' : 'dim'}">${st.length ? st.join(' · ') : '없음'}</span>`;
+    this.statusRow.innerHTML = `<span class="vl">이상</span><span>${st.length ? st.join(' ') : '<span class="dim">없음</span>'}</span>`;
     // 가운데 아래: 경보 게이지
     const last = ALERT_THRESHOLDS[ALERT_THRESHOLDS.length - 1]!;
     const segs = 24;
@@ -169,7 +169,7 @@ export class Hud {
     const keys = !w || w.def.range <= 1 ? '' : w.def.mag !== undefined && !w.def.recharge ? ' · [R] 재장전 · [F] 사격' : ' · [F] 사격';
     this.br.innerHTML = `<div class="wrow"><span class="wname" ${w ? `data-byproduct="${w.uid}"` : ''}>${w ? esc(weaponName(w)) : '맨주먹'}</span>${ammo}</div>
       <div class="sub2">[E] 예비: ${spare ? esc(weaponName(spare)) : '맨주먹'}${keys}</div>
-      ${w && (w.options.length || w.infusion) ? `<div class="sub2 opts">${[...(w.infusion?.trait && TRAIT_NAME[w.infusion.trait] ? [`★${TRAIT_NAME[w.infusion.trait]}`] : []), ...[...w.options, ...(w.infusion?.options ?? [])].map((o) => OPTION_BY_ID[o].name)].map(esc).join(' · ')}</div>` : ''}
+      ${w && (w.options.length || w.infusion) ? `<div class="sub2 opts">${w.infusion?.trait ? `<span class="star" title="${esc(TRAIT_TEXT[w.infusion.trait])}">★</span> ` : ''}${[...w.options, ...(w.infusion?.options ?? [])].map((o) => badgeHtml(OPTION_ICON[o], OPTION_BY_ID[o].desc)).join(' ')}</div>` : ''}
       <div class="quick">${p.belt!
         .map((c, i) => `<div class="qs ${c ? '' : 'off'}" ${c ? `data-byproduct="${c.uid}"` : ''}><span class="k">${i + 3}</span><span class="n">${c ? esc(c.def.name.replace(' 주사제', '')) : '—'}</span></div>`)
         .join('')}<div class="qs ${g.flask ? '' : 'off'}"><span class="k">Q</span><span class="n">플라스크 ${g.flask}/${g.flaskMax}</span></div></div>`;
@@ -320,8 +320,9 @@ export function byproductTooltip(r: ByproductInst): string {
   const inf = suitInfusion(r.def);
   return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</div>
     <div class="r">${GRADE_NAME[r.def.grade]} · ${SLOT_NAME[r.def.slot]} 부산물 · 강화 재료</div>
-    <div class="r opt"><b>무기 부여</b> ${[...(starOf(r.def) ? [`★${TRAIT_NAME[starOf(r.def)!]}`] : []), ...infuseOptions(r.def).map((o) => OPTION_BY_ID[o].name)].map(esc).join(' · ')}${starOf(r.def) && SIGNATURE[starOf(r.def)!] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[starOf(r.def)!]!.weapon]!.name)}과 맞는다)</span>` : ''}</div>
+    <div class="r"><b>무기에 부여하면</b>${starOf(r.def) && SIGNATURE[starOf(r.def)!] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[starOf(r.def)!]!.weapon]!.name)}과 맞는다)</span>` : ''}</div>
     ${starOf(r.def) ? `<div class="r trait">★ ${esc(TRAIT_TEXT[starOf(r.def)!])}</div>` : ''}
+    ${infuseOptions(r.def).map((o) => `<div class="r opt">${badgeHtml(OPTION_ICON[o])} ${esc(OPTION_BY_ID[o].desc)}</div>`).join('')}
     <div class="r opt cond"><b>슈트 부여</b> ${SLOT_NAME[inf.slot]} 장갑 +${inf.armor}${inf.resist.length ? ` · ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 저항` : ''}</div>`;
 }
 
@@ -361,7 +362,7 @@ export function weaponTooltip(w: WeaponInst): string {
   const opts = [...w.options, ...(w.infusion?.options ?? [])]
     .map((o) => {
       const od = OPTION_BY_ID[o];
-      return `<div class="r opt ${od.kind}"><b>${od.kind === 'cond' ? '◇' : '◆'} ${esc(od.name)}</b> ${esc(od.desc)}</div>`;
+      return `<div class="r opt ${od.kind}">${badgeHtml(OPTION_ICON[o])} ${esc(od.desc)}</div>`;
     })
     .join('');
   const inf = w.infusion ? `<div class="r opt infused"><b>⬡ 부여: ${esc(w.infusion.from)}</b></div>` : `<div class="r" style="color:var(--dim)">⬡ 부여 칸 비어 있음 (정예·보스 부산물을 넣으면 ★)</div>`;

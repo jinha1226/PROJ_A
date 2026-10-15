@@ -363,6 +363,12 @@ export class GridRuntime {
     XRAY.on.value = THREE.MathUtils.clamp((80 - (ELEVATION * 180) / Math.PI) / 15, 0, 1);
     this.placeCamera();
     this.fx.setIcons(this.icons.map((i) => ({ ...i, at: this.actors.pos(i.id) ?? this.stationAt.get(i.id) ?? new THREE.Vector3() })));
+    // (MODEL 0) 상태 배지: 보이는 살아 있는 액터만
+    {
+      const s = this.sim.s;
+      const shown = [s.hero, ...s.foes.filter((f) => f.alive && s.visible.has(idx(s.map, f.pos)))];
+      this.fx.setBadges(shown.map((e) => ({ id: e.id, at: this.actors.pos(e.id) ?? new THREE.Vector3(), badges: e.alive ? (e.badges ?? []) : [] })));
+    }
     if (this.pixelated) this.pixel.render(this.h.scene, this.h.camera);
     else this.h.renderer.render(this.h.scene, this.h.camera);
   }
