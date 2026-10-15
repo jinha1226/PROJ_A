@@ -11,6 +11,12 @@ export function allByproducts(a: Actor): ByproductInst[] {
 
 /** 피격 부위 가중치: 몸 40 · 팔 25 · 다리 20 · 감각 15 */
 export const HIT_WEIGHT: Record<Slot, number> = { body: 40, arm: 25, leg: 20, sense: 15 };
+export const SUIT_EVASION = 3;
+export const SUIT_AC: Record<Slot, number> = { body: 3, arm: 2, leg: 2, sense: 1 };
+export const ACCURACY_BASE = 80;
+export const ACCURACY_STEP = 3;
+export const ACCURACY_MIN = 20;
+export const ACCURACY_MAX = 95;
 
 /** 부위의 최대 슈트 장갑 = 슈트 기본값 + (몸이면) 몸 부산물 장갑. 'fragile' 저주가 있으면 그 부위 절반 */
 export function partArmorMax(a: Actor, slot: Slot): number {
@@ -49,12 +55,24 @@ export function colorMult(a: Actor, w: WeaponDef): number {
   return 1 + COLOR_STEP * colorLevel(a, w);
 }
 
+export function partAc(a: Actor, slot: Slot): number {
+  let ac = a.isPlayer ? SUIT_AC[slot] : (slot === 'body' ? a.baseAc : 0);
+  for (const r of a.slots[slot]) {
+    if (!r) continue;
+    ac += (r.def.stats.ac ?? 0) * byproductFactor(r, isBroken(a, slot));
+  }
+  if (a.isPlayer) ac += Math.floor((a.colors?.survival ?? 0) / 2);
+  if (isBroken(a, slot)) ac = Math.floor(ac / 2);
+  return Math.floor(ac);
+}
+
 export interface Stats {
   maxHp: number;
   damage: number;
   attackCost: number;
   moveCost: number;
   dodge: number;
+  accuracy: number;
   sight: number;
   /** 지금 손에 든 무기 (없으면 맨주먹) */
   weapon: WeaponDef;
@@ -68,12 +86,14 @@ export interface Stats {
 export function computeStats(a: Actor): Stats {
   let hp = a.baseHp,
     // 플레이어 슈트 기본 회피 5% (적은 다리·감각 부산물로)
-    dodge = a.isPlayer ? 8 : 0,
+    dodge = a.isPlayer ? SUIT_EVASION : a.baseEvasion,
     sight = a.injections?.focus ? 9 : 7,
     // 플레이어 슈트 기본 이동: 비용 75 (1.3칸/턴). 적은 다리 부산물로
     moveBonus = (a.isPlayer ? 25 : 0) + (a.injections?.haste ? 25 : 0),
     armor = 0,
-    heavy = 0;
+    heavy = 0,
+    burden = 0,
+    accuracy = a.isPlayer ? 0 : a.baseAccuracy;
   let bestDmg = 0,
     otherDmg = 0,
     attackCost = 100;
@@ -89,6 +109,8 @@ export function computeStats(a: Actor): Stats {
     if (f === 0) continue;
     hp += (st.hp ?? 0) * f;
     dodge += (st.dodge ?? 0) * f;
+    accuracy += (st.accuracy ?? 0) * f;
+    burden += st.burden;
     sight += st.sight ?? 0;
     moveBonus += (st.moveBonus ?? 0) * f;
     if (r.def.curse?.kind === 'heavy') heavy += 15;
@@ -117,6 +139,7 @@ export function computeStats(a: Actor): Stats {
   } else {
     damage = a.baseDamage + bestDmg + otherDmg * 0.25;
   }
+  if (a.isPlayer) accuracy += weapon.accuracy + (a.colors?.tactics ?? 0);
   const elementKinds = (Object.values(attune) as number[]).filter((n) => n > 0).length;
   // 플레이어 슈트 파손 불이익: 팔 공격 −20%, 다리 이동 비용 +30%, 감각 시야 −2 (몸은 받는 피해 +20%, 감각은 치명타 무효: game.ts)
   let moveCost = Math.max(50, 100 - Math.round(moveBonus) + heavy);
@@ -132,7 +155,8 @@ export function computeStats(a: Actor): Stats {
     range: weapon.range,
     attackCost,
     moveCost,
-    dodge: Math.max(0, Math.min(45, Math.round(dodge))),
+    dodge: Math.max(0, Math.round(dodge - (a.isPlayer ? Math.floor(burden / 4) : 0))),
+    accuracy,
     sight,
     armor,
     armorMax,

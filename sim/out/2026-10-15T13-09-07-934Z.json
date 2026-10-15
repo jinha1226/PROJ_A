@@ -1,0 +1,6239 @@
+{
+  "runs": 200,
+  "errors": 0,
+  "wins": 0,
+  "winRate": 0,
+  "preBossDeathRate": 0.95,
+  "averageDepth": 0.66,
+  "averageTurns": 369.645,
+  "playerHitRate": 0.7093838579740415,
+  "enemyHitRate": 0.6460239268121042,
+  "armorReductionRatio": 0.270729226156482,
+  "partBreaks": {
+    "body": 370,
+    "arm": 232,
+    "leg": 223,
+    "sense": 105
+  },
+  "depthDistribution": {
+    "버섯 동굴 · 2층": 52,
+    "불타는 지하 묘지 · 1층": 6,
+    "버섯 동굴 · 3층": 18,
+    "버섯 동굴 · 1층": 120,
+    "불타는 지하 묘지 · 2층": 4
+  },
+  "runsDetail": [
+    {
+      "seed": "sim-0",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 494,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        248
+      ],
+      "damageDealt": 217,
+      "playerHitAttempts": 25,
+      "playerHits": 17,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 197,
+      "armorIncoming": 471,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-1",
+      "depth": "불타는 지하 묘지 · 1층",
+      "zone": 1,
+      "floor": 0,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 1348,
+      "kills": 50,
+      "combos": 1,
+      "floorTurns": [
+        167,
+        207,
+        623,
+        56
+      ],
+      "damageDealt": 1962,
+      "playerHitAttempts": 123,
+      "playerHits": 74,
+      "enemyHitAttempts": 63,
+      "enemyHits": 40,
+      "armorReduced": 343,
+      "armorIncoming": 2491,
+      "partBreaks": {
+        "body": 6,
+        "arm": 1,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-2",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 721,
+      "kills": 21,
+      "combos": 1,
+      "floorTurns": [
+        229,
+        162
+      ],
+      "damageDealt": 375,
+      "playerHitAttempts": 26,
+      "playerHits": 22,
+      "enemyHitAttempts": 3,
+      "enemyHits": 3,
+      "armorReduced": 136,
+      "armorIncoming": 532,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-3",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 917,
+      "kills": 52,
+      "combos": 8,
+      "floorTurns": [],
+      "damageDealt": 2274,
+      "playerHitAttempts": 217,
+      "playerHits": 158,
+      "enemyHitAttempts": 31,
+      "enemyHits": 25,
+      "armorReduced": 296,
+      "armorIncoming": 2690,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-4",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 366,
+      "kills": 13,
+      "combos": 4,
+      "floorTurns": [
+        248
+      ],
+      "damageDealt": 275,
+      "playerHitAttempts": 17,
+      "playerHits": 16,
+      "enemyHitAttempts": 5,
+      "enemyHits": 3,
+      "armorReduced": 179,
+      "armorIncoming": 390,
+      "partBreaks": {
+        "body": 1,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-5",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 228,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 140,
+      "playerHitAttempts": 14,
+      "playerHits": 9,
+      "enemyHitAttempts": 3,
+      "enemyHits": 1,
+      "armorReduced": 114,
+      "armorIncoming": 275,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 0,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-6",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 103,
+      "kills": 1,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 28,
+      "playerHitAttempts": 2,
+      "playerHits": 2,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 110,
+      "armorIncoming": 173,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-7",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 223,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 118,
+      "playerHitAttempts": 12,
+      "playerHits": 8,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 81,
+      "armorIncoming": 230,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-8",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 569,
+      "kills": 17,
+      "combos": 1,
+      "floorTurns": [
+        452
+      ],
+      "damageDealt": 552,
+      "playerHitAttempts": 66,
+      "playerHits": 44,
+      "enemyHitAttempts": 14,
+      "enemyHits": 11,
+      "armorReduced": 209,
+      "armorIncoming": 809,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-9",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 93,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 68,
+      "playerHitAttempts": 6,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 70,
+      "armorIncoming": 181,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-10",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 181,
+      "kills": 5,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 120,
+      "playerHitAttempts": 11,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 114,
+      "armorIncoming": 306,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-11",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 315,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 60,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 7,
+      "enemyHits": 5,
+      "armorReduced": 74,
+      "armorIncoming": 169,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-12",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 1062,
+      "kills": 42,
+      "combos": 1,
+      "floorTurns": [
+        232,
+        132
+      ],
+      "damageDealt": 1523,
+      "playerHitAttempts": 119,
+      "playerHits": 79,
+      "enemyHitAttempts": 73,
+      "enemyHits": 38,
+      "armorReduced": 372,
+      "armorIncoming": 2094,
+      "partBreaks": {
+        "body": 8,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-13",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 125,
+      "kills": 4,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 56,
+      "playerHitAttempts": 8,
+      "playerHits": 5,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 131,
+      "armorIncoming": 268,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-14",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 261,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 138,
+      "playerHitAttempts": 13,
+      "playerHits": 8,
+      "enemyHitAttempts": 5,
+      "enemyHits": 3,
+      "armorReduced": 127,
+      "armorIncoming": 253,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-15",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 489,
+      "kills": 18,
+      "combos": 2,
+      "floorTurns": [],
+      "damageDealt": 608,
+      "playerHitAttempts": 77,
+      "playerHits": 53,
+      "enemyHitAttempts": 18,
+      "enemyHits": 16,
+      "armorReduced": 207,
+      "armorIncoming": 963,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-16",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 133,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 59,
+      "playerHitAttempts": 5,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 77,
+      "armorIncoming": 173,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-17",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 217,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 123,
+      "playerHitAttempts": 9,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 93,
+      "armorIncoming": 258,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-18",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 370,
+      "kills": 12,
+      "combos": 1,
+      "floorTurns": [
+        280
+      ],
+      "damageDealt": 339,
+      "playerHitAttempts": 13,
+      "playerHits": 12,
+      "enemyHitAttempts": 3,
+      "enemyHits": 1,
+      "armorReduced": 208,
+      "armorIncoming": 566,
+      "partBreaks": {
+        "body": 4,
+        "arm": 1,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-19",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 576,
+      "kills": 16,
+      "combos": 0,
+      "floorTurns": [
+        173,
+        229
+      ],
+      "damageDealt": 306,
+      "playerHitAttempts": 22,
+      "playerHits": 18,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 127,
+      "armorIncoming": 463,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-20",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 198,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 134,
+      "playerHitAttempts": 15,
+      "playerHits": 10,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 104,
+      "armorIncoming": 272,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-21",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 185,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 102,
+      "playerHitAttempts": 7,
+      "playerHits": 7,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 90,
+      "armorIncoming": 220,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-22",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 401,
+      "kills": 11,
+      "combos": 0,
+      "floorTurns": [
+        226
+      ],
+      "damageDealt": 190,
+      "playerHitAttempts": 15,
+      "playerHits": 12,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 105,
+      "armorIncoming": 313,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-23",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 420,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        151
+      ],
+      "damageDealt": 232,
+      "playerHitAttempts": 16,
+      "playerHits": 13,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 99,
+      "armorIncoming": 357,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-24",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 488,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        251
+      ],
+      "damageDealt": 245,
+      "playerHitAttempts": 17,
+      "playerHits": 14,
+      "enemyHitAttempts": 4,
+      "enemyHits": 2,
+      "armorReduced": 120,
+      "armorIncoming": 425,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-25",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 716,
+      "kills": 37,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 1476,
+      "playerHitAttempts": 134,
+      "playerHits": 94,
+      "enemyHitAttempts": 31,
+      "enemyHits": 14,
+      "armorReduced": 217,
+      "armorIncoming": 1821,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-26",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 220,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 122,
+      "playerHitAttempts": 10,
+      "playerHits": 9,
+      "enemyHitAttempts": 5,
+      "enemyHits": 4,
+      "armorReduced": 182,
+      "armorIncoming": 337,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-27",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 103,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 48,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 94,
+      "armorIncoming": 184,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-28",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 234,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 114,
+      "playerHitAttempts": 13,
+      "playerHits": 9,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 132,
+      "armorIncoming": 249,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-29",
+      "depth": "불타는 지하 묘지 · 1층",
+      "zone": 1,
+      "floor": 0,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 1034,
+      "kills": 31,
+      "combos": 1,
+      "floorTurns": [
+        149,
+        237,
+        184,
+        89
+      ],
+      "damageDealt": 742,
+      "playerHitAttempts": 47,
+      "playerHits": 38,
+      "enemyHitAttempts": 9,
+      "enemyHits": 5,
+      "armorReduced": 168,
+      "armorIncoming": 1000,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-30",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 89,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 56,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 92,
+      "armorIncoming": 193,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-31",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 252,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [
+        121
+      ],
+      "damageDealt": 111,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 111,
+      "armorIncoming": 200,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-32",
+      "depth": "불타는 지하 묘지 · 1층",
+      "zone": 1,
+      "floor": 0,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 1159,
+      "kills": 46,
+      "combos": 2,
+      "floorTurns": [
+        190,
+        197,
+        206,
+        93
+      ],
+      "damageDealt": 1306,
+      "playerHitAttempts": 101,
+      "playerHits": 76,
+      "enemyHitAttempts": 38,
+      "enemyHits": 21,
+      "armorReduced": 308,
+      "armorIncoming": 1749,
+      "partBreaks": {
+        "body": 5,
+        "arm": 2,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-33",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 441,
+      "kills": 12,
+      "combos": 2,
+      "floorTurns": [
+        275
+      ],
+      "damageDealt": 236,
+      "playerHitAttempts": 24,
+      "playerHits": 19,
+      "enemyHitAttempts": 7,
+      "enemyHits": 5,
+      "armorReduced": 213,
+      "armorIncoming": 510,
+      "partBreaks": {
+        "body": 4,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-34",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 340,
+      "kills": 11,
+      "combos": 1,
+      "floorTurns": [
+        218
+      ],
+      "damageDealt": 154,
+      "playerHitAttempts": 14,
+      "playerHits": 11,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 209,
+      "armorIncoming": 444,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-35",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 571,
+      "kills": 21,
+      "combos": 1,
+      "floorTurns": [
+        198,
+        131
+      ],
+      "damageDealt": 356,
+      "playerHitAttempts": 29,
+      "playerHits": 23,
+      "enemyHitAttempts": 5,
+      "enemyHits": 3,
+      "armorReduced": 179,
+      "armorIncoming": 582,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-36",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 150,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 42,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 65,
+      "armorIncoming": 168,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-37",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 150,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 100,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 86,
+      "armorIncoming": 220,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-38",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 163,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 113,
+      "playerHitAttempts": 14,
+      "playerHits": 10,
+      "enemyHitAttempts": 7,
+      "enemyHits": 3,
+      "armorReduced": 170,
+      "armorIncoming": 346,
+      "partBreaks": {
+        "body": 4,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-39",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 631,
+      "kills": 21,
+      "combos": 0,
+      "floorTurns": [
+        218,
+        160
+      ],
+      "damageDealt": 434,
+      "playerHitAttempts": 28,
+      "playerHits": 22,
+      "enemyHitAttempts": 7,
+      "enemyHits": 4,
+      "armorReduced": 211,
+      "armorIncoming": 571,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-40",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 83,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 49,
+      "playerHitAttempts": 3,
+      "playerHits": 2,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 40,
+      "armorIncoming": 156,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-41",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 98,
+      "kills": 4,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 70,
+      "playerHitAttempts": 5,
+      "playerHits": 5,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 64,
+      "armorIncoming": 176,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-42",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 168,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 142,
+      "playerHitAttempts": 8,
+      "playerHits": 8,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 98,
+      "armorIncoming": 307,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-43",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 211,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 107,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 99,
+      "armorIncoming": 282,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-44",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 388,
+      "kills": 10,
+      "combos": 1,
+      "floorTurns": [
+        222
+      ],
+      "damageDealt": 190,
+      "playerHitAttempts": 12,
+      "playerHits": 11,
+      "enemyHitAttempts": 4,
+      "enemyHits": 3,
+      "armorReduced": 102,
+      "armorIncoming": 341,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-45",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 261,
+      "kills": 10,
+      "combos": 0,
+      "floorTurns": [
+        164
+      ],
+      "damageDealt": 174,
+      "playerHitAttempts": 13,
+      "playerHits": 11,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 313,
+      "armorIncoming": 541,
+      "partBreaks": {
+        "body": 4,
+        "arm": 3,
+        "leg": 2,
+        "sense": 2
+      }
+    },
+    {
+      "seed": "sim-46",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 191,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 79,
+      "playerHitAttempts": 5,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 113,
+      "armorIncoming": 203,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-47",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 358,
+      "kills": 12,
+      "combos": 0,
+      "floorTurns": [
+        174
+      ],
+      "damageDealt": 190,
+      "playerHitAttempts": 20,
+      "playerHits": 13,
+      "enemyHitAttempts": 7,
+      "enemyHits": 4,
+      "armorReduced": 140,
+      "armorIncoming": 366,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-48",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 95,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 81,
+      "playerHitAttempts": 8,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 95,
+      "armorIncoming": 218,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-49",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 395,
+      "kills": 12,
+      "combos": 0,
+      "floorTurns": [
+        220
+      ],
+      "damageDealt": 234,
+      "playerHitAttempts": 16,
+      "playerHits": 12,
+      "enemyHitAttempts": 6,
+      "enemyHits": 4,
+      "armorReduced": 30,
+      "armorIncoming": 242,
+      "partBreaks": {
+        "body": 0,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-50",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 453,
+      "kills": 14,
+      "combos": 1,
+      "floorTurns": [
+        211
+      ],
+      "damageDealt": 274,
+      "playerHitAttempts": 22,
+      "playerHits": 18,
+      "enemyHitAttempts": 6,
+      "enemyHits": 3,
+      "armorReduced": 128,
+      "armorIncoming": 410,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-51",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 431,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        236
+      ],
+      "damageDealt": 231,
+      "playerHitAttempts": 19,
+      "playerHits": 14,
+      "enemyHitAttempts": 6,
+      "enemyHits": 4,
+      "armorReduced": 140,
+      "armorIncoming": 417,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-52",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 154,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 141,
+      "playerHitAttempts": 10,
+      "playerHits": 8,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 95,
+      "armorIncoming": 272,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-53",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 123,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 69,
+      "playerHitAttempts": 10,
+      "playerHits": 6,
+      "enemyHitAttempts": 4,
+      "enemyHits": 1,
+      "armorReduced": 103,
+      "armorIncoming": 212,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-54",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 123,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 84,
+      "playerHitAttempts": 8,
+      "playerHits": 6,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 81,
+      "armorIncoming": 198,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-55",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 83,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 79,
+      "playerHitAttempts": 11,
+      "playerHits": 7,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 125,
+      "armorIncoming": 235,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-56",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 2913,
+      "kills": 210,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 9448,
+      "playerHitAttempts": 1018,
+      "playerHits": 658,
+      "enemyHitAttempts": 35,
+      "enemyHits": 23,
+      "armorReduced": 1151,
+      "armorIncoming": 10717,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-57",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 157,
+      "kills": 6,
+      "combos": 2,
+      "floorTurns": [],
+      "damageDealt": 103,
+      "playerHitAttempts": 12,
+      "playerHits": 9,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 106,
+      "armorIncoming": 247,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-58",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 128,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 84,
+      "playerHitAttempts": 6,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 68,
+      "armorIncoming": 197,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-59",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 215,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 130,
+      "playerHitAttempts": 14,
+      "playerHits": 10,
+      "enemyHitAttempts": 4,
+      "enemyHits": 2,
+      "armorReduced": 157,
+      "armorIncoming": 358,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-60",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 84,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 68,
+      "playerHitAttempts": 6,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 85,
+      "armorIncoming": 177,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-61",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 103,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 36,
+      "playerHitAttempts": 4,
+      "playerHits": 3,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 114,
+      "armorIncoming": 220,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-62",
+      "depth": "불타는 지하 묘지 · 2층",
+      "zone": 1,
+      "floor": 1,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 2
+      },
+      "turns": 1689,
+      "kills": 61,
+      "combos": 9,
+      "floorTurns": [
+        158,
+        225,
+        277,
+        84,
+        175
+      ],
+      "damageDealt": 1995,
+      "playerHitAttempts": 163,
+      "playerHits": 108,
+      "enemyHitAttempts": 84,
+      "enemyHits": 54,
+      "armorReduced": 614,
+      "armorIncoming": 2589,
+      "partBreaks": {
+        "body": 9,
+        "arm": 3,
+        "leg": 4,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-63",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 353,
+      "kills": 12,
+      "combos": 0,
+      "floorTurns": [
+        182
+      ],
+      "damageDealt": 219,
+      "playerHitAttempts": 18,
+      "playerHits": 11,
+      "enemyHitAttempts": 4,
+      "enemyHits": 3,
+      "armorReduced": 122,
+      "armorIncoming": 395,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-64",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 486,
+      "kills": 13,
+      "combos": 1,
+      "floorTurns": [
+        296
+      ],
+      "damageDealt": 239,
+      "playerHitAttempts": 22,
+      "playerHits": 17,
+      "enemyHitAttempts": 7,
+      "enemyHits": 6,
+      "armorReduced": 170,
+      "armorIncoming": 448,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 2,
+        "sense": 2
+      }
+    },
+    {
+      "seed": "sim-65",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 119,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 82,
+      "playerHitAttempts": 10,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 145,
+      "armorIncoming": 248,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-66",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 162,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 57,
+      "playerHitAttempts": 8,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 95,
+      "armorIncoming": 175,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-67",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 316,
+      "kills": 4,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 69,
+      "playerHitAttempts": 5,
+      "playerHits": 4,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 134,
+      "armorIncoming": 289,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-68",
+      "depth": "불타는 지하 묘지 · 2층",
+      "zone": 1,
+      "floor": 1,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 1317,
+      "kills": 40,
+      "combos": 1,
+      "floorTurns": [
+        213,
+        229,
+        227,
+        88,
+        218
+      ],
+      "damageDealt": 1006,
+      "playerHitAttempts": 68,
+      "playerHits": 52,
+      "enemyHitAttempts": 28,
+      "enemyHits": 17,
+      "armorReduced": 351,
+      "armorIncoming": 1402,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-69",
+      "depth": "불타는 지하 묘지 · 1층",
+      "zone": 1,
+      "floor": 0,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 3,
+        "survival": 0
+      },
+      "turns": 964,
+      "kills": 33,
+      "combos": 3,
+      "floorTurns": [
+        325,
+        162,
+        171,
+        57
+      ],
+      "damageDealt": 826,
+      "playerHitAttempts": 58,
+      "playerHits": 44,
+      "enemyHitAttempts": 38,
+      "enemyHits": 29,
+      "armorReduced": 315,
+      "armorIncoming": 1289,
+      "partBreaks": {
+        "body": 4,
+        "arm": 3,
+        "leg": 3,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-70",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 507,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        176,
+        135
+      ],
+      "damageDealt": 271,
+      "playerHitAttempts": 19,
+      "playerHits": 15,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 150,
+      "armorIncoming": 421,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-71",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 336,
+      "kills": 10,
+      "combos": 3,
+      "floorTurns": [
+        250
+      ],
+      "damageDealt": 183,
+      "playerHitAttempts": 16,
+      "playerHits": 13,
+      "enemyHitAttempts": 5,
+      "enemyHits": 3,
+      "armorReduced": 130,
+      "armorIncoming": 343,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-72",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 156,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 82,
+      "playerHitAttempts": 6,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 92,
+      "armorIncoming": 205,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-73",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 135,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 93,
+      "playerHitAttempts": 11,
+      "playerHits": 8,
+      "enemyHitAttempts": 8,
+      "enemyHits": 5,
+      "armorReduced": 123,
+      "armorIncoming": 241,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-74",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 89,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 48,
+      "playerHitAttempts": 3,
+      "playerHits": 3,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 75,
+      "armorIncoming": 160,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-75",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 660,
+      "kills": 18,
+      "combos": 1,
+      "floorTurns": [
+        232,
+        254
+      ],
+      "damageDealt": 323,
+      "playerHitAttempts": 30,
+      "playerHits": 21,
+      "enemyHitAttempts": 11,
+      "enemyHits": 3,
+      "armorReduced": 140,
+      "armorIncoming": 504,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-76",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 253,
+      "kills": 7,
+      "combos": 3,
+      "floorTurns": [],
+      "damageDealt": 116,
+      "playerHitAttempts": 19,
+      "playerHits": 9,
+      "enemyHitAttempts": 7,
+      "enemyHits": 5,
+      "armorReduced": 100,
+      "armorIncoming": 246,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-77",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 87,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 64,
+      "playerHitAttempts": 12,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 84,
+      "armorIncoming": 177,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-78",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 130,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 78,
+      "playerHitAttempts": 7,
+      "playerHits": 6,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 153,
+      "armorIncoming": 235,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-79",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 214,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 111,
+      "playerHitAttempts": 13,
+      "playerHits": 10,
+      "enemyHitAttempts": 4,
+      "enemyHits": 3,
+      "armorReduced": 101,
+      "armorIncoming": 250,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-80",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 64,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 42,
+      "playerHitAttempts": 4,
+      "playerHits": 3,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 70,
+      "armorIncoming": 147,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-81",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 674,
+      "kills": 33,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 1313,
+      "playerHitAttempts": 165,
+      "playerHits": 111,
+      "enemyHitAttempts": 43,
+      "enemyHits": 24,
+      "armorReduced": 296,
+      "armorIncoming": 1752,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-82",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 120,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 90,
+      "playerHitAttempts": 10,
+      "playerHits": 7,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 138,
+      "armorIncoming": 321,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-83",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 457,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        200
+      ],
+      "damageDealt": 225,
+      "playerHitAttempts": 20,
+      "playerHits": 14,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 91,
+      "armorIncoming": 362,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-84",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 129,
+      "kills": 3,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 43,
+      "playerHitAttempts": 3,
+      "playerHits": 3,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 86,
+      "armorIncoming": 184,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-85",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 171,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 103,
+      "playerHitAttempts": 10,
+      "playerHits": 8,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 101,
+      "armorIncoming": 240,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-86",
+      "depth": "불타는 지하 묘지 · 2층",
+      "zone": 1,
+      "floor": 1,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 1731,
+      "kills": 74,
+      "combos": 11,
+      "floorTurns": [
+        217,
+        308,
+        652,
+        46,
+        397
+      ],
+      "damageDealt": 2644,
+      "playerHitAttempts": 198,
+      "playerHits": 165,
+      "enemyHitAttempts": 30,
+      "enemyHits": 20,
+      "armorReduced": 684,
+      "armorIncoming": 3450,
+      "partBreaks": {
+        "body": 9,
+        "arm": 5,
+        "leg": 3,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-87",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 114,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 100,
+      "playerHitAttempts": 12,
+      "playerHits": 7,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 103,
+      "armorIncoming": 238,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-88",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 153,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 102,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 143,
+      "armorIncoming": 275,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-89",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 357,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        182
+      ],
+      "damageDealt": 242,
+      "playerHitAttempts": 18,
+      "playerHits": 14,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 91,
+      "armorIncoming": 364,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-90",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 89,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 33,
+      "playerHitAttempts": 5,
+      "playerHits": 3,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 123,
+      "armorIncoming": 250,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-91",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 856,
+      "kills": 24,
+      "combos": 0,
+      "floorTurns": [
+        198,
+        264
+      ],
+      "damageDealt": 548,
+      "playerHitAttempts": 38,
+      "playerHits": 25,
+      "enemyHitAttempts": 16,
+      "enemyHits": 10,
+      "armorReduced": 106,
+      "armorIncoming": 687,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-92",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 462,
+      "kills": 15,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 493,
+      "playerHitAttempts": 65,
+      "playerHits": 44,
+      "enemyHitAttempts": 28,
+      "enemyHits": 23,
+      "armorReduced": 172,
+      "armorIncoming": 774,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-93",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 109,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 92,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 116,
+      "armorIncoming": 267,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-94",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 451,
+      "kills": 12,
+      "combos": 0,
+      "floorTurns": [
+        296
+      ],
+      "damageDealt": 220,
+      "playerHitAttempts": 13,
+      "playerHits": 13,
+      "enemyHitAttempts": 5,
+      "enemyHits": 2,
+      "armorReduced": 146,
+      "armorIncoming": 429,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-95",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 669,
+      "kills": 23,
+      "combos": 2,
+      "floorTurns": [
+        236,
+        235
+      ],
+      "damageDealt": 397,
+      "playerHitAttempts": 36,
+      "playerHits": 24,
+      "enemyHitAttempts": 10,
+      "enemyHits": 6,
+      "armorReduced": 169,
+      "armorIncoming": 579,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-96",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 140,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 92,
+      "playerHitAttempts": 6,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 110,
+      "armorIncoming": 209,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-97",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 78,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 109,
+      "playerHitAttempts": 8,
+      "playerHits": 8,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 83,
+      "armorIncoming": 241,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-98",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 517,
+      "kills": 12,
+      "combos": 0,
+      "floorTurns": [
+        273
+      ],
+      "damageDealt": 204,
+      "playerHitAttempts": 16,
+      "playerHits": 12,
+      "enemyHitAttempts": 3,
+      "enemyHits": 3,
+      "armorReduced": 170,
+      "armorIncoming": 329,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-99",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 389,
+      "kills": 13,
+      "combos": 1,
+      "floorTurns": [
+        256
+      ],
+      "damageDealt": 269,
+      "playerHitAttempts": 25,
+      "playerHits": 20,
+      "enemyHitAttempts": 6,
+      "enemyHits": 4,
+      "armorReduced": 283,
+      "armorIncoming": 494,
+      "partBreaks": {
+        "body": 5,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-100",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 177,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 105,
+      "playerHitAttempts": 15,
+      "playerHits": 8,
+      "enemyHitAttempts": 9,
+      "enemyHits": 7,
+      "armorReduced": 102,
+      "armorIncoming": 252,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-101",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 520,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        145
+      ],
+      "damageDealt": 243,
+      "playerHitAttempts": 24,
+      "playerHits": 15,
+      "enemyHitAttempts": 3,
+      "enemyHits": 1,
+      "armorReduced": 88,
+      "armorIncoming": 378,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-102",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 264,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 135,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 110,
+      "armorIncoming": 302,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-103",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 117,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 122,
+      "playerHitAttempts": 11,
+      "playerHits": 9,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 129,
+      "armorIncoming": 271,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-104",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 257,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 156,
+      "playerHitAttempts": 14,
+      "playerHits": 10,
+      "enemyHitAttempts": 3,
+      "enemyHits": 3,
+      "armorReduced": 138,
+      "armorIncoming": 310,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-105",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 367,
+      "kills": 9,
+      "combos": 0,
+      "floorTurns": [
+        207
+      ],
+      "damageDealt": 158,
+      "playerHitAttempts": 12,
+      "playerHits": 11,
+      "enemyHitAttempts": 4,
+      "enemyHits": 4,
+      "armorReduced": 78,
+      "armorIncoming": 296,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-106",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 1015,
+      "kills": 55,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 2609,
+      "playerHitAttempts": 229,
+      "playerHits": 151,
+      "enemyHitAttempts": 47,
+      "enemyHits": 35,
+      "armorReduced": 338,
+      "armorIncoming": 3059,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-107",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 124,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 101,
+      "playerHitAttempts": 12,
+      "playerHits": 9,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 76,
+      "armorIncoming": 216,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-108",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 94,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 44,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 100,
+      "armorIncoming": 189,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-109",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 64,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 51,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 107,
+      "armorIncoming": 171,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-110",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 465,
+      "kills": 10,
+      "combos": 0,
+      "floorTurns": [
+        358
+      ],
+      "damageDealt": 233,
+      "playerHitAttempts": 21,
+      "playerHits": 16,
+      "enemyHitAttempts": 5,
+      "enemyHits": 3,
+      "armorReduced": 119,
+      "armorIncoming": 401,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-111",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 430,
+      "kills": 10,
+      "combos": 1,
+      "floorTurns": [
+        205
+      ],
+      "damageDealt": 187,
+      "playerHitAttempts": 14,
+      "playerHits": 12,
+      "enemyHitAttempts": 6,
+      "enemyHits": 4,
+      "armorReduced": 79,
+      "armorIncoming": 317,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-112",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 624,
+      "kills": 17,
+      "combos": 0,
+      "floorTurns": [
+        264,
+        212
+      ],
+      "damageDealt": 339,
+      "playerHitAttempts": 23,
+      "playerHits": 17,
+      "enemyHitAttempts": 6,
+      "enemyHits": 6,
+      "armorReduced": 94,
+      "armorIncoming": 478,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-113",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 370,
+      "kills": 10,
+      "combos": 1,
+      "floorTurns": [
+        239
+      ],
+      "damageDealt": 172,
+      "playerHitAttempts": 19,
+      "playerHits": 12,
+      "enemyHitAttempts": 5,
+      "enemyHits": 2,
+      "armorReduced": 196,
+      "armorIncoming": 439,
+      "partBreaks": {
+        "body": 3,
+        "arm": 2,
+        "leg": 2,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-114",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 53,
+      "kills": 1,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 28,
+      "playerHitAttempts": 5,
+      "playerHits": 2,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 63,
+      "armorIncoming": 131,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-115",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 157,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 124,
+      "playerHitAttempts": 9,
+      "playerHits": 8,
+      "enemyHitAttempts": 4,
+      "enemyHits": 4,
+      "armorReduced": 116,
+      "armorIncoming": 290,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-116",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 1808,
+      "kills": 122,
+      "combos": 0,
+      "floorTurns": [
+        1626
+      ],
+      "damageDealt": 4995,
+      "playerHitAttempts": 507,
+      "playerHits": 353,
+      "enemyHitAttempts": 12,
+      "enemyHits": 9,
+      "armorReduced": 905,
+      "armorIncoming": 6068,
+      "partBreaks": {
+        "body": 4,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-117",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 289,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        135
+      ],
+      "damageDealt": 231,
+      "playerHitAttempts": 23,
+      "playerHits": 16,
+      "enemyHitAttempts": 9,
+      "enemyHits": 5,
+      "armorReduced": 332,
+      "armorIncoming": 443,
+      "partBreaks": {
+        "body": 5,
+        "arm": 3,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-118",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 366,
+      "kills": 10,
+      "combos": 1,
+      "floorTurns": [
+        182
+      ],
+      "damageDealt": 168,
+      "playerHitAttempts": 21,
+      "playerHits": 13,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 137,
+      "armorIncoming": 333,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-119",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 619,
+      "kills": 18,
+      "combos": 3,
+      "floorTurns": [
+        203
+      ],
+      "damageDealt": 451,
+      "playerHitAttempts": 62,
+      "playerHits": 35,
+      "enemyHitAttempts": 24,
+      "enemyHits": 19,
+      "armorReduced": 176,
+      "armorIncoming": 720,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-120",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 108,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 74,
+      "playerHitAttempts": 5,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 176,
+      "armorIncoming": 277,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-121",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 129,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 50,
+      "playerHitAttempts": 4,
+      "playerHits": 3,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 84,
+      "armorIncoming": 169,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-122",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 196,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 82,
+      "playerHitAttempts": 7,
+      "playerHits": 6,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 108,
+      "armorIncoming": 212,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-123",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 97,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 26,
+      "playerHitAttempts": 2,
+      "playerHits": 2,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 92,
+      "armorIncoming": 168,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-124",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 421,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        210
+      ],
+      "damageDealt": 216,
+      "playerHitAttempts": 24,
+      "playerHits": 15,
+      "enemyHitAttempts": 6,
+      "enemyHits": 2,
+      "armorReduced": 177,
+      "armorIncoming": 421,
+      "partBreaks": {
+        "body": 4,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-125",
+      "depth": "불타는 지하 묘지 · 1층",
+      "zone": 1,
+      "floor": 0,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 4,
+        "survival": 0
+      },
+      "turns": 1145,
+      "kills": 34,
+      "combos": 2,
+      "floorTurns": [
+        141,
+        243,
+        163,
+        107
+      ],
+      "damageDealt": 779,
+      "playerHitAttempts": 56,
+      "playerHits": 46,
+      "enemyHitAttempts": 34,
+      "enemyHits": 14,
+      "armorReduced": 252,
+      "armorIncoming": 1077,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 3,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-126",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 129,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 84,
+      "playerHitAttempts": 10,
+      "playerHits": 7,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 146,
+      "armorIncoming": 307,
+      "partBreaks": {
+        "body": 4,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-127",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 85,
+      "kills": 4,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 73,
+      "playerHitAttempts": 6,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 102,
+      "armorIncoming": 195,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-128",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 751,
+      "kills": 40,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 1591,
+      "playerHitAttempts": 207,
+      "playerHits": 137,
+      "enemyHitAttempts": 28,
+      "enemyHits": 21,
+      "armorReduced": 331,
+      "armorIncoming": 2064,
+      "partBreaks": {
+        "body": 1,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-129",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 175,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 84,
+      "playerHitAttempts": 8,
+      "playerHits": 6,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 74,
+      "armorIncoming": 198,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-130",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 197,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 100,
+      "playerHitAttempts": 11,
+      "playerHits": 7,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 111,
+      "armorIncoming": 224,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-131",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 72,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 69,
+      "playerHitAttempts": 8,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 98,
+      "armorIncoming": 186,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-132",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 59,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 36,
+      "playerHitAttempts": 5,
+      "playerHits": 3,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 78,
+      "armorIncoming": 151,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-133",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 44,
+      "kills": 1,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 28,
+      "playerHitAttempts": 2,
+      "playerHits": 2,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 69,
+      "armorIncoming": 131,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-134",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 63,
+      "kills": 2,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 42,
+      "playerHitAttempts": 3,
+      "playerHits": 3,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 82,
+      "armorIncoming": 145,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-135",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 634,
+      "kills": 18,
+      "combos": 0,
+      "floorTurns": [
+        154,
+        344
+      ],
+      "damageDealt": 410,
+      "playerHitAttempts": 31,
+      "playerHits": 21,
+      "enemyHitAttempts": 11,
+      "enemyHits": 8,
+      "armorReduced": 186,
+      "armorIncoming": 539,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-136",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 210,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 133,
+      "playerHitAttempts": 15,
+      "playerHits": 11,
+      "enemyHitAttempts": 4,
+      "enemyHits": 4,
+      "armorReduced": 167,
+      "armorIncoming": 354,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-137",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 82,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 41,
+      "playerHitAttempts": 3,
+      "playerHits": 3,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 78,
+      "armorIncoming": 147,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-138",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 566,
+      "kills": 14,
+      "combos": 4,
+      "floorTurns": [
+        220
+      ],
+      "damageDealt": 289,
+      "playerHitAttempts": 20,
+      "playerHits": 19,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 90,
+      "armorIncoming": 425,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-139",
+      "depth": "불타는 지하 묘지 · 1층",
+      "zone": 1,
+      "floor": 0,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 4,
+        "survival": 0
+      },
+      "turns": 829,
+      "kills": 28,
+      "combos": 5,
+      "floorTurns": [
+        142,
+        325,
+        215,
+        73
+      ],
+      "damageDealt": 615,
+      "playerHitAttempts": 45,
+      "playerHits": 39,
+      "enemyHitAttempts": 12,
+      "enemyHits": 6,
+      "armorReduced": 299,
+      "armorIncoming": 944,
+      "partBreaks": {
+        "body": 4,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-140",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 190,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 84,
+      "playerHitAttempts": 8,
+      "playerHits": 6,
+      "enemyHitAttempts": 4,
+      "enemyHits": 3,
+      "armorReduced": 102,
+      "armorIncoming": 193,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-141",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 247,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 108,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 108,
+      "armorIncoming": 244,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-142",
+      "depth": "불타는 지하 묘지 · 2층",
+      "zone": 1,
+      "floor": 1,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 2
+      },
+      "turns": 1467,
+      "kills": 66,
+      "combos": 3,
+      "floorTurns": [
+        730,
+        121,
+        158,
+        44,
+        188
+      ],
+      "damageDealt": 2361,
+      "playerHitAttempts": 202,
+      "playerHits": 142,
+      "enemyHitAttempts": 40,
+      "enemyHits": 21,
+      "armorReduced": 504,
+      "armorIncoming": 2908,
+      "partBreaks": {
+        "body": 3,
+        "arm": 3,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-143",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 351,
+      "kills": 12,
+      "combos": 1,
+      "floorTurns": [
+        180
+      ],
+      "damageDealt": 191,
+      "playerHitAttempts": 16,
+      "playerHits": 12,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 121,
+      "armorIncoming": 281,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-144",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 418,
+      "kills": 14,
+      "combos": 5,
+      "floorTurns": [],
+      "damageDealt": 452,
+      "playerHitAttempts": 36,
+      "playerHits": 30,
+      "enemyHitAttempts": 12,
+      "enemyHits": 11,
+      "armorReduced": 125,
+      "armorIncoming": 703,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-145",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 3,
+        "survival": 0
+      },
+      "turns": 851,
+      "kills": 24,
+      "combos": 2,
+      "floorTurns": [
+        290,
+        193
+      ],
+      "damageDealt": 549,
+      "playerHitAttempts": 30,
+      "playerHits": 27,
+      "enemyHitAttempts": 8,
+      "enemyHits": 3,
+      "armorReduced": 294,
+      "armorIncoming": 777,
+      "partBreaks": {
+        "body": 4,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-146",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 206,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 157,
+      "playerHitAttempts": 14,
+      "playerHits": 12,
+      "enemyHitAttempts": 5,
+      "enemyHits": 2,
+      "armorReduced": 119,
+      "armorIncoming": 340,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-147",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 532,
+      "kills": 15,
+      "combos": 0,
+      "floorTurns": [
+        219
+      ],
+      "damageDealt": 274,
+      "playerHitAttempts": 20,
+      "playerHits": 16,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 109,
+      "armorIncoming": 407,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-148",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 157,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 117,
+      "playerHitAttempts": 8,
+      "playerHits": 8,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 81,
+      "armorIncoming": 228,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-149",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 51,
+      "kills": 0,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 0,
+      "playerHitAttempts": 0,
+      "playerHits": 0,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 69,
+      "armorIncoming": 108,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-150",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 71,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 56,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 86,
+      "armorIncoming": 169,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-151",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 216,
+      "kills": 7,
+      "combos": 2,
+      "floorTurns": [],
+      "damageDealt": 125,
+      "playerHitAttempts": 14,
+      "playerHits": 11,
+      "enemyHitAttempts": 6,
+      "enemyHits": 4,
+      "armorReduced": 147,
+      "armorIncoming": 284,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-152",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 135,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 91,
+      "playerHitAttempts": 10,
+      "playerHits": 7,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 138,
+      "armorIncoming": 278,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-153",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 257,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 137,
+      "playerHitAttempts": 12,
+      "playerHits": 10,
+      "enemyHitAttempts": 6,
+      "enemyHits": 3,
+      "armorReduced": 103,
+      "armorIncoming": 256,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-154",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 394,
+      "kills": 9,
+      "combos": 0,
+      "floorTurns": [
+        243
+      ],
+      "damageDealt": 172,
+      "playerHitAttempts": 10,
+      "playerHits": 9,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 87,
+      "armorIncoming": 294,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-155",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 520,
+      "kills": 10,
+      "combos": 1,
+      "floorTurns": [
+        309
+      ],
+      "damageDealt": 196,
+      "playerHitAttempts": 15,
+      "playerHits": 11,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 135,
+      "armorIncoming": 382,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-156",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 84,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 76,
+      "playerHitAttempts": 6,
+      "playerHits": 5,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 79,
+      "armorIncoming": 223,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-157",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 346,
+      "kills": 11,
+      "combos": 1,
+      "floorTurns": [
+        206
+      ],
+      "damageDealt": 175,
+      "playerHitAttempts": 18,
+      "playerHits": 12,
+      "enemyHitAttempts": 3,
+      "enemyHits": 3,
+      "armorReduced": 128,
+      "armorIncoming": 344,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-158",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 562,
+      "kills": 24,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 892,
+      "playerHitAttempts": 113,
+      "playerHits": 66,
+      "enemyHitAttempts": 30,
+      "enemyHits": 21,
+      "armorReduced": 167,
+      "armorIncoming": 1189,
+      "partBreaks": {
+        "body": 3,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-159",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 102,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 54,
+      "playerHitAttempts": 7,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 123,
+      "armorIncoming": 237,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-160",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 322,
+      "kills": 8,
+      "combos": 0,
+      "floorTurns": [
+        192
+      ],
+      "damageDealt": 141,
+      "playerHitAttempts": 12,
+      "playerHits": 9,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 79,
+      "armorIncoming": 274,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-161",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 206,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 107,
+      "playerHitAttempts": 8,
+      "playerHits": 8,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 117,
+      "armorIncoming": 241,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-162",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 202,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 147,
+      "playerHitAttempts": 13,
+      "playerHits": 12,
+      "enemyHitAttempts": 7,
+      "enemyHits": 4,
+      "armorReduced": 128,
+      "armorIncoming": 323,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-163",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 81,
+      "kills": 2,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 50,
+      "playerHitAttempts": 5,
+      "playerHits": 4,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 86,
+      "armorIncoming": 181,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-164",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 102,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 77,
+      "playerHitAttempts": 6,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 102,
+      "armorIncoming": 215,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-165",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 56,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 54,
+      "playerHitAttempts": 6,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 88,
+      "armorIncoming": 174,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-166",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 436,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        235
+      ],
+      "damageDealt": 287,
+      "playerHitAttempts": 18,
+      "playerHits": 14,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 100,
+      "armorIncoming": 410,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-167",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 149,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 133,
+      "playerHitAttempts": 14,
+      "playerHits": 11,
+      "enemyHitAttempts": 5,
+      "enemyHits": 5,
+      "armorReduced": 118,
+      "armorIncoming": 309,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-168",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 183,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 101,
+      "playerHitAttempts": 9,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 98,
+      "armorIncoming": 257,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-169",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 111,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 68,
+      "playerHitAttempts": 5,
+      "playerHits": 5,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 89,
+      "armorIncoming": 208,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-170",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 349,
+      "kills": 10,
+      "combos": 1,
+      "floorTurns": [
+        260
+      ],
+      "damageDealt": 142,
+      "playerHitAttempts": 13,
+      "playerHits": 10,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 212,
+      "armorIncoming": 381,
+      "partBreaks": {
+        "body": 3,
+        "arm": 2,
+        "leg": 2,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-171",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 84,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 52,
+      "playerHitAttempts": 8,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 101,
+      "armorIncoming": 192,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-172",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 158,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 94,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 80,
+      "armorIncoming": 209,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-173",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 61,
+      "kills": 1,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 22,
+      "playerHitAttempts": 4,
+      "playerHits": 2,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 75,
+      "armorIncoming": 131,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-174",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 367,
+      "kills": 10,
+      "combos": 0,
+      "floorTurns": [
+        237
+      ],
+      "damageDealt": 179,
+      "playerHitAttempts": 15,
+      "playerHits": 12,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 138,
+      "armorIncoming": 357,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-175",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 3,
+        "survival": 0
+      },
+      "turns": 775,
+      "kills": 23,
+      "combos": 0,
+      "floorTurns": [
+        170,
+        211
+      ],
+      "damageDealt": 408,
+      "playerHitAttempts": 39,
+      "playerHits": 24,
+      "enemyHitAttempts": 4,
+      "enemyHits": 4,
+      "armorReduced": 130,
+      "armorIncoming": 571,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-176",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 355,
+      "kills": 9,
+      "combos": 0,
+      "floorTurns": [
+        256
+      ],
+      "damageDealt": 171,
+      "playerHitAttempts": 20,
+      "playerHits": 12,
+      "enemyHitAttempts": 10,
+      "enemyHits": 8,
+      "armorReduced": 107,
+      "armorIncoming": 307,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-177",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 106,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 56,
+      "playerHitAttempts": 5,
+      "playerHits": 4,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 119,
+      "armorIncoming": 212,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-178",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 1183,
+      "kills": 50,
+      "combos": 0,
+      "floorTurns": [
+        248
+      ],
+      "damageDealt": 2019,
+      "playerHitAttempts": 204,
+      "playerHits": 126,
+      "enemyHitAttempts": 57,
+      "enemyHits": 35,
+      "armorReduced": 412,
+      "armorIncoming": 2595,
+      "partBreaks": {
+        "body": 3,
+        "arm": 3,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-179",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 550,
+      "kills": 15,
+      "combos": 3,
+      "floorTurns": [
+        246
+      ],
+      "damageDealt": 289,
+      "playerHitAttempts": 22,
+      "playerHits": 19,
+      "enemyHitAttempts": 7,
+      "enemyHits": 4,
+      "armorReduced": 223,
+      "armorIncoming": 567,
+      "partBreaks": {
+        "body": 4,
+        "arm": 2,
+        "leg": 2,
+        "sense": 2
+      }
+    },
+    {
+      "seed": "sim-180",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 86,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 48,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 89,
+      "armorIncoming": 185,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-181",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 647,
+      "kills": 33,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 1374,
+      "playerHitAttempts": 187,
+      "playerHits": 132,
+      "enemyHitAttempts": 24,
+      "enemyHits": 16,
+      "armorReduced": 311,
+      "armorIncoming": 1765,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-182",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 484,
+      "kills": 11,
+      "combos": 1,
+      "floorTurns": [
+        254
+      ],
+      "damageDealt": 196,
+      "playerHitAttempts": 17,
+      "playerHits": 13,
+      "enemyHitAttempts": 6,
+      "enemyHits": 4,
+      "armorReduced": 97,
+      "armorIncoming": 341,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-183",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 289,
+      "kills": 11,
+      "combos": 0,
+      "floorTurns": [
+        135
+      ],
+      "damageDealt": 165,
+      "playerHitAttempts": 12,
+      "playerHits": 11,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 102,
+      "armorIncoming": 292,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-184",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 78,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 86,
+      "playerHitAttempts": 9,
+      "playerHits": 7,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 74,
+      "armorIncoming": 190,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-185",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 107,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 68,
+      "playerHitAttempts": 8,
+      "playerHits": 5,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 89,
+      "armorIncoming": 211,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-186",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 95,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 98,
+      "playerHitAttempts": 9,
+      "playerHits": 8,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 102,
+      "armorIncoming": 239,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-187",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 619,
+      "kills": 15,
+      "combos": 1,
+      "floorTurns": [
+        255
+      ],
+      "damageDealt": 296,
+      "playerHitAttempts": 21,
+      "playerHits": 16,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 187,
+      "armorIncoming": 454,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-188",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 160,
+      "kills": 5,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 95,
+      "playerHitAttempts": 6,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 105,
+      "armorIncoming": 216,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-189",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 105,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 88,
+      "playerHitAttempts": 12,
+      "playerHits": 7,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 78,
+      "armorIncoming": 198,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    },
+    {
+      "seed": "sim-190",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 490,
+      "kills": 19,
+      "combos": 1,
+      "floorTurns": [
+        100,
+        281
+      ],
+      "damageDealt": 370,
+      "playerHitAttempts": 29,
+      "playerHits": 19,
+      "enemyHitAttempts": 10,
+      "enemyHits": 9,
+      "armorReduced": 198,
+      "armorIncoming": 627,
+      "partBreaks": {
+        "body": 3,
+        "arm": 3,
+        "leg": 2,
+        "sense": 2
+      }
+    },
+    {
+      "seed": "sim-191",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 288,
+      "kills": 13,
+      "combos": 2,
+      "floorTurns": [
+        191
+      ],
+      "damageDealt": 502,
+      "playerHitAttempts": 18,
+      "playerHits": 14,
+      "enemyHitAttempts": 8,
+      "enemyHits": 8,
+      "armorReduced": 117,
+      "armorIncoming": 700,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-192",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 764,
+      "kills": 23,
+      "combos": 0,
+      "floorTurns": [
+        183,
+        191
+      ],
+      "damageDealt": 453,
+      "playerHitAttempts": 37,
+      "playerHits": 24,
+      "enemyHitAttempts": 11,
+      "enemyHits": 5,
+      "armorReduced": 107,
+      "armorIncoming": 608,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-193",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 486,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        206
+      ],
+      "damageDealt": 284,
+      "playerHitAttempts": 16,
+      "playerHits": 13,
+      "enemyHitAttempts": 3,
+      "enemyHits": 1,
+      "armorReduced": 108,
+      "armorIncoming": 431,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-194",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 699,
+      "kills": 23,
+      "combos": 1,
+      "floorTurns": [
+        159,
+        211
+      ],
+      "damageDealt": 502,
+      "playerHitAttempts": 31,
+      "playerHits": 25,
+      "enemyHitAttempts": 7,
+      "enemyHits": 6,
+      "armorReduced": 204,
+      "armorIncoming": 727,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 2,
+        "sense": 2
+      }
+    },
+    {
+      "seed": "sim-195",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 569,
+      "kills": 18,
+      "combos": 2,
+      "floorTurns": [
+        175,
+        206
+      ],
+      "damageDealt": 366,
+      "playerHitAttempts": 32,
+      "playerHits": 23,
+      "enemyHitAttempts": 15,
+      "enemyHits": 12,
+      "armorReduced": 180,
+      "armorIncoming": 538,
+      "partBreaks": {
+        "body": 2,
+        "arm": 2,
+        "leg": 0,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-196",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 3,
+        "survival": 0
+      },
+      "turns": 723,
+      "kills": 24,
+      "combos": 0,
+      "floorTurns": [
+        195,
+        185
+      ],
+      "damageDealt": 466,
+      "playerHitAttempts": 35,
+      "playerHits": 27,
+      "enemyHitAttempts": 8,
+      "enemyHits": 7,
+      "armorReduced": 129,
+      "armorIncoming": 611,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-197",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 186,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 101,
+      "playerHitAttempts": 11,
+      "playerHits": 8,
+      "enemyHitAttempts": 6,
+      "enemyHits": 5,
+      "armorReduced": 95,
+      "armorIncoming": 241,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-198",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 131,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 106,
+      "playerHitAttempts": 11,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 124,
+      "armorIncoming": 300,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      }
+    },
+    {
+      "seed": "sim-199",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 104,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 78,
+      "playerHitAttempts": 9,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 91,
+      "armorIncoming": 216,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      }
+    }
+  ]
+}

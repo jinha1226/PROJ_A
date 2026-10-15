@@ -4,20 +4,20 @@ import type { WeaponDef, WeaponTrait } from '../core/types';
 // 피해·속도·사거리만 다르고 ★ 고유 효과는 없다
 // (방패의 막기, 지팡이의 원소 튐처럼 그 무기를 정의하는 동작만 남긴다). ★는 부산물을 넣어서 얻는다 (design.md 4.5).
 export const WEAPONS: WeaponDef[] = [
-  { id: 'dagger', name: '단검', family: 'melee', grade: 'common', colors: ['power'], damage: 5, attackCost: 80, range: 1 },
-  { id: 'longsword', name: '장검', family: 'melee', grade: 'common', colors: ['power'], damage: 8, attackCost: 100, range: 1 },
-  { id: 'greataxe', name: '양손 도끼', family: 'melee', grade: 'common', colors: ['power'], damage: 12, attackCost: 140, range: 1 },
-  { id: 'spear', name: '창', family: 'melee', grade: 'common', colors: ['power', 'survival'], damage: 8, attackCost: 100, range: 1 },
-  { id: 'mace', name: '철퇴', family: 'melee', grade: 'common', colors: ['survival'], damage: 9, attackCost: 110, range: 1 },
-  { id: 'shield', name: '방패', family: 'melee', grade: 'common', colors: ['survival'], trait: 'block', damage: 3, attackCost: 100, range: 1 },
-  { id: 'bow', name: '활', family: 'bow', grade: 'common', colors: ['tactics'], damage: 6, attackCost: 125, range: 8 },
-  { id: 'staff', name: '원소 지팡이', family: 'magic', grade: 'common', colors: ['tactics'], trait: 'arcane', element: 'impact', damage: 4, attackCost: 100, range: 5, mag: 4, recharge: 3 },
-  { id: 'pistol', name: '권총', family: 'gun', grade: 'common', colors: ['tactics'], damage: 5, attackCost: 110, range: 6, mag: 6 },
+  { id: 'dagger', name: '단검', family: 'melee', grade: 'common', colors: ['power'], damage: 5, accuracy: 4, attackCost: 80, range: 1 },
+  { id: 'longsword', name: '장검', family: 'melee', grade: 'common', colors: ['power'], damage: 8, accuracy: 1, attackCost: 100, range: 1 },
+  { id: 'greataxe', name: '양손 도끼', family: 'melee', grade: 'common', colors: ['power'], damage: 12, accuracy: -2, attackCost: 140, range: 1 },
+  { id: 'spear', name: '창', family: 'melee', grade: 'common', colors: ['power', 'survival'], damage: 8, accuracy: 2, attackCost: 100, range: 1 },
+  { id: 'mace', name: '철퇴', family: 'melee', grade: 'common', colors: ['survival'], damage: 9, accuracy: 0, attackCost: 110, range: 1 },
+  { id: 'shield', name: '방패', family: 'melee', grade: 'common', colors: ['survival'], trait: 'block', damage: 3, accuracy: 0, attackCost: 100, range: 1 },
+  { id: 'bow', name: '활', family: 'bow', grade: 'common', colors: ['tactics'], damage: 6, accuracy: 2, attackCost: 125, range: 8 },
+  { id: 'staff', name: '원소 지팡이', family: 'magic', grade: 'common', colors: ['tactics'], trait: 'arcane', element: 'impact', damage: 4, accuracy: 1, attackCost: 100, range: 5, mag: 4, recharge: 3 },
+  { id: 'pistol', name: '권총', family: 'gun', grade: 'common', colors: ['tactics'], damage: 5, accuracy: 3, attackCost: 110, range: 6, mag: 6 },
 ];
 
 export const WEAPON_BY_ID: Record<string, WeaponDef> = Object.fromEntries(WEAPONS.map((w) => [w.id, w]));
 /** 무기 없는 손 */
-export const FISTS: WeaponDef = { id: 'fists', name: '맨주먹', family: 'melee', grade: 'common', colors: ['power'], damage: 2, attackCost: 100, range: 1 };
+export const FISTS: WeaponDef = { id: 'fists', name: '맨주먹', family: 'melee', grade: 'common', colors: ['power'], damage: 2, accuracy: 2, attackCost: 100, range: 1 };
 
 /** 정예 무기: 피해 배율 */
 export const ELITE_DAMAGE = 1.25;

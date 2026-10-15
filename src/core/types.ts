@@ -78,7 +78,9 @@ export interface ByproductStats {
   damage?: number; // 팔: 기본 공격 피해
   attackCost?: number; // 팔
   moveBonus?: number; // 다리: 이동 비용 감소
-  dodge?: number; // 다리·감각
+  dodge?: number; // 다리·감각 회피 점수
+  ac?: number;
+  accuracy?: number;
   hp?: number; // 최대 체력 보너스
   sight?: number; // 감각
   burden: number;
@@ -141,6 +143,7 @@ export interface WeaponDef {
   /** 원소 지팡이: 공격 원소 */
   element?: Element;
   damage: number;
+  accuracy: number;
   attackCost: number;
   /** 사거리 (근접 1) */
   range: number;
@@ -191,6 +194,9 @@ export interface Actor {
   hp: number;
   baseHp: number;
   baseDamage: number;
+  baseAccuracy: number;
+  baseEvasion: number;
+  baseAc: number;
   slots: Record<Slot, (ByproductInst | null)[]>;
   /** 손 2칸 (들고 있는 것 + 예비). 적은 비어 있을 수 있다 */
   hands: (WeaponInst | null)[];

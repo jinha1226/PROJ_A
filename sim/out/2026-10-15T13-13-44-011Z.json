@@ -1,0 +1,3059 @@
+{
+  "runs": 40,
+  "errors": 0,
+  "wins": 0,
+  "winRate": 0,
+  "preBossDeathRate": 0.95,
+  "averageDepth": 0.775,
+  "averageTurns": 395.3,
+  "playerHitRate": 0.7445255474452555,
+  "enemyHitRate": 0.6556016597510373,
+  "armorReductionRatio": 0.20940109759007397,
+  "partBreaks": {
+    "body": 69,
+    "arm": 31,
+    "leg": 26,
+    "sense": 5
+  },
+  "depthDistribution": {
+    "버섯 동굴 · 2층": 8,
+    "불타는 지하 묘지 · 2층": 1,
+    "버섯 동굴 · 3층": 7,
+    "버섯 동굴 · 1층": 23,
+    "불타는 지하 묘지 · 1층": 1
+  },
+  "flasksUsed": 32,
+  "monsterCombat": {
+    "frost_novice": {
+      "averageAttacksToKill": 1.3214285714285714,
+      "averageDamageToPlayer": 0.9354838709677419,
+      "playerKills": 56
+    },
+    "bone_reaper": {
+      "averageAttacksToKill": 1.88135593220339,
+      "averageDamageToPlayer": 1.0740740740740742,
+      "playerKills": 59
+    },
+    "bell_deacon": {
+      "averageAttacksToKill": 1.3,
+      "averageDamageToPlayer": 1.6923076923076923,
+      "playerKills": 60
+    },
+    "ember_acolyte": {
+      "averageAttacksToKill": 1.5384615384615385,
+      "averageDamageToPlayer": 2.657142857142857,
+      "playerKills": 78
+    },
+    "brass_hound": {
+      "averageAttacksToKill": 1.3278688524590163,
+      "averageDamageToPlayer": 0.3076923076923077,
+      "playerKills": 61
+    },
+    "husk": {
+      "averageAttacksToKill": 1.375,
+      "averageDamageToPlayer": 0.24242424242424243,
+      "playerKills": 96
+    },
+    "inquisitor": {
+      "averageAttacksToKill": 4.5576923076923075,
+      "averageDamageToPlayer": 86.2,
+      "playerKills": 104
+    },
+    "rust_warden": {
+      "averageAttacksToKill": 6.5,
+      "averageDamageToPlayer": 13,
+      "playerKills": 2
+    },
+    "glacier_monk": {
+      "averageAttacksToKill": 1.3333333333333333,
+      "averageDamageToPlayer": 7,
+      "playerKills": 3
+    },
+    "maul_templar": {
+      "averageAttacksToKill": 1,
+      "averageDamageToPlayer": 3,
+      "playerKills": 2
+    },
+    "cinder_zealot": {
+      "averageAttacksToKill": 1,
+      "averageDamageToPlayer": 2,
+      "playerKills": 3
+    },
+    "storm_choir": {
+      "averageAttacksToKill": 1.3333333333333333,
+      "averageDamageToPlayer": 2.5,
+      "playerKills": 3
+    }
+  },
+  "weaponCombat": {
+    "pistol": {
+      "useShare": 0.8357664233576643,
+      "averageDps": 10.875347360063516,
+      "averageDamagePerAttack": 11.962882096069869,
+      "kills": 430,
+      "wins": 0
+    },
+    "staff": {
+      "useShare": 0.05291970802919708,
+      "averageDps": 13.172413793103448,
+      "averageDamagePerAttack": 13.172413793103448,
+      "kills": 36,
+      "wins": 0
+    },
+    "dagger": {
+      "useShare": 0.008211678832116789,
+      "averageDps": 10.972222222222221,
+      "averageDamagePerAttack": 8.777777777777779,
+      "kills": 4,
+      "wins": 0
+    },
+    "greataxe": {
+      "useShare": 0.04288321167883212,
+      "averageDps": 15.410334346504559,
+      "averageDamagePerAttack": 21.574468085106382,
+      "kills": 26,
+      "wins": 0
+    },
+    "mace": {
+      "useShare": 0.0018248175182481751,
+      "averageDps": 17.727272727272727,
+      "averageDamagePerAttack": 19.5,
+      "kills": 2,
+      "wins": 0
+    },
+    "bow": {
+      "useShare": 0.05748175182481752,
+      "averageDps": 9.803174603174604,
+      "averageDamagePerAttack": 12.253968253968255,
+      "kills": 24,
+      "wins": 0
+    },
+    "shield": {
+      "useShare": 0.0009124087591240876,
+      "averageDps": 24,
+      "averageDamagePerAttack": 24,
+      "kills": 1,
+      "wins": 0
+    }
+  },
+  "runsDetail": [
+    {
+      "seed": "sim-0",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 483,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        248
+      ],
+      "damageDealt": 217,
+      "playerHitAttempts": 25,
+      "playerHits": 17,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 123,
+      "armorIncoming": 449,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 8,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 2,
+          "kills": 4
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 5,
+          "kills": 4
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 8,
+          "damage": 72,
+          "kills": 4,
+          "actionCost": 880
+        },
+        "staff": {
+          "attacks": 17,
+          "damage": 145,
+          "kills": 9,
+          "actionCost": 1700
+        }
+      }
+    },
+    {
+      "seed": "sim-1",
+      "depth": "불타는 지하 묘지 · 2층",
+      "zone": 1,
+      "floor": 1,
+      "level": 5,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 1534,
+      "kills": 51,
+      "combos": 1,
+      "floorTurns": [
+        167,
+        207,
+        526,
+        62,
+        236
+      ],
+      "damageDealt": 1898,
+      "playerHitAttempts": 107,
+      "playerHits": 74,
+      "enemyHitAttempts": 46,
+      "enemyHits": 36,
+      "armorReduced": 351,
+      "armorIncoming": 2439,
+      "partBreaks": {
+        "body": 3,
+        "arm": 2,
+        "leg": 2,
+        "sense": 0
+      },
+      "flasksUsed": 3,
+      "monsterCombat": {
+        "brass_hound": {
+          "playerAttackAttempts": 10,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 7
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 11,
+          "attacksAgainstPlayer": 7,
+          "damageToPlayer": 14,
+          "kills": 5
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 3,
+          "kills": 5
+        },
+        "husk": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 5
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 6,
+          "damageToPlayer": 8,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 4,
+          "damageToPlayer": 12,
+          "kills": 5
+        },
+        "inquisitor": {
+          "playerAttackAttempts": 45,
+          "attacksAgainstPlayer": 13,
+          "damageToPlayer": 71,
+          "kills": 11
+        },
+        "rust_warden": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 5,
+          "damageToPlayer": 14,
+          "kills": 1
+        },
+        "glacier_monk": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 4,
+          "damageToPlayer": 7,
+          "kills": 3
+        },
+        "maul_templar": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 3,
+          "kills": 2
+        },
+        "cinder_zealot": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 2,
+          "kills": 3
+        },
+        "storm_choir": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 3,
+          "damageToPlayer": 5,
+          "kills": 2
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 63,
+          "damage": 916,
+          "kills": 27,
+          "actionCost": 6930
+        },
+        "dagger": {
+          "attacks": 3,
+          "damage": 16,
+          "kills": 0,
+          "actionCost": 240
+        },
+        "greataxe": {
+          "attacks": 41,
+          "damage": 966,
+          "kills": 24,
+          "actionCost": 5740
+        }
+      }
+    },
+    {
+      "seed": "sim-2",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 718,
+      "kills": 21,
+      "combos": 1,
+      "floorTurns": [
+        229,
+        162
+      ],
+      "damageDealt": 387,
+      "playerHitAttempts": 26,
+      "playerHits": 22,
+      "enemyHitAttempts": 3,
+      "enemyHits": 3,
+      "armorReduced": 96,
+      "armorIncoming": 537,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "bone_reaper": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 2,
+          "kills": 4
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 3,
+          "kills": 3
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "husk": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 4
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 25,
+          "damage": 368,
+          "kills": 20,
+          "actionCost": 2750
+        },
+        "mace": {
+          "attacks": 1,
+          "damage": 19,
+          "kills": 1,
+          "actionCost": 110
+        }
+      }
+    },
+    {
+      "seed": "sim-3",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 703,
+      "kills": 35,
+      "combos": 8,
+      "floorTurns": [],
+      "damageDealt": 1520,
+      "playerHitAttempts": 152,
+      "playerHits": 105,
+      "enemyHitAttempts": 36,
+      "enemyHits": 23,
+      "armorReduced": 205,
+      "armorIncoming": 1854,
+      "partBreaks": {
+        "body": 2,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "inquisitor": {
+          "playerAttackAttempts": 142,
+          "attacksAgainstPlayer": 36,
+          "damageToPlayer": 143,
+          "kills": 28
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 152,
+          "damage": 1520,
+          "kills": 33,
+          "actionCost": 16720
+        }
+      }
+    },
+    {
+      "seed": "sim-4",
+      "depth": "불타는 지하 묘지 · 1층",
+      "zone": 1,
+      "floor": 0,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 3,
+        "survival": 0
+      },
+      "turns": 951,
+      "kills": 30,
+      "combos": 3,
+      "floorTurns": [
+        190,
+        190,
+        199,
+        96
+      ],
+      "damageDealt": 721,
+      "playerHitAttempts": 43,
+      "playerHits": 40,
+      "enemyHitAttempts": 15,
+      "enemyHits": 11,
+      "armorReduced": 252,
+      "armorIncoming": 1008,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 7
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 3,
+          "damageToPlayer": 5,
+          "kills": 3
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 1,
+          "kills": 5
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 3,
+          "damageToPlayer": 4,
+          "kills": 4
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 8,
+          "attacksAgainstPlayer": 4,
+          "damageToPlayer": 14,
+          "kills": 6
+        },
+        "rust_warden": {
+          "playerAttackAttempts": 8,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 12,
+          "kills": 1
+        },
+        "storm_choir": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 19,
+          "damage": 326,
+          "kills": 15,
+          "actionCost": 2090
+        },
+        "staff": {
+          "attacks": 24,
+          "damage": 395,
+          "kills": 15,
+          "actionCost": 2400
+        }
+      }
+    },
+    {
+      "seed": "sim-5",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 3,
+        "survival": 0
+      },
+      "turns": 622,
+      "kills": 22,
+      "combos": 1,
+      "floorTurns": [
+        219,
+        146
+      ],
+      "damageDealt": 488,
+      "playerHitAttempts": 31,
+      "playerHits": 23,
+      "enemyHitAttempts": 4,
+      "enemyHits": 3,
+      "armorReduced": 184,
+      "armorIncoming": 818,
+      "partBreaks": {
+        "body": 4,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 3,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 12,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 9
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 9,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 3,
+          "kills": 2
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 2,
+          "kills": 2
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 3,
+          "kills": 2
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 31,
+          "damage": 488,
+          "kills": 22,
+          "actionCost": 3410
+        }
+      }
+    },
+    {
+      "seed": "sim-6",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 96,
+      "kills": 1,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 28,
+      "playerHitAttempts": 2,
+      "playerHits": 2,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 61,
+      "armorIncoming": 159,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 2,
+          "damage": 28,
+          "kills": 1,
+          "actionCost": 220
+        }
+      }
+    },
+    {
+      "seed": "sim-7",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 223,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 118,
+      "playerHitAttempts": 12,
+      "playerHits": 8,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 62,
+      "armorIncoming": 225,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "bone_reaper": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 12,
+          "damage": 118,
+          "kills": 7,
+          "actionCost": 1320
+        }
+      }
+    },
+    {
+      "seed": "sim-8",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 762,
+      "kills": 28,
+      "combos": 0,
+      "floorTurns": [
+        489
+      ],
+      "damageDealt": 926,
+      "playerHitAttempts": 92,
+      "playerHits": 64,
+      "enemyHitAttempts": 22,
+      "enemyHits": 16,
+      "armorReduced": 265,
+      "armorIncoming": 1238,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "bell_deacon": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 2,
+          "kills": 5
+        },
+        "husk": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 13,
+          "attacksAgainstPlayer": 8,
+          "damageToPlayer": 9,
+          "kills": 4
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "inquisitor": {
+          "playerAttackAttempts": 64,
+          "attacksAgainstPlayer": 12,
+          "damageToPlayer": 50,
+          "kills": 13
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 86,
+          "damage": 878,
+          "kills": 26,
+          "actionCost": 9460
+        },
+        "greataxe": {
+          "attacks": 6,
+          "damage": 48,
+          "kills": 2,
+          "actionCost": 840
+        }
+      }
+    },
+    {
+      "seed": "sim-9",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 100,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 68,
+      "playerHitAttempts": 6,
+      "playerHits": 5,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 55,
+      "armorIncoming": 191,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 3,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 1,
+          "damage": 14,
+          "kills": 1,
+          "actionCost": 110
+        },
+        "staff": {
+          "attacks": 5,
+          "damage": 54,
+          "kills": 3,
+          "actionCost": 500
+        }
+      }
+    },
+    {
+      "seed": "sim-10",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 178,
+      "kills": 5,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 86,
+      "playerHitAttempts": 9,
+      "playerHits": 6,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 70,
+      "armorIncoming": 256,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "bone_reaper": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 3,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 9,
+          "damage": 86,
+          "kills": 5,
+          "actionCost": 990
+        }
+      }
+    },
+    {
+      "seed": "sim-11",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 315,
+      "kills": 4,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 60,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 7,
+      "enemyHits": 5,
+      "armorReduced": 49,
+      "armorIncoming": 168,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "brass_hound": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "husk": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 0,
+          "attacksAgainstPlayer": 7,
+          "damageToPlayer": 15,
+          "kills": 0
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 4,
+          "damage": 60,
+          "kills": 4,
+          "actionCost": 440
+        }
+      }
+    },
+    {
+      "seed": "sim-12",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 97,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 94,
+      "playerHitAttempts": 10,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 98,
+      "armorIncoming": 302,
+      "partBreaks": {
+        "body": 4,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "ember_acolyte": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 10,
+          "damage": 94,
+          "kills": 4,
+          "actionCost": 1100
+        }
+      }
+    },
+    {
+      "seed": "sim-13",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 121,
+      "kills": 5,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 73,
+      "playerHitAttempts": 6,
+      "playerHits": 5,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 87,
+      "armorIncoming": 271,
+      "partBreaks": {
+        "body": 3,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 6,
+          "damage": 73,
+          "kills": 5,
+          "actionCost": 660
+        }
+      }
+    },
+    {
+      "seed": "sim-14",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 153,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 97,
+      "playerHitAttempts": 9,
+      "playerHits": 6,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 66,
+      "armorIncoming": 231,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 5,
+          "kills": 2
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 9,
+          "damage": 97,
+          "kills": 5,
+          "actionCost": 990
+        }
+      }
+    },
+    {
+      "seed": "sim-15",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 3,
+        "survival": 0
+      },
+      "turns": 969,
+      "kills": 34,
+      "combos": 1,
+      "floorTurns": [
+        513,
+        174
+      ],
+      "damageDealt": 1066,
+      "playerHitAttempts": 101,
+      "playerHits": 70,
+      "enemyHitAttempts": 14,
+      "enemyHits": 9,
+      "armorReduced": 297,
+      "armorIncoming": 1364,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 9,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 2,
+          "kills": 5
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 8,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 3,
+          "damageToPlayer": 6,
+          "kills": 4
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "inquisitor": {
+          "playerAttackAttempts": 71,
+          "attacksAgainstPlayer": 7,
+          "damageToPlayer": 28,
+          "kills": 14
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 40,
+          "damage": 332,
+          "kills": 12,
+          "actionCost": 4400
+        },
+        "bow": {
+          "attacks": 61,
+          "damage": 734,
+          "kills": 22,
+          "actionCost": 7625
+        }
+      }
+    },
+    {
+      "seed": "sim-16",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 129,
+      "kills": 5,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 88,
+      "playerHitAttempts": 7,
+      "playerHits": 6,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 55,
+      "armorIncoming": 199,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 2,
+          "kills": 2
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 7,
+          "damage": 88,
+          "kills": 5,
+          "actionCost": 770
+        }
+      }
+    },
+    {
+      "seed": "sim-17",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 214,
+      "kills": 7,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 123,
+      "playerHitAttempts": 9,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 65,
+      "armorIncoming": 252,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 0,
+        "sense": 1
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 2,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 7,
+          "damage": 85,
+          "kills": 5,
+          "actionCost": 770
+        },
+        "bow": {
+          "attacks": 2,
+          "damage": 38,
+          "kills": 2,
+          "actionCost": 250
+        }
+      }
+    },
+    {
+      "seed": "sim-18",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 787,
+      "kills": 23,
+      "combos": 1,
+      "floorTurns": [
+        238,
+        262
+      ],
+      "damageDealt": 501,
+      "playerHitAttempts": 30,
+      "playerHits": 23,
+      "enemyHitAttempts": 8,
+      "enemyHits": 2,
+      "armorReduced": 142,
+      "armorIncoming": 704,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 4,
+          "damageToPlayer": 1,
+          "kills": 6
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 11,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 3,
+          "kills": 7
+        },
+        "husk": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 5
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 2
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 29,
+          "damage": 481,
+          "kills": 22,
+          "actionCost": 3190
+        },
+        "mace": {
+          "attacks": 1,
+          "damage": 20,
+          "kills": 1,
+          "actionCost": 110
+        }
+      }
+    },
+    {
+      "seed": "sim-19",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 1
+      },
+      "turns": 569,
+      "kills": 16,
+      "combos": 0,
+      "floorTurns": [
+        173,
+        229
+      ],
+      "damageDealt": 306,
+      "playerHitAttempts": 22,
+      "playerHits": 18,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 83,
+      "armorIncoming": 449,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 5
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 1,
+          "kills": 4
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 22,
+          "damage": 306,
+          "kills": 16,
+          "actionCost": 2420
+        }
+      }
+    },
+    {
+      "seed": "sim-20",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 214,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 98,
+      "playerHitAttempts": 12,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 79,
+      "armorIncoming": 271,
+      "partBreaks": {
+        "body": 1,
+        "arm": 2,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "bone_reaper": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 3,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 12,
+          "damage": 98,
+          "kills": 6,
+          "actionCost": 1320
+        }
+      }
+    },
+    {
+      "seed": "sim-21",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 181,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 102,
+      "playerHitAttempts": 7,
+      "playerHits": 7,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 61,
+      "armorIncoming": 212,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "bone_reaper": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 7,
+          "damage": 102,
+          "kills": 6,
+          "actionCost": 770
+        }
+      }
+    },
+    {
+      "seed": "sim-22",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 420,
+      "kills": 11,
+      "combos": 0,
+      "floorTurns": [
+        226
+      ],
+      "damageDealt": 190,
+      "playerHitAttempts": 15,
+      "playerHits": 12,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 91,
+      "armorIncoming": 351,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "bone_reaper": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "husk": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 15,
+          "damage": 190,
+          "kills": 11,
+          "actionCost": 1650
+        }
+      }
+    },
+    {
+      "seed": "sim-23",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 417,
+      "kills": 13,
+      "combos": 0,
+      "floorTurns": [
+        151
+      ],
+      "damageDealt": 232,
+      "playerHitAttempts": 16,
+      "playerHits": 13,
+      "enemyHitAttempts": 2,
+      "enemyHits": 2,
+      "armorReduced": 66,
+      "armorIncoming": 351,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 2,
+          "kills": 3
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 7,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 5
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 4,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 4,
+          "damage": 62,
+          "kills": 4,
+          "actionCost": 440
+        },
+        "staff": {
+          "attacks": 12,
+          "damage": 170,
+          "kills": 9,
+          "actionCost": 1200
+        }
+      }
+    },
+    {
+      "seed": "sim-24",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 484,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        251
+      ],
+      "damageDealt": 245,
+      "playerHitAttempts": 17,
+      "playerHits": 14,
+      "enemyHitAttempts": 4,
+      "enemyHits": 2,
+      "armorReduced": 87,
+      "armorIncoming": 413,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "brass_hound": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 5
+        },
+        "husk": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 4,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 17,
+          "damage": 245,
+          "kills": 14,
+          "actionCost": 1870
+        }
+      }
+    },
+    {
+      "seed": "sim-25",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 819,
+      "kills": 45,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 1870,
+      "playerHitAttempts": 161,
+      "playerHits": 115,
+      "enemyHitAttempts": 22,
+      "enemyHits": 9,
+      "armorReduced": 207,
+      "armorIncoming": 2209,
+      "partBreaks": {
+        "body": 0,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "husk": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 0,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "inquisitor": {
+          "playerAttackAttempts": 152,
+          "attacksAgainstPlayer": 22,
+          "damageToPlayer": 139,
+          "kills": 38
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 161,
+          "damage": 1870,
+          "kills": 45,
+          "actionCost": 17710
+        }
+      }
+    },
+    {
+      "seed": "sim-26",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 213,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 125,
+      "playerHitAttempts": 12,
+      "playerHits": 9,
+      "enemyHitAttempts": 3,
+      "enemyHits": 2,
+      "armorReduced": 116,
+      "armorIncoming": 324,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 2,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "husk": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 12,
+          "damage": 125,
+          "kills": 7,
+          "actionCost": 1320
+        }
+      }
+    },
+    {
+      "seed": "sim-27",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 101,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 51,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 58,
+      "armorIncoming": 183,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 4,
+          "damage": 51,
+          "kills": 2,
+          "actionCost": 440
+        }
+      }
+    },
+    {
+      "seed": "sim-28",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 248,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 111,
+      "playerHitAttempts": 13,
+      "playerHits": 8,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 90,
+      "armorIncoming": 241,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "bone_reaper": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 2,
+          "kills": 2
+        },
+        "husk": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 13,
+          "damage": 111,
+          "kills": 6,
+          "actionCost": 1430
+        }
+      }
+    },
+    {
+      "seed": "sim-29",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 549,
+      "kills": 14,
+      "combos": 0,
+      "floorTurns": [
+        144
+      ],
+      "damageDealt": 249,
+      "playerHitAttempts": 16,
+      "playerHits": 14,
+      "enemyHitAttempts": 3,
+      "enemyHits": 3,
+      "armorReduced": 50,
+      "armorIncoming": 369,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 5
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 4,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 16,
+          "damage": 249,
+          "kills": 14,
+          "actionCost": 1760
+        }
+      }
+    },
+    {
+      "seed": "sim-30",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 85,
+      "kills": 3,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 56,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 1,
+      "enemyHits": 0,
+      "armorReduced": 56,
+      "armorIncoming": 185,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "bell_deacon": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 4,
+          "damage": 56,
+          "kills": 3,
+          "actionCost": 440
+        }
+      }
+    },
+    {
+      "seed": "sim-31",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 0
+      },
+      "turns": 252,
+      "kills": 7,
+      "combos": 0,
+      "floorTurns": [
+        121
+      ],
+      "damageDealt": 111,
+      "playerHitAttempts": 8,
+      "playerHits": 7,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 68,
+      "armorIncoming": 200,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 3
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 8,
+          "damage": 111,
+          "kills": 7,
+          "actionCost": 880
+        }
+      }
+    },
+    {
+      "seed": "sim-32",
+      "depth": "버섯 동굴 · 2층",
+      "zone": 0,
+      "floor": 1,
+      "level": 3,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 407,
+      "kills": 12,
+      "combos": 0,
+      "floorTurns": [
+        188
+      ],
+      "damageDealt": 217,
+      "playerHitAttempts": 18,
+      "playerHits": 14,
+      "enemyHitAttempts": 6,
+      "enemyHits": 5,
+      "armorReduced": 103,
+      "armorIncoming": 342,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 1
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "bell_deacon": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "husk": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 2
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 4,
+          "kills": 3
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 2,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 16,
+          "damage": 203,
+          "kills": 11,
+          "actionCost": 1760
+        },
+        "dagger": {
+          "attacks": 2,
+          "damage": 14,
+          "kills": 1,
+          "actionCost": 160
+        }
+      }
+    },
+    {
+      "seed": "sim-33",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 1,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 50,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 42,
+      "playerHitAttempts": 4,
+      "playerHits": 3,
+      "enemyHitAttempts": 1,
+      "enemyHits": 1,
+      "armorReduced": 51,
+      "armorIncoming": 145,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 3,
+          "kills": 1
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 4,
+          "damage": 42,
+          "kills": 2,
+          "actionCost": 440
+        }
+      }
+    },
+    {
+      "seed": "sim-34",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 60,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 26,
+      "playerHitAttempts": 3,
+      "playerHits": 2,
+      "enemyHitAttempts": 0,
+      "enemyHits": 0,
+      "armorReduced": 46,
+      "armorIncoming": 151,
+      "partBreaks": {
+        "body": 0,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 3,
+          "damage": 26,
+          "kills": 2,
+          "actionCost": 330
+        }
+      }
+    },
+    {
+      "seed": "sim-35",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 2,
+        "survival": 1
+      },
+      "turns": 564,
+      "kills": 21,
+      "combos": 1,
+      "floorTurns": [
+        198,
+        131
+      ],
+      "damageDealt": 362,
+      "playerHitAttempts": 28,
+      "playerHits": 22,
+      "enemyHitAttempts": 5,
+      "enemyHits": 4,
+      "armorReduced": 114,
+      "armorIncoming": 575,
+      "partBreaks": {
+        "body": 2,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 3,
+          "damageToPlayer": 3,
+          "kills": 4
+        },
+        "husk": {
+          "playerAttackAttempts": 12,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 9
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 3
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 27,
+          "damage": 338,
+          "kills": 20,
+          "actionCost": 2970
+        },
+        "shield": {
+          "attacks": 1,
+          "damage": 24,
+          "kills": 1,
+          "actionCost": 100
+        }
+      }
+    },
+    {
+      "seed": "sim-36",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 146,
+      "kills": 2,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 42,
+      "playerHitAttempts": 4,
+      "playerHits": 4,
+      "enemyHitAttempts": 2,
+      "enemyHits": 0,
+      "armorReduced": 42,
+      "armorIncoming": 156,
+      "partBreaks": {
+        "body": 1,
+        "arm": 0,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "frost_novice": {
+          "playerAttackAttempts": 4,
+          "attacksAgainstPlayer": 2,
+          "damageToPlayer": 0,
+          "kills": 2
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 4,
+          "damage": 42,
+          "kills": 2,
+          "actionCost": 440
+        }
+      }
+    },
+    {
+      "seed": "sim-37",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 0,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 109,
+      "kills": 6,
+      "combos": 0,
+      "floorTurns": [],
+      "damageDealt": 107,
+      "playerHitAttempts": 10,
+      "playerHits": 8,
+      "enemyHitAttempts": 2,
+      "enemyHits": 1,
+      "armorReduced": 52,
+      "armorIncoming": 228,
+      "partBreaks": {
+        "body": 1,
+        "arm": 1,
+        "leg": 0,
+        "sense": 0
+      },
+      "flasksUsed": 0,
+      "monsterCombat": {
+        "brass_hound": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "bell_deacon": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 10,
+          "damage": 107,
+          "kills": 6,
+          "actionCost": 1100
+        }
+      }
+    },
+    {
+      "seed": "sim-38",
+      "depth": "버섯 동굴 · 1층",
+      "zone": 0,
+      "floor": 0,
+      "level": 2,
+      "mode": "dead",
+      "colors": {
+        "power": 1,
+        "tactics": 0,
+        "survival": 0
+      },
+      "turns": 151,
+      "kills": 6,
+      "combos": 1,
+      "floorTurns": [],
+      "damageDealt": 126,
+      "playerHitAttempts": 12,
+      "playerHits": 10,
+      "enemyHitAttempts": 4,
+      "enemyHits": 2,
+      "armorReduced": 96,
+      "armorIncoming": 339,
+      "partBreaks": {
+        "body": 3,
+        "arm": 1,
+        "leg": 1,
+        "sense": 0
+      },
+      "flasksUsed": 2,
+      "monsterCombat": {
+        "ember_acolyte": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 2,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 2
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 2,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 2,
+          "kills": 1
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 2
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 9,
+          "damage": 93,
+          "kills": 4,
+          "actionCost": 990
+        },
+        "dagger": {
+          "attacks": 3,
+          "damage": 33,
+          "kills": 2,
+          "actionCost": 240
+        }
+      }
+    },
+    {
+      "seed": "sim-39",
+      "depth": "버섯 동굴 · 3층",
+      "zone": 0,
+      "floor": 2,
+      "level": 4,
+      "mode": "dead",
+      "colors": {
+        "power": 2,
+        "tactics": 1,
+        "survival": 0
+      },
+      "turns": 618,
+      "kills": 20,
+      "combos": 0,
+      "floorTurns": [
+        218,
+        157
+      ],
+      "damageDealt": 423,
+      "playerHitAttempts": 29,
+      "playerHits": 24,
+      "enemyHitAttempts": 6,
+      "enemyHits": 4,
+      "armorReduced": 189,
+      "armorIncoming": 596,
+      "partBreaks": {
+        "body": 3,
+        "arm": 2,
+        "leg": 1,
+        "sense": 1
+      },
+      "flasksUsed": 1,
+      "monsterCombat": {
+        "bell_deacon": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 1
+        },
+        "husk": {
+          "playerAttackAttempts": 3,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 0,
+          "kills": 3
+        },
+        "brass_hound": {
+          "playerAttackAttempts": 5,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "bone_reaper": {
+          "playerAttackAttempts": 6,
+          "attacksAgainstPlayer": 0,
+          "damageToPlayer": 0,
+          "kills": 4
+        },
+        "frost_novice": {
+          "playerAttackAttempts": 1,
+          "attacksAgainstPlayer": 1,
+          "damageToPlayer": 1,
+          "kills": 1
+        },
+        "ember_acolyte": {
+          "playerAttackAttempts": 13,
+          "attacksAgainstPlayer": 4,
+          "damageToPlayer": 7,
+          "kills": 7
+        }
+      },
+      "weaponCombat": {
+        "pistol": {
+          "attacks": 28,
+          "damage": 407,
+          "kills": 19,
+          "actionCost": 3080
+        },
+        "dagger": {
+          "attacks": 1,
+          "damage": 16,
+          "kills": 1,
+          "actionCost": 80
+        }
+      }
+    }
+  ]
+}

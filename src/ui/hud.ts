@@ -4,7 +4,7 @@ import type { Actor, GameEvent, ByproductInst, GroundItem, InjectionId, Slot, We
 import { INJECTION_BY_ID } from '../data/consumables';
 import { badgeHtml, OPTION_ICON, statusBadges } from '../data/statusIcons';
 import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME } from '../core/types';
-import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax, signatureOf, traitsOf, weaponName } from '../core/stats';
+import { COLOR_STEP, colorLevel, isBroken, magOf, partAc, partArmorMax, signatureOf, traitsOf, weaponName } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
 import { OPTION_BY_ID } from '../data/options';
 import { ELITE_DAMAGE, RANGED_TRAITS, SIGNATURE, TRAIT_NAME, TRAIT_TEXT, WEAPON_BY_ID } from '../data/weapons';
@@ -277,7 +277,7 @@ export class Hud {
     const right = `<h3>회로</h3><div class="circuits">${(['power', 'tactics', 'survival'] as const).map((c) => `<div><span class="col ${c}">${COLOR_NAME[c]}</span> <b>${cl[c]}</b></div>`).join('')}</div>
       <h3>능력치</h3><div class="stats">
         <span>체력 <b>${Math.max(0, p.hp)}/${s.maxHp}</b></span><span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span>
-        <span>피해 <b>${s.damage}</b></span><span>회피 <b>${s.dodge}%</b></span>
+        <span>피해 <b>${s.damage}</b></span><span>명중 <b>${s.accuracy}</b></span><span>회피 <b>${s.dodge}</b></span><span>AC 몸/팔/다리/감각 <b>${(['body', 'arm', 'leg', 'sense'] as Slot[]).map((k) => partAc(p, k)).join('/')}</b></span>
         <span>이동 <b>${speed(s.moveCost)}칸/턴</b></span><span>공격 <b>${speed(s.attackCost)}회/턴</b></span>
         <span>시야 <b>${s.sight}</b></span><span>마석 <b>${g.ash}</b></span>
       </div>
@@ -363,7 +363,8 @@ export function actorTooltip(g: Game, a: Actor): string {
   if (a.marked) st.push('표식');
   return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
     <div class="hpbar"><i style="width:${Math.max(0, Math.min(100, (a.hp / s.maxHp) * 100))}%"></i><span>체력 ${Math.max(0, a.hp)} / ${s.maxHp}</span></div>
-    <div class="r">장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${speed(s.moveCost)}칸/턴</div>
+    <div class="r">장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge} · 이동 ${speed(s.moveCost)}칸/턴</div>
+    <div class="r">명중 ${g.hitChance(g.player, a)}% · 맞을 확률 ${g.hitChance(a, g.player)}% · 회피 ${s.dodge} · AC 몸/팔/다리/감각 ${(['body', 'arm', 'leg', 'sense'] as Slot[]).map((k) => partAc(a, k)).join('/')}</div>
     ${st.length ? `<div style="color:var(--warn)">${st.join(' · ')}</div>` : ''}
     ${byproducts.map((r) => `<div>${byproductName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
     ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;

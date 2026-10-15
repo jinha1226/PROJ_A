@@ -1,7 +1,7 @@
 import { Rng } from './rng';
 import { josa, hitPunct } from './josa';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints, generateShowroomLevel, SHOWROOM_FOES } from './dungeon';
-import { allByproducts, allOptions, heldWeapon, magOf, traitsOf, weaponName, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
+import { allByproducts, allOptions, heldWeapon, magOf, traitsOf, weaponName, computeStats, HIT_WEIGHT, isBroken, partArmorMax, partAc, ACCURACY_BASE, ACCURACY_STEP, ACCURACY_MIN, ACCURACY_MAX, byproductFactor, type Stats } from './stats';
 import type {
   Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color, ConsumableInst, InjectionId, WeaponTrait,
 } from './types';
@@ -12,7 +12,7 @@ import { FISTS, TRAIT_NAME, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/we
 import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
 import { infuseOptions, OPPOSITE, starOf, WEAKNESS_STEP } from '../data/infuse';
-import { ENEMIES, ENEMY_BY_ID, ZONES, type EnemyTemplate } from '../data/enemies';
+import { ENEMIES, ENEMY_BY_ID, ZONES, ENEMY_DAMAGE_MULT, type EnemyTemplate } from '../data/enemies';
 
 export type Mode = 'play' | 'levelup' | 'rest' | 'dead' | 'won';
 export type RestService = 'shop' | 'reforge';
@@ -72,6 +72,16 @@ export interface RunStats {
   combos: number;
   floorTurns: number[];
   damageDealt: number;
+  playerHitAttempts: number;
+  playerHits: number;
+  enemyHitAttempts: number;
+  enemyHits: number;
+  armorReduced: number;
+  armorIncoming: number;
+  partBreaks: Record<Slot, number>;
+  flasksUsed: number;
+  monsterCombat: Record<string, { playerAttackAttempts: number; attacksAgainstPlayer: number; damageToPlayer: number; kills: number }>;
+  weaponCombat: Record<string, { attacks: number; damage: number; kills: number; actionCost: number }>;
 }
 
 export class Game {
@@ -101,7 +111,7 @@ export class Game {
   shop: { item: GroundItem; price: number }[] = [];
   restItems: GroundItem[] = [];
   restUsed = false;
-  stats: RunStats = { turns: 0, kills: 0, combos: 0, floorTurns: [], damageDealt: 0 };
+  stats: RunStats = { turns: 0, kills: 0, combos: 0, floorTurns: [], damageDealt: 0, playerHitAttempts: 0, playerHits: 0, enemyHitAttempts: 0, enemyHits: 0, armorReduced: 0, armorIncoming: 0, partBreaks: { body: 0, arm: 0, leg: 0, sense: 0 }, flasksUsed: 0, monsterCombat: {}, weaponCombat: {} };
 
   private nextId = 1;
   private nextUid = 1;
@@ -160,7 +170,7 @@ export class Game {
     const s = {} as Actor['slots'];
     for (const k of SLOTS) s[k] = new Array(slots[k]).fill(null);
     return {
-      id: this.nextId++, name, faction, isPlayer: false, x: 0, y: 0, hp, baseHp: hp, baseDamage: dmg, slots: s, hands: [], activeHand: 0,
+      id: this.nextId++, name, faction, isPlayer: false, x: 0, y: 0, hp, baseHp: hp, baseDamage: dmg, baseAccuracy: 0, baseEvasion: 0, baseAc: 0, slots: s, hands: [], activeHand: 0,
       partArmor: { body: 0, arm: 0, leg: 0, sense: 0 }, partArmorBase: { body: 0, arm: 0, leg: 0, sense: 0 }, time: 0, shield: 0, statuses: {}, haste: 0,
       marked: false, dead: false, awake: false, dropChance: 0,
     };
@@ -196,6 +206,9 @@ export class Game {
     const scale = 1 + this.floor * 0.08;
     const e = this.newActor(t.name, 'enemy', Math.round(t.hp * scale), t.baseDamage, counts);
     for (const id of t.byproducts) this.equipFree(e, this.makeByproduct(id));
+    e.baseAccuracy = t.accuracy;
+    e.baseEvasion = t.evasion;
+    e.baseAc = t.ac;
     e.ai = t.ai;
     e.boss = t.boss;
     e.elite = t.id === 'inquisitor';
@@ -404,8 +417,16 @@ export class Game {
 
   // ───────────────────────── 조회 ─────────────────────────
 
+  hitChance(src: Actor, target: Actor): number {
+    const attack = this.st(src).accuracy - (target.statuses.slow ? Math.floor(this.st(target).dodge / 2) : this.st(target).dodge);
+    if (target.statuses.stun || target.statuses.freeze) return ACCURACY_MAX;
+    return Math.max(ACCURACY_MIN, Math.min(ACCURACY_MAX, ACCURACY_BASE + ACCURACY_STEP * (attack - (src.statuses.blind ? 6 : 0))));
+  }
+
   st(a: Actor): Stats {
-    return computeStats(a);
+    const s = computeStats(a);
+    if (!a.isPlayer) s.accuracy += this.zone * 2;
+    return s;
   }
 
   actorAt(x: number, y: number): Actor | undefined {
@@ -642,6 +663,7 @@ export class Game {
       return false;
     }
     this.flask--;
+    this.stats.flasksUsed++;
     const before = p.hp;
     this.heal(p, Math.round(this.st(p).maxHp * FLASK.heal));
     this.repairArmor(p, FLASK.repair);
@@ -1540,7 +1562,7 @@ export class Game {
   /** 적 피해 배율: 구역이 깊을수록 강해진다 */
   private dmgMult(a: Actor) {
     if (a.faction === 'player') return 1;
-    return (a.boss || a.elite ? 0.8 : 0.6) + this.zone * 0.2 + this.floor * 0.04;
+    return (a.boss || a.elite ? ENEMY_DAMAGE_MULT.eliteBossBase : ENEMY_DAMAGE_MULT.normalBase) + this.zone * ENEMY_DAMAGE_MULT.perZone + this.floor * ENEMY_DAMAGE_MULT.perFloor;
   }
 
   hostilesInRadius(a: Actor, x: number, y: number, r: number): Actor[] {
@@ -1551,7 +1573,30 @@ export class Game {
   dealDamage(src: Actor | null, t: Actor, amount: number, el: Element | undefined, opts: DamageOpts = {}): number {
     if (t.dead || amount <= 0) return 0;
     const ts = this.st(t);
-    // 방패 막기 (어느 손에 있든): 막으면 다음 공격 치명타. 방패 옵션은 카운터·화염·빙결
+    if (opts.dodgeable && src) {
+      if (src.isPlayer && t.templateId) {
+        const wc = this.stats.weaponCombat[this.st(src).weapon.id] ??= { attacks: 0, damage: 0, kills: 0, actionCost: 0 };
+        wc.attacks++;
+        wc.actionCost += this.st(src).weapon.attackCost;
+        const mc = this.stats.monsterCombat[t.templateId] ??= { playerAttackAttempts: 0, attacksAgainstPlayer: 0, damageToPlayer: 0, kills: 0 };
+        mc.playerAttackAttempts++;
+      }
+      if (!src.isPlayer && t.isPlayer) {
+        const mc = this.stats.monsterCombat[src.templateId ?? src.name] ??= { playerAttackAttempts: 0, attacksAgainstPlayer: 0, damageToPlayer: 0, kills: 0 };
+        mc.attacksAgainstPlayer++;
+      }
+      if (src.isPlayer) this.stats.playerHitAttempts++;
+      else if (t.isPlayer) this.stats.enemyHitAttempts++;
+      if (this.rng.next() * 100 >= this.hitChance(src, t)) {
+        this.emit({ type: 'dodge', target: t.id, x: t.x, y: t.y });
+        if (t.isPlayer) this.log(`${src.name}의 공격이 빗나갔다.`);
+        else if (src.isPlayer) this.log(`${josa(t.name, '을/를')} 빗맞혔다.`);
+        return 0;
+      }
+      if (src.isPlayer) this.stats.playerHits++;
+      else if (t.isPlayer) this.stats.enemyHits++;
+    }
+    // 명중 뒤 방패 막기
     const shield = opts.dodgeable && src ? t.hands.find((h): h is WeaponInst => h?.def.trait === 'block') : undefined;
     if (shield && src && this.rng.chance(0.25)) {
       t.blockReady = true;
@@ -1562,16 +1607,6 @@ export class Game {
       this.emit({ type: 'parry', target: t.id, actor: src.id, x: t.x, y: t.y, text: 'block' });
       if (t.isPlayer) this.log(`${src.name}의 공격을 방패로 막았다.`, 'skill');
       return 0;
-    }
-    if (opts.dodgeable) {
-      const blindMiss = src?.statuses.blind ? 0.35 : 0;
-      if (this.rng.next() < ts.dodge / 100 + blindMiss) {
-        this.emit({ type: 'dodge', target: t.id, x: t.x, y: t.y });
-        // DCSS: "The goblin misses you." / "You miss the goblin."
-        if (t.isPlayer) this.log(`${src ? `${src.name}의 공격이` : '공격이'} 빗나갔다.`);
-        else if (src?.isPlayer) this.log(`${josa(t.name, '을/를')} 빗맞혔다.`);
-        return 0;
-      }
     }
     let dmg = amount;
     let pierce = !!opts.pierce;
@@ -1636,28 +1671,41 @@ export class Game {
       t.shield -= absorbed;
       dmg -= absorbed;
     }
-    // 맞은 부위의 슈트 장갑이 먼저 받는다. 0이 되면 그 부위가 파손된다
-    let overflow = dmg;
+    // 장갑은 부위 AC만큼 무작위로 피해를 줄이고, 줄인 만큼 내구도가 닳는다.
+    let healthDamage = dmg;
     if (!pierce && dmg > 0) {
       const part = this.rng.weighted(SLOTS, (k) => HIT_WEIGHT[k]);
-      const before = t.partArmor[part];
-      if (before > 0) {
-        const take = Math.min(before, dmg);
-        t.partArmor[part] -= take;
-        overflow = dmg - take;
-        if (t.partArmor[part] <= 0) this.breakPart(t, part);
+      const ac = partAc(t, part);
+      const reduction = this.rng.int(0, ac);
+      this.stats.armorIncoming += dmg;
+      this.stats.armorReduced += reduction;
+      healthDamage = Math.max(1, dmg - reduction);
+      if (t.partArmor[part] > 0 && reduction > 0) {
+        t.partArmor[part] = Math.max(0, t.partArmor[part] - reduction);
+        if (t.partArmor[part] <= 0) {
+          this.stats.partBreaks[part]++;
+          this.breakPart(t, part);
+        }
       }
     }
     if (src?.isPlayer) {
-      this.stats.damageDealt += dmg;
-      this.action.damage += dmg;
+      this.stats.damageDealt += healthDamage;
+      this.action.damage += healthDamage;
       if (opts.crit) this.action.crits++;
     }
-    t.hp -= overflow;
-    this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label, crit: opts.crit });
-    if (t.isPlayer && src && dmg > 0) t.wasHit = true;
-    if (t.isPlayer && dmg > 0) t.hurtAt = this.stats.turns;
-    if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}에 맞았다${hitPunct(dmg)}`, 'bad');
+    t.hp -= healthDamage;
+    if (src?.isPlayer && t.templateId) {
+      const wc = this.stats.weaponCombat[this.st(src).weapon.id];
+      if (wc) wc.damage += healthDamage;
+    }
+    if (src && !src.isPlayer && t.isPlayer) {
+      const mc = this.stats.monsterCombat[src.templateId ?? src.name];
+      if (mc) mc.damageToPlayer += healthDamage;
+    }
+    this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: healthDamage, element: el, x: t.x, y: t.y, text: opts.label, crit: opts.crit });
+    if (t.isPlayer && src && healthDamage > 0) t.wasHit = true;
+    if (t.isPlayer && healthDamage > 0) t.hurtAt = this.stats.turns;
+    if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}에 맞았다${hitPunct(healthDamage)}`, 'bad');
 
     // 원소 공격은 그 원소의 효과를 남긴다 (반응이 일어났으면 남기지 않는다): 화염 → 화상, 냉기 → 둔화, 번개 → 감전
     if (!comboAura && !t.dead) {
@@ -1674,7 +1722,7 @@ export class Game {
     }
 
     if (!t.isPlayer) t.awake = true;
-    return dmg;
+    return healthDamage;
   }
 
   private comboFx(t: Actor, name: string) {
@@ -1730,6 +1778,14 @@ export class Game {
     }
     if (t.faction === 'enemy') {
       this.stats.kills++;
+      if (t.templateId) {
+        const mc = this.stats.monsterCombat[t.templateId] ??= { playerAttackAttempts: 0, attacksAgainstPlayer: 0, damageToPlayer: 0, kills: 0 };
+        mc.kills++;
+      }
+      if (src?.isPlayer) {
+        const wc = this.stats.weaponCombat[this.st(src).weapon.id] ??= { attacks: 0, damage: 0, kills: 0, actionCost: 0 };
+        wc.kills++;
+      }
       this.log(`${josa(t.name, '을/를')} 죽였다!`);
       // 실제로 쓰던 부산물 중 하나를 떨어뜨림
       const droppable = allByproducts(t).filter((r) => !r.def.enemyOnly);

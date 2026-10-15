@@ -4,16 +4,16 @@ import type { ByproductDef } from '../core/types';
 // (무기는 2단계에서 별도 데이터로 분리한다.)
 export const BYPRODUCTS: ByproductDef[] = [
   // ── 몸 (장갑) ──
-  { id: 'rusted_cuirass', name: '해골 흉곽', slot: 'body', grade: 'common', elements: [], stats: { integrity: 14, burden: 3 } },
-  { id: 'bone_plates', name: '고블린 두꺼운 가죽', slot: 'body', grade: 'common', elements: [], stats: { integrity: 10, dodge: 3, burden: 2 } },
-  { id: 'brass_ribcage', name: '미노타우로스 가슴판', slot: 'body', grade: 'common', elements: ['impact'], stats: { integrity: 16, burden: 4 } },
-  { id: 'ember_mantle', name: '불 도마뱀 비늘', slot: 'body', grade: 'common', elements: ['fire'], stats: { integrity: 11, burden: 3 } },
-  { id: 'frost_shell', name: '서리 거미 껍질', slot: 'body', grade: 'common', elements: ['cold'], stats: { integrity: 13, burden: 3 } },
-  { id: 'storm_coil', name: '도롱뇽 전기 가죽', slot: 'body', grade: 'common', elements: ['lightning'], stats: { integrity: 10, dodge: 2, burden: 2 } },
-  { id: 'reliquary_plate', name: '묘지기 기사의 핵갑', slot: 'body', grade: 'holy', elements: ['fire', 'impact'], stats: { integrity: 22, hp: 6, burden: 5 } },
-  { id: 'crystal_carapace', name: '얼음 망령 수정핵', slot: 'body', grade: 'holy', elements: ['cold', 'lightning'], stats: { integrity: 20, burden: 4 } },
-  { id: 'sutured_bulwark', name: '골렘 바위 몸', slot: 'body', grade: 'holy', elements: [], stats: { integrity: 26, burden: 6 } },
-  { id: 'heretic_hide', name: '리치의 망토', slot: 'body', grade: 'forbidden', elements: ['fire', 'cold'], stats: { integrity: 30, hp: 10, burden: 4 }, curse: { text: '매 턴 체력 1% 잃음', kind: 'hpDrain' } },
+  { id: 'rusted_cuirass', name: '해골 흉곽', slot: 'body', grade: 'common', elements: [], stats: { integrity: 14, ac: 2, burden: 3 } },
+  { id: 'bone_plates', name: '고블린 두꺼운 가죽', slot: 'body', grade: 'common', elements: [], stats: { integrity: 10, ac: 2, dodge: 3, burden: 2 } },
+  { id: 'brass_ribcage', name: '미노타우로스 가슴판', slot: 'body', grade: 'common', elements: ['impact'], stats: { integrity: 16, ac: 3, burden: 4 } },
+  { id: 'ember_mantle', name: '불 도마뱀 비늘', slot: 'body', grade: 'common', elements: ['fire'], stats: { integrity: 11, ac: 2, burden: 3 } },
+  { id: 'frost_shell', name: '서리 거미 껍질', slot: 'body', grade: 'common', elements: ['cold'], stats: { integrity: 13, ac: 2, burden: 3 } },
+  { id: 'storm_coil', name: '도롱뇽 전기 가죽', slot: 'body', grade: 'common', elements: ['lightning'], stats: { integrity: 10, ac: 2, dodge: 2, burden: 2 } },
+  { id: 'reliquary_plate', name: '묘지기 기사의 핵갑', slot: 'body', grade: 'holy', elements: ['fire', 'impact'], stats: { integrity: 22, ac: 4, hp: 6, burden: 5 } },
+  { id: 'crystal_carapace', name: '얼음 망령 수정핵', slot: 'body', grade: 'holy', elements: ['cold', 'lightning'], stats: { integrity: 20, ac: 4, burden: 4 } },
+  { id: 'sutured_bulwark', name: '골렘 바위 몸', slot: 'body', grade: 'holy', elements: [], stats: { integrity: 26, ac: 5, burden: 6 } },
+  { id: 'heretic_hide', name: '리치의 망토', slot: 'body', grade: 'forbidden', elements: ['fire', 'cold'], stats: { integrity: 30, ac: 6, hp: 10, burden: 4 }, curse: { text: '매 턴 체력 1% 잃음', kind: 'hpDrain' } },
 
   // ── 팔 (공격 + 액티브) ──
   { id: 'brass_fist', name: '오우거 주먹', slot: 'arm', grade: 'common', elements: ['impact'], stats: { damage: 5, attackCost: 90, burden: 2 }, active: { form: 'dash', element: 'impact', power: 7, cooldown: 7, range: 4 } },
@@ -35,7 +35,7 @@ export const BYPRODUCTS: ByproductDef[] = [
   // ── 다리 (이동·회피) ──
   { id: 'pilgrim_greaves', name: '해골 다리뼈', slot: 'leg', grade: 'common', elements: [], stats: { moveBonus: 10, dodge: 4, burden: 2 } },
   { id: 'bone_stilts', name: '사냥개 뒷다리', slot: 'leg', grade: 'common', elements: [], stats: { moveBonus: 15, burden: 2 } },
-  { id: 'brass_hooves', name: '미노타우로스 발굽', slot: 'leg', grade: 'common', elements: ['impact'], stats: { moveBonus: 5, dodge: 2, integrity: 0, hp: 4, burden: 3 } },
+  { id: 'brass_hooves', name: '미노타우로스 발굽', slot: 'leg', grade: 'common', elements: ['impact'], stats: { moveBonus: 5, dodge: 2, integrity: 0, ac: 0, hp: 4, burden: 3 } },
   { id: 'cinder_soles', name: '불 도마뱀 발', slot: 'leg', grade: 'common', elements: ['fire'], stats: { moveBonus: 10, dodge: 3, burden: 2 } },
   { id: 'rime_spurs', name: '설원 늑대 다리', slot: 'leg', grade: 'common', elements: ['cold'], stats: { moveBonus: 8, dodge: 6, burden: 2 } },
   { id: 'storm_tendons', name: '묘지기 기사의 다리', slot: 'leg', grade: 'holy', elements: ['lightning'], stats: { moveBonus: 22, dodge: 6, burden: 3 } },
