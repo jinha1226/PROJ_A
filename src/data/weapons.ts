@@ -55,11 +55,11 @@ export const TRAIT_TEXT: Record<WeaponTrait, string> = {
   arcane: '원소를 남기고 옆의 적 하나에게 절반이 튐. 원소는 부여한 부산물을 따른다(없으면 충격)',
 };
 
-/** ★ 짧은 이름 (무기 이름 앞에 붙는다): 슈트가 부산물에서 뽑아낸 전투 기능 이름 */
+/** ★ 칭호: 그 싸움 방식을 하는 사람의 칭호. 무기 이름 앞에 붙는다 (예: 암습자의 도끼) */
 export const TRAIT_NAME: Partial<Record<WeaponTrait, string>> = {
-  ambush: '사각', sadist: '개창', combo3: '박자', balanced: '축적', grudge: '보복', desperate: '임계', giant: '대형 표적', flawless: '무결',
-  pyreBlade: '소각', execute: '단두', cleave: '포위 돌파', pierce: '일직선', harpoon: '압착', fourth: '충전 타격', nutcracker: '쇄빙',
-  marksman: '원거리 조준', pointBlank: '접사', repeater: '저속 표적', pyro: '점화', frost: '냉각', storm: '방전', lastShot: '잔탄', steady: '정지 사격',
+  ambush: '암습자의', sadist: '도살자의', combo3: '검무가의', balanced: '수련자의', grudge: '복수자의', desperate: '광전사의', giant: '도전자의', flawless: '근위병의',
+  pyreBlade: '화형관의', execute: '처형인의', cleave: '투사의', pierce: '창기병의', harpoon: '포경꾼의', fourth: '대장장이의', nutcracker: '쇄빙꾼의',
+  marksman: '저격수의', pointBlank: '척후병의', repeater: '덫사냥꾼의', pyro: '방화범의', frost: '서리술사의', storm: '뇌술사의', lastShot: '도박사의', steady: '파수꾼의',
 };
 
 /** 부산물이 주는 ★ 후보 (방패 막기·지팡이 원소 튐은 기본 무기의 동작이라 제외) */
@@ -72,27 +72,27 @@ export const RANGED_TRAITS = new Set<WeaponTrait>(['lastShot', 'marksman', 'poin
 export const SIGNATURE: Partial<Record<WeaponTrait, { weapon: string; name: string }>> = {
   ambush: { weapon: 'dagger', name: '그림자 바늘' },
   sadist: { weapon: 'dagger', name: '혈흔 단도' },
-  combo3: { weapon: 'longsword', name: '박자검' },
-  balanced: { weapon: 'longsword', name: '연산검' },
+  combo3: { weapon: 'longsword', name: '세 박자' },
+  balanced: { weapon: 'longsword', name: '백련검' },
   grudge: { weapon: 'longsword', name: '보복의 칼날' },
-  desperate: { weapon: 'longsword', name: '임계검' },
-  giant: { weapon: 'longsword', name: '거인의 무덤' },
-  flawless: { weapon: 'longsword', name: '백색 회로검' },
+  desperate: { weapon: 'longsword', name: '벼랑 끝' },
+  giant: { weapon: 'longsword', name: '하극상' },
+  flawless: { weapon: 'longsword', name: '순백' },
   pyreBlade: { weapon: 'longsword', name: '잿불검' },
   execute: { weapon: 'greataxe', name: '단두 도끼' },
-  cleave: { weapon: 'greataxe', name: '포위 분쇄기' },
-  pierce: { weapon: 'spear', name: '일직선 창' },
-  harpoon: { weapon: 'spear', name: '압착 창' },
-  fourth: { weapon: 'mace', name: '충격 해머' },
+  cleave: { weapon: 'greataxe', name: '회오리 도끼' },
+  pierce: { weapon: 'spear', name: '꿰뚫개' },
+  harpoon: { weapon: 'spear', name: '포경 작살' },
+  fourth: { weapon: 'mace', name: '단조 망치' },
   nutcracker: { weapon: 'mace', name: '쇄빙 망치' },
-  marksman: { weapon: 'bow', name: '원거리 조준궁' },
-  pointBlank: { weapon: 'bow', name: '접사궁' },
-  repeater: { weapon: 'bow', name: '저속 사냥궁' },
-  pyro: { weapon: 'staff', name: '소각 지팡이' },
-  frost: { weapon: 'staff', name: '냉각 지팡이' },
-  storm: { weapon: 'staff', name: '방전 지팡이' },
-  lastShot: { weapon: 'pistol', name: '잔탄 리볼버' },
-  steady: { weapon: 'pistol', name: '정지 사격 권총' },
+  marksman: { weapon: 'bow', name: '먼 별' },
+  pointBlank: { weapon: 'bow', name: '숨결 활' },
+  repeater: { weapon: 'bow', name: '덫사냥 활' },
+  pyro: { weapon: 'staff', name: '잿더미 지팡이' },
+  frost: { weapon: 'staff', name: '서리꽃 지팡이' },
+  storm: { weapon: 'staff', name: '뇌명 지팡이' },
+  lastShot: { weapon: 'pistol', name: '막탄' },
+  steady: { weapon: 'pistol', name: '숨 멈춤' },
 };
 /** 맞는 짝의 치명타 배율 */
 export const SIGNATURE_CRIT = 3;

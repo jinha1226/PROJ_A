@@ -7,7 +7,7 @@ import type {
 import { COLOR_NAME, ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
-import { FISTS, SIGNATURE_CRIT, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
+import { FISTS, SIGNATURE_CRIT, TRAIT_NAME, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
 import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
 import { infuseOptions, RESIST_CAP, RESIST_STEP, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
@@ -1308,41 +1308,43 @@ export class Game {
     let sigCrit = false;
     for (const tr of traitsOf(w)) {
     const before = crit;
+    // 치명타 이유: ★ 칭호에서 '의'를 뗀 말 (예: 암습자)
+    const why = TRAIT_NAME[tr]?.replace(/의$/, '') ?? tr;
     switch (tr) {
-      case 'ambush': if (!t.awake || st.stun || st.freeze) crit ??= '사각'; break;
-      case 'combo3': if (combo > 0 && combo % 3 === 0) crit ??= '박자'; break;
+      case 'ambush': if (!t.awake || st.stun || st.freeze) crit ??= why; break;
+      case 'combo3': if (combo > 0 && combo % 3 === 0) crit ??= why; break;
       case 'balanced':
         mult *= 1 + 0.15 * Math.min(4, Math.max(0, combo - 1));
-        if (combo >= 5) crit ??= '축적';
+        if (combo >= 5) crit ??= why;
         break;
-      case 'grudge': if (a.wasHit) crit ??= '보복'; break;
-      case 'desperate': if (hpFrac(a) < 0.5 || SLOTS.some((k) => isBroken(a, k))) crit ??= '임계'; break;
-      case 'execute': if (hpFrac(t) < 0.4) crit ??= '단두'; break;
+      case 'grudge': if (a.wasHit) crit ??= why; break;
+      case 'desperate': if (hpFrac(a) < 0.5 || SLOTS.some((k) => isBroken(a, k))) crit ??= why; break;
+      case 'execute': if (hpFrac(t) < 0.4) crit ??= why; break;
       case 'pierce': {
         const [bx, by] = this.behind(a, t);
         const b = this.actorAt(bx, by);
-        if (b && this.hostile(a, b)) crit ??= '일직선';
+        if (b && this.hostile(a, b)) crit ??= why;
         break;
       }
       case 'harpoon': {
         const [bx, by] = this.behind(a, t);
-        if (!this.level.isFloor(bx, by) || this.actorAt(bx, by)) crit ??= '압착';
+        if (!this.level.isFloor(bx, by) || this.actorAt(bx, by)) crit ??= why;
         break;
       }
-      case 'fourth': if ((w.hits ?? 0) % 4 === 0) crit ??= '충전 타격'; break;
-      case 'nutcracker': if (st.stun || st.freeze) crit ??= '쇄빙'; break;
-      case 'cleave': if (this.hostilesInRadius(a, a.x, a.y, 1).length >= 3) crit ??= '포위 돌파'; break;
-      case 'sadist': if (st.bleed || st.poison) crit ??= '개창'; break;
-      case 'giant': if (t.elite || t.boss) crit ??= '대형 표적'; break;
-      case 'flawless': if (SLOTS.every((k) => a.partArmor[k] >= partArmorMax(a, k))) crit ??= '무결'; break;
-      case 'pyreBlade': if (st.burn) crit ??= '소각'; break;
-      case 'lastShot': if (w.ammo === 0) crit ??= '잔탄'; break;
-      case 'scatter': if (dist <= 1) crit ??= '근접 산탄'; break;
-      case 'steady': if (a.prevAct === 'wait') crit ??= '정지 사격'; break;
-      case 'marksman': if (dist >= 4) crit ??= '원거리 조준'; break;
-      case 'pointBlank': if (dist <= 1) crit ??= '접사'; break;
-      case 'repeater': if (st.slow || st.freeze) crit ??= '저속 표적'; break;
-      case 'pyro': if (st.oil) crit ??= '점화'; break;
+      case 'fourth': if ((w.hits ?? 0) % 4 === 0) crit ??= why; break;
+      case 'nutcracker': if (st.stun || st.freeze) crit ??= why; break;
+      case 'cleave': if (this.hostilesInRadius(a, a.x, a.y, 1).length >= 3) crit ??= why; break;
+      case 'sadist': if (st.bleed || st.poison) crit ??= why; break;
+      case 'giant': if (t.elite || t.boss) crit ??= why; break;
+      case 'flawless': if (SLOTS.every((k) => a.partArmor[k] >= partArmorMax(a, k))) crit ??= why; break;
+      case 'pyreBlade': if (st.burn) crit ??= why; break;
+      case 'lastShot': if (w.ammo === 0) crit ??= why; break;
+      case 'scatter': if (dist <= 1) crit ??= why; break;
+      case 'steady': if (a.prevAct === 'wait') crit ??= why; break;
+      case 'marksman': if (dist >= 4) crit ??= why; break;
+      case 'pointBlank': if (dist <= 1) crit ??= why; break;
+      case 'repeater': if (st.slow || st.freeze) crit ??= why; break;
+      case 'pyro': if (st.oil) crit ??= why; break;
     }
     if (!before && crit && tr === sig) sigCrit = true;
     }
