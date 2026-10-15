@@ -364,6 +364,16 @@ export class GridRuntime {
     if (Math.abs(ELEVATION - elevationTarget) > 1e-4) ELEVATION = chase(ELEVATION, elevationTarget, dt, 6);
     // (MODEL 0) 벽 투시: 주인공 위치, 탑뷰에 가까울수록 끈다 (위에서 보면 가리지 않는다)
     XRAY.hero.value.set(hero.x, 0, hero.z);
+    {
+      // 보이는 살아 있는 몬스터 (가까운 순)
+      const s = this.sim.s;
+      const near = s.foes
+        .filter((f) => f.alive && s.visible.has(idx(s.map, f.pos)))
+        .map((f) => this.actors.pos(f.id))
+        .filter((v): v is THREE.Vector3 => !!v)
+        .sort((a, b) => a.distanceToSquared(hero) - b.distanceToSquared(hero));
+      XRAY.foes.value.forEach((v, k) => { const f = near[k]; if (f) v.set(f.x, 0, f.z, 1); else v.w = 0; });
+    }
     XRAY.on.value = THREE.MathUtils.clamp((80 - (ELEVATION * 180) / Math.PI) / 15, 0, 1);
     this.placeCamera();
     this.fx.setIcons(this.icons.map((i) => ({ ...i, at: this.actors.pos(i.id) ?? this.stationAt.get(i.id) ?? new THREE.Vector3() })));
