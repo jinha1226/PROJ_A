@@ -70,7 +70,7 @@ export class View3D {
     this.rt.pixelated = loadPixel();
     // 새 런은 기억한 시점에서 바로 시작 (전환 애니메이션 없이)
     setCameraElevation(this.top ? TOP_DOWN_DEG : 45);
-    const h = readNumber('model0.zoom');
+    const h = readNumber('model0.zoom.v2');
     if (h > 0) this.rt.setZoom(h);
     this.lastTime = this.bridge.sim.s.time;
   }
@@ -115,7 +115,7 @@ export class View3D {
     const h = Math.min(32, Math.max(6, this.rt.zoom * (dir > 0 ? 1.12 : 1 / 1.12)));
     this.rt.setZoom(h);
     try {
-      localStorage.setItem('model0.zoom', String(h));
+      localStorage.setItem('model0.zoom.v2', String(h));
     } catch {
       /* 저장 못 해도 이번 실행에서는 적용 */
     }

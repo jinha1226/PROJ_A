@@ -63,7 +63,8 @@ export class GridRuntime {
   private readonly pops: EngravePops;
   private readonly kit2: CueKit;
   private punch = 0;
-  private readonly pixel: PixelPass;
+  /** (MODEL 0 룩데브: 도트 크기 조절) */
+  readonly pixel: PixelPass;
   /** rough pixel look on/off */
   pixelated = true;
   private playback = new Playback();
@@ -74,7 +75,8 @@ export class GridRuntime {
   private readonly sun = new THREE.DirectionalLight('#9ab8ea', 1.15);
   private readonly center = new THREE.Vector3();
   private readonly pending = new Map<string, { ready: boolean; queue: GEvent[] }>();
-  private height = 18;
+  /** (MODEL 0) 기본 보이는 높이 12m: 도트에서 캐릭터가 뭉개지지 않는 크기 (18m에서는 25~30픽셀) */
+  private height = 12;
   private clock = 0;
   /** the ship's waking shot and the hatch beacon (ship only) */
   private intro?: ShipIntro;

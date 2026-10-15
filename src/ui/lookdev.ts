@@ -53,6 +53,7 @@ export function mountLookdev(view: View3D, hudEl: HTMLElement) {
       <div class="ld-sec">조명</div>
       <label>환경광 <b>${rt.hemi.intensity.toFixed(2)}</b><input type="range" id="ld-hemi" min="0" max="2" step="0.05" value="${rt.hemi.intensity}"></label>
       <div class="ld-sec">화면</div>
+      <label>도트 크기 <b>${rt.pixel.px}</b>배<input type="range" id="ld-px" min="1" max="4" step="1" value="${rt.pixel.px}"></label>
       <label class="ld-chk"><input type="checkbox" id="ld-hud" ${hudEl.hidden ? '' : 'checked'}> HUD 보이기</label>
       <div class="ld-dim">P: 도트/HD · 방향키: 이동</div>
       <div class="ld-sec">체크리스트</div>
@@ -65,9 +66,10 @@ export function mountLookdev(view: View3D, hudEl: HTMLElement) {
     if (t.id === 'ld-elev') setCameraTarget(Number(t.value));
     if (t.id === 'ld-zoom') rt.setZoom(Number(t.value));
     if (t.id === 'ld-hemi') rt.hemi.intensity = Number(t.value);
+    if (t.id === 'ld-px') rt.pixel.px = Number(t.value);
     if (t.id === 'ld-hud') hudEl.hidden = !t.checked;
     const b = t.parentElement?.querySelector('b');
-    if (b && t.type === 'range') b.textContent = t.id === 'ld-elev' ? `${Number(t.value).toFixed(1)}°` : t.id === 'ld-zoom' ? `${Number(t.value).toFixed(1)}m` : Number(t.value).toFixed(2);
+    if (b && t.type === 'range') b.textContent = t.id === 'ld-px' ? t.value : t.id === 'ld-elev' ? `${Number(t.value).toFixed(1)}°` : t.id === 'ld-zoom' ? `${Number(t.value).toFixed(1)}m` : Number(t.value).toFixed(2);
   });
   el.addEventListener('click', (e) => {
     const t = (e.target as HTMLElement).closest<HTMLElement>('button');

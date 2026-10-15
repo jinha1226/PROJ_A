@@ -8,7 +8,7 @@ export class PixelPass {
   private readonly cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   private readonly size = new THREE.Vector2();
 
-  constructor(private readonly renderer: THREE.WebGLRenderer, private readonly px = 3) {
+  constructor(private readonly renderer: THREE.WebGLRenderer, public px = 3) {
     this.target.texture.generateMipmaps = false;
     // 깊이 + 스텐실 (스텐실은 마우스를 올린 몬스터의 외곽선이 쓴다)
     this.target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedInt248Type);
@@ -18,12 +18,19 @@ export class PixelPass {
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
       fragmentShader: `uniform sampler2D tex; uniform sampler2D depth; uniform vec2 texel; uniform float levels; varying vec2 vUv;
         float dz(vec2 o) { return texture2D(depth, vUv + o * texel).x; }
+        vec3 col(vec2 o) { return texture2D(tex, vUv + o * texel).rgb; }
         void main() {
-          // the camera is orthographic, so depth is linear: a neighbour much farther means this pixel is a figure's or wall's rim
+          // (MODEL 0) 외곽선은 물체 바깥 픽셀에 그린다: 이웃이 이 픽셀보다 확 가까우면(앞에 물체가 있으면) 이 픽셀이 그 물체의 테두리.
+          // 물체 자신의 가장자리를 칠하지 않으므로 1~2픽셀 굵기의 무기·팔다리가 살아남는다
           float d = dz(vec2(0.0));
-          float far = max(max(dz(vec2(1.0, 0.0)), dz(vec2(-1.0, 0.0))), max(dz(vec2(0.0, 1.0)), dz(vec2(0.0, -1.0))));
-          float rim = step(0.0025, far - d);
-          gl_FragColor = vec4(texture2D(tex, vUv).rgb * mix(1.0, 0.22, rim), 1.0);
+          float n1 = dz(vec2(1.0, 0.0)), n2 = dz(vec2(-1.0, 0.0)), n3 = dz(vec2(0.0, 1.0)), n4 = dz(vec2(0.0, -1.0));
+          float nearest = min(min(n1, n2), min(n3, n4));
+          float outer = step(0.0025, d - nearest);
+          vec3 c = col(vec2(0.0));
+          // 테두리 색: 앞 물체의 색을 아주 어둡게 (검정보다 덜 뭉개진다)
+          vec3 front = n1 == nearest ? col(vec2(1.0, 0.0)) : n2 == nearest ? col(vec2(-1.0, 0.0)) : n3 == nearest ? col(vec2(0.0, 1.0)) : col(vec2(0.0, -1.0));
+          c = mix(c, front * 0.18, outer);
+          gl_FragColor = vec4(c, 1.0);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
           gl_FragColor.rgb = floor(gl_FragColor.rgb * levels + 0.5) / levels;
