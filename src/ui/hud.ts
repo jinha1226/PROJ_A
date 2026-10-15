@@ -1,7 +1,7 @@
 import type { Game } from '../core/game';
-import { describeEngraving, describeRelic, KIND_NAME } from '../core/describe';
+import { describeEffect, describeRelic } from '../core/describe';
 import type { Actor, GameEvent, RelicInst, Slot } from '../core/types';
-import { ELEMENT_NAME, SLOT_NAME, STATUS_NAME } from '../core/types';
+import { ELEMENT_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
 import { FORM_NAME } from '../data/forms';
 import { GODS } from '../data/start';
 
@@ -111,10 +111,16 @@ export class Hud {
     // 오른쪽: 각인 + 신앙 + 발밑
     const now = performance.now();
     let rh = `<h3>각인 ${p.engravings.length} / ${g.engravingCap()}</h3>`;
-    for (const e of p.engravings) {
-      const t = this.lit.get(e.name);
-      const lit = t !== undefined && now - t < 700;
-      rh += `<div class="eng ${lit ? 'lit' : ''}"><span class="kd">${KIND_NAME[e.kind]}</span><div class="nm">${esc(e.name)}</div><div class="ds">${esc(describeEngraving(e))}</div></div>`;
+    // 행동별로 묶어서: "공격할 때" 아래에 그 행동에 붙은 각인들
+    for (const trig of TRIGGERS) {
+      const list = p.engravings.filter((e) => e.trigger === trig);
+      if (!list.length) continue;
+      rh += `<div class="trig-head">${TRIGGER_NAME[trig]}</div>`;
+      for (const e of list) {
+        const t = this.lit.get(e.name);
+        const lit = t !== undefined && now - t < 700;
+        rh += `<div class="eng ${lit ? 'lit' : ''}"><div class="nm">${esc(e.name)}</div><div class="ds">→ ${esc(describeEffect(e.effect))}</div></div>`;
+      }
     }
     if (g.god) {
       const god = GODS.find((x) => x.id === g.god!.id)!;

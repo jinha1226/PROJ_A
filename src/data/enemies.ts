@@ -30,8 +30,8 @@ export const ENEMIES: EnemyTemplate[] = [
   // 정예 순찰대 (경보 3단계)
   { id: 'inquisitor', name: '정예 이단심문관', hp: 34, baseDamage: 6, relics: ['cathedral_hammer', 'reliquary_plate', 'storm_tendons'], ai: 'melee', zone: [], weight: 0, engraving: 'iron_gospel', dropChance: 0.3 },
   // 보스
-  { id: 'rust_warden', name: '녹슨 수문장', hp: 80, baseDamage: 6, relics: ['warden_gate', 'sutured_bulwark', 'brass_ribcage'], ai: 'boss', zone: [], weight: 0, boss: true, engraving: 'scar_tissue', dropChance: 1 },
-  { id: 'furnace_archbishop', name: '용광로 대주교', hp: 130, baseDamage: 7, relics: ['archbishop_censer', 'heretic_hide', 'seraph_talons'], ai: 'boss', zone: [], weight: 0, boss: true, engraving: 'pyre_heart', dropChance: 1 },
+  { id: 'rust_warden', name: '녹슨 수문장', hp: 80, baseDamage: 6, relics: ['warden_gate', 'sutured_bulwark', 'brass_ribcage'], ai: 'boss', zone: [], weight: 0, boss: true, engraving: 'stitched_heart', dropChance: 1 },
+  { id: 'furnace_archbishop', name: '용광로 대주교', hp: 130, baseDamage: 7, relics: ['archbishop_censer', 'heretic_hide', 'seraph_talons'], ai: 'boss', zone: [], weight: 0, boss: true, engraving: 'ember_hand', dropChance: 1 },
 ];
 
 export const ENEMY_BY_ID: Record<string, EnemyTemplate> = Object.fromEntries(ENEMIES.map((e) => [e.id, e]));

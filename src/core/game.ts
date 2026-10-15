@@ -30,6 +30,7 @@ export const REST_NAME: Record<RestService, string> = {
 
 export const TRIGGER_CAP = 3; // 한 턴에 같은 각인 최대 3회
 export const ENGRAVING_SLOTS = 8;
+export const SHIELD_CAP = 25;
 export const ALERT_THRESHOLDS = [160, 240, 310]; // 층에 머문 턴 수
 export const MAX_KITS = 3;
 const XP_TABLE = [0, 40, 80, 125, 175, 230, 290, 355, 425, 500];
@@ -39,7 +40,6 @@ interface Ctx {
   element?: Element;
   x?: number;
   y?: number;
-  comboAura?: Element;
 }
 
 interface DamageOpts {
@@ -112,7 +112,7 @@ export class Game {
     return {
       id: this.nextId++, name, faction, isPlayer: false, x: 0, y: 0, hp, baseHp: hp, baseDamage: dmg, slots: s,
       burdenCap: 99, engravings: [], engravingFires: new Map(), time: 0, shield: 0, statuses: {}, haste: 0,
-      marked: false, moveCounter: 0, wasBelowHalf: false, dead: false, awake: false, dropChance: 0,
+      marked: false, dead: false, awake: false, dropChance: 0,
     };
   }
 
@@ -241,7 +241,6 @@ export class Game {
     let pool = DROP_POOL.filter((r) => r.grade === grade);
     const want = new Set<Element>();
     for (const e of this.player.engravings) {
-      if (e.element) want.add(e.element);
       if (e.effect.element) want.add(e.effect.element);
     }
     if (want.size && this.rng.chance(0.4)) {
@@ -377,8 +376,7 @@ export class Game {
       lv.rooms[room].visited = true;
       this.gainXp(10);
     }
-    p.moveCounter++;
-    if (p.moveCounter % 3 === 0) this.fire(p, 'move3', {});
+    this.fire(p, 'move', {});
     const items = this.groundHere();
     if (items.length) this.log(`발밑에 유물: ${items.map((r) => r.def.name).join(', ')} — [G] 접목 / [F] 봉헌`, 'item');
     const f = lv.featureAt(p.x, p.y);
@@ -462,7 +460,6 @@ export class Game {
       this.god!.piety++;
       if (this.godTier() >= 2) this.heal(p, Math.round(this.st(p).maxHp * 0.08));
     }
-    this.fire(p, 'offer', { element: el, target: near });
     if (this.mode === 'play') this.endPlayerAction(100);
     return true;
   }
@@ -499,7 +496,6 @@ export class Game {
         for (const a of this.equippedActives(p)) a.cd = 0;
         this.log(`${old.def.name}을(를) 봉헌했다 → 쿨다운 초기화`, 'offer');
         if (this.god?.id === 'furnace') this.god.piety++;
-        this.fire(p, 'offer', { element: old.def.elements[0], target: this.nearestHostile(p, 9) });
       }
       old.dormant = false;
     }
@@ -514,7 +510,6 @@ export class Game {
     this.recomputeBurden(p);
     this.log(`${SLOT_NAME[r.def.slot]}에 ${r.def.name}을(를) 접목했다. 봉합 자국이 욱신거린다.`, 'good');
     this.emit({ type: 'loadout', actor: p.id });
-    this.fire(p, 'graft', { element: r.def.elements[0] });
     if (this.mode === 'play') this.endPlayerAction(100);
     return true;
   }
@@ -777,6 +772,8 @@ export class Game {
   private worldTick() {
     this.floorTurns++;
     const lv = this.level;
+    // 보호막은 서서히 흩어진다 (대기로 미리 쌓아두기 방지)
+    for (const a of this.actors) if (a.shield > 0) a.shield--;
     // 쿨다운
     for (const a of this.actors) if (!a.dead) for (const r of a.slots.arm) if (r && r.cd > 0) r.cd--;
     // 지형
@@ -1015,6 +1012,7 @@ export class Game {
     a.imbue = undefined;
     this.emit({ type: 'attack', actor: a.id, target: t.id });
     this.dealDamage(a, t, Math.max(1, Math.round(s.damage * this.dmgMult(a))), el, { dodgeable: true });
+    this.fire(a, 'attack', { target: t.dead ? undefined : t, element: el, x: t.x, y: t.y });
   }
 
   /** 액티브 실행. 형태 × 원소 × 수치 */
@@ -1095,7 +1093,8 @@ export class Game {
     r.cd = sp.cooldown;
     if (r.def.curse?.kind === 'burnSelf') this.addStatus(a, 'burn', 2);
     if (a.isPlayer) this.log(`${label}!`, 'skill');
-    this.fire(a, 'useActive', { element: el, target: tgt ? this.actorAt(tgt.x, tgt.y) : undefined });
+    const hitTarget = tgt ? this.actorAt(tgt.x, tgt.y) : undefined;
+    this.fire(a, 'attack', { element: el, target: hitTarget && !hitTarget.dead ? hitTarget : this.nearestHostile(a, 2) });
     return true;
   }
 
@@ -1118,7 +1117,6 @@ export class Game {
       if (this.rng.next() < ts.dodge / 100 + blindMiss) {
         this.emit({ type: 'dodge', target: t.id, x: t.x, y: t.y });
         if (t.isPlayer) this.log(`${src?.name ?? '공격'}을(를) 피했다.`);
-        this.fire(t, 'dodge', { target: src ?? undefined });
         return;
       }
     }
@@ -1196,19 +1194,11 @@ export class Game {
     if (el === 'fire' && !t.statuses.burn && this.rng.chance(0.4)) this.addStatus(t, 'burn', 2);
     if (el === 'cold') this.addStatus(t, 'slow', 1);
     if (t.hp <= 0) {
-      this.kill(t, src, el);
-    } else if (!t.wasBelowHalf && t.hp < ts.maxHp / 2) {
-      t.wasBelowHalf = true;
-      this.fire(t, 'lowHp', { target: src ?? undefined });
-    } else if (t.hp >= ts.maxHp / 2) t.wasBelowHalf = false;
-
-    if (!opts.noTrigger) {
-      if (src && el) this.fire(src, 'dealElement', { target: t, element: el, x: t.x, y: t.y, comboAura });
-      if (!t.dead) {
-        this.fire(t, 'hit', { target: src ?? undefined, element: el });
-        if (el) this.fire(t, 'takeElement', { target: src ?? undefined, element: el });
-      }
+      this.kill(t, src);
     }
+
+    // 피격: 행동하는 적(또는 아군)에게 맞았을 때만. 지형·화상 같은 지속 피해는 제외
+    if (!opts.noTrigger && src && !t.dead) this.fire(t, 'hit', { target: src, element: el });
     if (!t.isPlayer) t.awake = true;
   }
 
@@ -1223,12 +1213,11 @@ export class Game {
     r.integrity = 0;
     this.emit({ type: 'loadout', actor: a.id });
     if (a.isPlayer) this.log(`${r.def.name}이(가) 손상되었다! 효과가 멈췄다.`, 'bad');
-    this.fire(a, 'relicDamaged', {});
     const maxHp = this.st(a).maxHp;
     if (a.hp > maxHp) a.hp = maxHp;
   }
 
-  private kill(t: Actor, src: Actor | null, el?: Element) {
+  private kill(t: Actor, src: Actor | null) {
     if (t.dead) return;
     t.dead = true;
     t.hp = 0;
@@ -1259,7 +1248,6 @@ export class Game {
       }
       this.ash += 1;
     }
-    if (src && !src.dead) this.fire(src, 'kill', { target: t, element: el, x: t.x, y: t.y });
   }
 
   addStatus(a: Actor, s: StatusKind, turns: number) {
@@ -1331,8 +1319,6 @@ export class Game {
     if (owner.dead || !owner.engravings.length) return;
     for (const eng of owner.engravings) {
       if (eng.trigger !== trig) continue;
-      if (eng.element && eng.element !== ctx.element) continue;
-      if (eng.comboWith && ctx.comboAura !== eng.comboWith) continue;
       this.runEngraving(owner, eng, ctx, 1);
     }
   }
@@ -1340,6 +1326,14 @@ export class Game {
   private runEngraving(owner: Actor, eng: EngravingDef, ctx: Ctx, mult: number) {
     const n = owner.engravingFires.get(eng.id) ?? 0;
     if (n >= TRIGGER_CAP || this.depth > 16) return;
+    // 맞힐 대상이 없으면 발동하지 않는다 (적이 없을 때 이동만 해도 로그가 쏟아지는 것 방지)
+    const needsTarget = eng.effect.target !== 'self' && ctx.x === undefined;
+    if (needsTarget && !this.resolveTargets(owner, eng.effect, ctx).length) return;
+    if (owner.isPlayer && !this.visibleEnemies().length && eng.effect.target === 'self' && eng.trigger === 'move') {
+      // 전투 밖 이동: 조용히 적용 (가속·부여·얼음 같은 자기 효과)
+      this.applyEffect(owner, eng.effect, ctx, eng.name);
+      return;
+    }
     owner.engravingFires.set(eng.id, n + 1);
     this.stats.triggers++;
     this.depth++;
@@ -1425,7 +1419,7 @@ export class Game {
         }
         break;
       case 'shield':
-        owner.shield = Math.min(40, owner.shield + power);
+        owner.shield = Math.min(SHIELD_CAP, owner.shield + power);
         this.emit({ type: 'fx', fx: 'shield', x: owner.x, y: owner.y });
         break;
       case 'heal':

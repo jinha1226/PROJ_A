@@ -1,7 +1,7 @@
 import { Game, OFFER_NAME, REST_NAME, MAX_KITS, type OfferMode } from './core/game';
-import { describeEngraving, KIND_NAME } from './core/describe';
+import { describeEngraving } from './core/describe';
 import type { Element, RelicInst } from './core/types';
-import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS } from './core/types';
+import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_SHORT } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
 import { Renderer } from './render/renderer';
@@ -150,7 +150,7 @@ function showEngravePick(title: string, lead: string) {
     return;
   }
   modal.innerHTML = `<div class="box"><h2>${title}</h2><p class="lead">${lead}</p>
-    <div class="cards">${g.levelChoices.map((e, i) => `<div class="card" data-id="${e.id}"><span class="key">${i + 1} · ${KIND_NAME[e.kind]}</span><div class="nm">${esc(e.name)}</div><div class="ds">${esc(describeEngraving(e))}</div></div>`).join('')}</div>
+    <div class="cards">${g.levelChoices.map((e, i) => `<div class="card" data-id="${e.id}"><span class="key">${i + 1} · ${TRIGGER_SHORT[e.trigger]}</span><div class="nm">${esc(e.name)}</div><div class="ds">${esc(describeEngraving(e))}</div></div>`).join('')}</div>
     <div class="row"><span style="color:var(--dim)">각인 ${g.player.engravings.length}/${g.engravingCap()}</span><span style="flex:1"></span><button class="ghost" data-act="skip">건너뛰기</button></div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-id]').forEach((el) => (el.onclick = () => pickEngraving(el.dataset.id!)));
   bind(modal, { skip: () => pickEngraving(null) });
@@ -297,7 +297,7 @@ function showRest() {
       body = g.restUsed || !g.levelChoices.length
         ? '<p class="lead">각인사가 도구를 거두었다.</p>'
         : `<p class="lead">각인사가 새 문장을 하나 새겨준다.</p>
-        <div class="cards">${g.levelChoices.map((e) => `<div class="card" data-id="${e.id}"><span class="key">${KIND_NAME[e.kind]}</span><div class="nm">${esc(e.name)}</div><div class="ds">${esc(describeEngraving(e))}</div></div>`).join('')}</div>`;
+        <div class="cards">${g.levelChoices.map((e) => `<div class="card" data-id="${e.id}"><span class="key">${TRIGGER_SHORT[e.trigger]}</span><div class="nm">${esc(e.name)}</div><div class="ds">${esc(describeEngraving(e))}</div></div>`).join('')}</div>`;
       break;
   }
   if (g.restService === 'engrave' && engraveSel && g.player.engravings.length >= g.engravingCap()) return showEngravePick('각인사', '');

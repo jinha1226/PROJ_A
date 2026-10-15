@@ -10,9 +10,9 @@ export interface OriginDef {
 }
 
 export const ORIGINS: OriginDef[] = [
-  { id: 'furnace', name: '용광로 수도회', desc: '유물을 봉헌할 때 주변에 화염 파편이 흩날린다.', engraving: 'furnace_vow', relic: 'furnace_arm' },
+  { id: 'furnace', name: '용광로 수도회', desc: '공격할 때마다 주변 적에게 화염 파편이 튄다.', engraving: 'furnace_vow', relic: 'furnace_arm' },
   { id: 'gravekeeper', name: '서리 묘지기단', desc: '피격될 때 공격자를 둔화시킨다.', engraving: 'gravekeeper_rite', relic: 'frost_shell' },
-  { id: 'bellringer', name: '종지기 수도회', desc: '액티브를 쓸 때마다 번개가 적들 사이를 튄다.', engraving: 'bellringer_toll', relic: 'bell_clapper' },
+  { id: 'bellringer', name: '종지기 수도회', desc: '대기할 때 종을 울려 번개가 적들 사이를 튄다.', engraving: 'bellringer_toll', relic: 'bell_clapper' },
 ];
 
 export interface BodyDef {

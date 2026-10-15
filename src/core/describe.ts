@@ -35,23 +35,9 @@ export function describeEffect(e: EffectSpec): string {
   }
 }
 
-export function describeTrigger(g: EngravingDef): string {
-  let s = TRIGGER_NAME[g.trigger];
-  if (g.element && (g.trigger === 'dealElement' || g.trigger === 'takeElement')) s = `${ELEMENT_NAME[g.element]} ${s}`;
-  if (g.comboWith) s = `${ELEMENT_NAME[g.comboWith]} 잔류가 남은 적에게 ${s}`;
-  return s;
-}
-
 export function describeEngraving(g: EngravingDef): string {
-  return `${describeTrigger(g)} → ${describeEffect(g.effect)}`;
+  return `${TRIGGER_NAME[g.trigger]} → ${describeEffect(g.effect)}`;
 }
-
-export const KIND_NAME: Record<EngravingDef['kind'], string> = {
-  single: '단일',
-  combo: '복합',
-  omni: '잡식',
-  plain: '일반',
-};
 
 export function describeRelic(r: RelicDef): string[] {
   const st = r.stats;

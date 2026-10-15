@@ -16,35 +16,17 @@ export const SLOT_NAME: Record<Slot, string> = { body: '몸', arm: '팔', leg: '
 export type Grade = 'common' | 'holy' | 'forbidden';
 export const GRADE_NAME: Record<Grade, string> = { common: '평범', holy: '성스러운', forbidden: '금지된' };
 
-/** 조건 어휘 12개 */
-export type Trigger =
-  | 'dealElement' // 원소 피해를 줄 때
-  | 'kill' // 처치할 때
-  | 'useActive' // 액티브 사용 시
-  | 'hit' // 피격될 때
-  | 'dodge' // 회피할 때
-  | 'takeElement' // 원소 피해를 받을 때
-  | 'graft' // 접목할 때
-  | 'relicDamaged' // 유물이 손상될 때
-  | 'offer' // 봉헌할 때
-  | 'move3' // 3칸 이동할 때마다
-  | 'wait' // 제자리에서 턴을 넘길 때
-  | 'lowHp'; // 체력이 절반 아래로 떨어질 때
+/** 발동 조건 = 플레이어 행동 4가지 */
+export type Trigger = 'attack' | 'move' | 'hit' | 'wait';
+export const TRIGGERS: Trigger[] = ['attack', 'move', 'hit', 'wait'];
 
 export const TRIGGER_NAME: Record<Trigger, string> = {
-  dealElement: '피해를 줄 때',
-  kill: '처치할 때',
-  useActive: '액티브를 쓸 때',
+  attack: '공격할 때',
+  move: '이동할 때',
   hit: '피격될 때',
-  dodge: '회피할 때',
-  takeElement: '피해를 받을 때',
-  graft: '접목할 때',
-  relicDamaged: '유물이 손상될 때',
-  offer: '봉헌할 때',
-  move3: '3칸 이동할 때마다',
-  wait: '제자리에서 턴을 넘길 때',
-  lowHp: '체력이 절반 아래로 떨어질 때',
+  wait: '대기할 때',
 };
+export const TRIGGER_SHORT: Record<Trigger, string> = { attack: '공격', move: '이동', hit: '피격', wait: '대기' };
 
 /** 효과 어휘 */
 export type EffectKind =
@@ -94,12 +76,7 @@ export interface EngravingDef {
   id: string;
   name: string;
   trigger: Trigger;
-  /** 원소 필터 (선택) */
-  element?: Element;
-  /** 복합 각인: 대상이 이 원소 잔류(오라)를 가지고 있어야 함 */
-  comboWith?: Element;
   effect: EffectSpec;
-  kind: 'single' | 'combo' | 'omni' | 'plain';
   /** 레벨업 풀에 나오지 않음 (기원 전용 등) */
   unique?: boolean;
 }
@@ -177,8 +154,6 @@ export interface Actor {
   imbue?: Element;
   haste: number; // 다음 행동 비용 감소 %
   marked: boolean;
-  moveCounter: number;
-  wasBelowHalf: boolean;
   dead: boolean;
   // AI
   ai?: 'melee' | 'ranged' | 'skirmisher' | 'boss' | 'wraith';

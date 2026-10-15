@@ -79,6 +79,7 @@ h3:first-child { margin-top: 0; }
 .eng { padding: 5px 6px; margin: 4px 0; border: 1px solid var(--line); background: rgba(0,0,0,0.25); transition: background 0.3s, border-color 0.3s; }
 .eng .nm { color: var(--brass); font-weight: 600; }
 .eng .ds { color: var(--dim); font-size: 11.5px; }
+.trig-head { margin: 8px 0 2px; font-size: 12px; color: var(--ink); font-weight: 700; }
 .eng .kd { float: right; font-size: 10px; color: var(--dim); }
 .eng.lit { background: rgba(199, 154, 74, 0.35); border-color: var(--brass); }
 
