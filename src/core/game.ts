@@ -536,7 +536,7 @@ export class Game {
     }
     this.kits--;
     this.repairAll(this.player, 0.25);
-    this.log('응급 키트: 부산물 수리, 체력 회복.', 'good');
+    this.log('응급 키트: 슈트 수리, 체력 회복.', 'good');
     this.endPlayerAction(100);
     return true;
   }

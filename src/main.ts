@@ -275,7 +275,7 @@ function showOverload() {
     ['strike', '가장 가까운 적에게 장갑을 꿰뚫는 큰 일격'],
     ['retrigger', '모든 각인을 이 부산물의 원소로 즉시 한 번씩 발동'],
     ['cooldown', '모든 액티브 쿨다운 초기화'],
-    ['repair', '모든 부산물 수리 + 체력 회복'],
+    ['repair', '슈트 전체 수리 + 체력 회복'],
   ];
   modal.innerHTML = `<div class="box"><h2>과부하 — ${byproductName(r)}</h2>
     <div class="cards">${modes.map(([m, d], i) => `<div class="card" data-m="${m}"><span class="key">${i + 1}</span><div class="nm">${OVERLOAD_NAME[m]}</div><div class="ds">${d}</div></div>`).join('')}</div>
