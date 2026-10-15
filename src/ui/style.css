@@ -291,3 +291,57 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 #lookdev .ld-shot .x { margin-left: auto; padding: 0 6px; }
 #lookdev .ld-dim { color: #888; font-size: 11px; }
 #lookdev .ld-todo { margin: 2px 0; color: #aaa; } #lookdev .ld-todo.done { color: #8fd18f; }
+
+/* ───────── 폰 세로 (좁은 화면 · 터치) ───────── */
+#touchbar { display: none; }
+canvas { image-rendering: pixelated; }
+@media (max-width: 700px), (pointer: coarse) {
+  #touchbar { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; position: absolute; left: 6px; right: 6px; bottom: calc(6px + env(safe-area-inset-bottom, 0px)); pointer-events: auto; }
+  #touchbar button { font: inherit; font-size: 12px; padding: 9px 0; background: color-mix(in srgb, var(--g-bg) 85%, transparent); color: var(--hud-text); border: 1px solid var(--g-line); border-radius: 4px; touch-action: manipulation; }
+  #touchbar button:active { background: var(--g-line); }
+}
+@media (max-width: 700px) {
+  #tl { left: 8px; top: 8px; }
+  #tl #minimap { width: 96px; height: 66px; }
+  #tl .big { font-size: 13px; }
+  #tr { right: 8px; top: 8px; }
+  #tc { top: 80px; width: 94vw; }
+  /* 경보: 위 가운데, 단계 기준 글은 숨김 */
+  #bc { top: 8px; bottom: auto; width: calc(100vw - 230px); }
+  #alertbar .thr { display: none; }
+  #alertbar .segs i { width: 3px; }
+  #alertbar .lbl { font-size: 10px; }
+  #hint, #warn { font-size: 11px; text-align: center; }
+  #warn { position: fixed; left: 8px; right: 8px; bottom: 150px; }
+  /* 왼쪽 아래 생체·부위, 오른쪽 아래 무기: 터치 버튼 줄 위 */
+  #bl { left: 8px; bottom: 92px; width: 58vw; }
+  #bl #ecg { width: 90px; height: 20px; }
+  #bl .seg { width: 90px !important; }
+  #bl .vrow { gap: 5px; font-size: 10.5px; margin: 1px 0; }
+  #bl .vrow .vl { width: 24px; }
+  #bl .vrow .vv { min-width: 34px; }
+  #bl .vmod { display: none; }
+  #vname { font-size: 12px; }
+  #vname .colors { display: block; margin-top: 2px; }
+  #hpnum { font-size: 12px; }
+  #br { right: 8px; bottom: 92px; max-width: 40vw; }
+  #br .wname { font-size: 11px; }
+  #br .ammo { font-size: 20px; }
+  #br .sub2 { display: none; }
+  #br .quick { display: none; }
+  /* 모달: 한 줄 카드, 타이틀의 키 설명 숨김 */
+  #modal { padding: 8px; }
+  .box { padding: 12px 12px; width: 100%; max-height: 94vh; }
+  .cards { grid-template-columns: 1fr; }
+  .keys { columns: 1; }
+  .keys b { min-width: 0; margin-right: 6px; }
+  .box.title .keys { display: none; }
+  .box.suit .cols { grid-template-columns: 1fr; }
+  /* 슈트 화면: 손 · 실루엣+부위 칸 · 능력치를 위아래로, 부위 칸은 실루엣 아래 두 줄 */
+  .suit-lay { grid-template-columns: 1fr; gap: 12px; }
+  .suit-body { grid-template-columns: 1fr 1fr; }
+  .suit-fig { grid-column: 1 / span 2; grid-row: 1; }
+  .suit-body > :not(.suit-fig) { grid-row: auto !important; grid-column: auto !important; }
+  .suit-svg { width: 140px; height: 224px; }
+  #menu { min-width: 150px; }
+}

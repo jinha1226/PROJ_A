@@ -107,7 +107,7 @@ export class GridRuntime {
       sun.shadow.normalBias = 0.02;
     }
     scene.add(this.hemi, sun, sun.target, this.light);
-    this.pixel = new PixelPass(this.h.renderer, 2);
+    this.pixel = new PixelPass(this.h.renderer, mobile ? 1 : 2);
     if (!theme) kit.tint(look.tint);
     this.terrain = theme ? new ShipTerrain(sim.s.map, theme.kit, theme.meta) : new GridTerrain(sim.s.map, kit, look.decal);
     for (const st of theme ? sim.s.map.stations ?? [] : []) this.stationAt.set(`st-${st.id}`, new THREE.Vector3(st.pos.x * CELL, 0, st.pos.y * CELL));
@@ -395,7 +395,7 @@ export class GridRuntime {
   private clampAim(aim: THREE.Vector3): THREE.Vector3 {
     const cam = this.h.camera;
     const aspect = (cam.userData.aspect as number | undefined) ?? 9 / 16;
-    const halfX = (this.height * this.zoomMul * aspect) / 2, halfZ = (this.height * this.zoomMul) / 2 / Math.sin(ELEVATION);
+    const halfX = (this.viewH() * aspect) / 2, halfZ = (this.viewH()) / 2 / Math.sin(ELEVATION);
     const maxX = (this.sim.s.map.w - 1) * CELL, maxZ = (this.sim.s.map.h - 1) * CELL;
     const fit = (v: number, half: number, max: number) => (max - 2 * half < 0 ? max / 2 : Math.min(max - half, Math.max(half, v)));
     return aim.set(fit(aim.x, halfX - CELL / 2, maxX), aim.y, fit(aim.z, halfZ - CELL / 2, maxZ));
@@ -404,13 +404,18 @@ export class GridRuntime {
     const cam = this.h.camera;
     const aspect = (cam.userData.aspect as number | undefined) ?? 9 / 16;
     // a heavy hit punches the camera in for a moment
-    const half = (this.height * this.zoomMul * (1 - 0.07 * Math.sin((this.punch / 0.16) * Math.PI))) / 2;
+    const half = (this.viewH() * (1 - 0.07 * Math.sin((this.punch / 0.16) * Math.PI))) / 2;
     Object.assign(cam, { left: -half * aspect, right: half * aspect, top: half, bottom: -half });
     cam.updateProjectionMatrix();
     const c = this.center.clone().add(this.fx.jolt());
     if (this.pixelated) this.pixel.snap(c, half, ELEVATION);
     cam.position.set(c.x, Math.sin(ELEVATION) * CAM_DIST, c.z + Math.cos(ELEVATION) * CAM_DIST);
     cam.lookAt(c);
+  }
+  /** (MODEL 0) 실제로 보이는 높이: 세로 화면이면 늘려서 좌우 폭이 최소 0.8 × 높이 설정값이 되게 한다 (폰 세로에서 옆이 너무 좁지 않게) */
+  private viewH(): number {
+    const aspect = (this.h.camera.userData.aspect as number | undefined) ?? 9 / 16;
+    return this.height * this.zoomMul * (aspect < 1 ? Math.min(2.2, 0.8 / aspect) : 1);
   }
   setZoom(h: number): void {
     this.height = h;

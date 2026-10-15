@@ -64,7 +64,9 @@ export class View3D {
     this.rt?.dispose();
     this.stage.replaceChildren();
     this.bridge = new Bridge(g);
-    this.rt = new GridRuntime(this.stage, this.bridge.sim, this.assets.lib, this.assets.kit, false, (e) => {
+    // 폰(터치 화면): 그림자 끄기, 화면 배율 1, 파티클 줄이기, 도트 크기 1
+    const phone = window.matchMedia('(pointer: coarse)').matches;
+    this.rt = new GridRuntime(this.stage, this.bridge.sim, this.assets.lib, this.assets.kit, phone, (e) => {
       if (e.line) this.onLine?.(e.line);
     });
     this.rt.pixelated = loadPixel();

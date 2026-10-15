@@ -811,6 +811,12 @@ function toggleView() {
 }
 viewbtn.addEventListener('click', toggleView);
 
+// 폰 터치 버튼 줄: 키 입력과 똑같이 처리한다
+document.getElementById('touchbar')!.addEventListener('click', (e) => {
+  const b = (e.target as HTMLElement).closest<HTMLElement>('[data-key]');
+  if (b) window.dispatchEvent(new KeyboardEvent('keydown', { key: b.dataset.key! }));
+});
+
 // 오른쪽 위 메뉴: 화면·설정을 한곳에
 const menuEl = document.getElementById('menu')!;
 document.getElementById('menubtn')!.addEventListener('click', () => (menuEl.hidden = !menuEl.hidden));
