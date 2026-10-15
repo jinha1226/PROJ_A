@@ -47,8 +47,8 @@ export function describeByproduct(r: ByproductDef): string[] {
   const parts: string[] = [];
   if (st.integrity) parts.push(`몸 슈트 장갑 +${st.integrity}`);
   if (st.damage) parts.push(`피해 ${st.damage}`);
-  if (st.attackCost && st.attackCost !== 100) parts.push(`공격 비용 ${st.attackCost}`);
-  if (st.moveBonus) parts.push(`이동 비용 -${st.moveBonus}`);
+  if (st.attackCost && st.attackCost !== 100) parts.push(`공격 ${(100 / st.attackCost).toFixed(1)}회/턴`);
+  if (st.moveBonus) parts.push(`이동 속도 +${Math.round((100 / (100 - st.moveBonus) - 1) * 100)}%`);
   if (st.dodge) parts.push(`회피 ${st.dodge}`);
   if (st.hp) parts.push(`체력 +${st.hp}`);
   if (st.sight) parts.push(`시야 +${st.sight}`);

@@ -75,9 +75,14 @@ export class Hud {
         <span>레벨 <b>${g.plevel}</b></span><span>마석 <b>${g.ash}</b></span>
         <span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span><span>회피 <b>${s.dodge}%</b></span>
         <span>피해 <b>${s.damage}</b></span><span>시야 <b>${s.sight}</b></span>
-        <span>이동 비용 <b>${s.moveCost}</b></span><span>공격 비용 <b>${s.attackCost}</b></span>
+        <span>이동 <b>${speed(s.moveCost)}칸/턴</b></span><span>공격 <b>${speed(s.attackCost)}회/턴</b></span>
         <span>부담 <b class="${s.burden > s.burdenCap ? 'over' : ''}">${s.burden}/${s.burdenCap}</b></span><span>응급 키트 <b>${g.kits}</b></span>
       </div>`;
+    const over = s.burden - s.burdenCap;
+    if (over > 0) {
+      const sleeping = Object.values(p.slots).flat().filter((r) => r?.dormant).length;
+      html += `<div class="warnline">부담 초과 ${over}: 절전 ${sleeping}개 · 회피 −${over * 3}%</div>`;
+    }
     const st = Object.entries(p.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
     if (p.aura) st.push(`${ELEMENT_NAME[p.aura.element]} 잔류`);
     if (p.imbue) st.push(`다음 공격: ${ELEMENT_NAME[p.imbue]}`);
@@ -183,10 +188,15 @@ export function actorTooltip(g: Game, a: Actor): string {
 
 export function weaponTooltip(w: WeaponInst): string {
   const d = w.def;
-  const parts = [`피해 ${d.damage}`, `공격 비용 ${d.attackCost}`, d.range > 1 ? `사거리 ${d.range}` : '근접', d.mag !== undefined ? `탄창 ${w.ammo}/${d.mag}` : '', `부담 ${d.burden}`].filter(Boolean);
+  const parts = [`피해 ${d.damage}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', d.mag !== undefined ? `탄창 ${w.ammo}/${d.mag}` : '', `부담 ${d.burden}`].filter(Boolean);
   return `<div class="t g-${d.grade}">⚔ ${esc(d.name)}</div><div class="r">${GRADE_NAME[d.grade]} · 무기 · ${FAMILY_NAME[d.family]}</div><div class="r">${parts.join(' · ')}</div>`;
 }
 
 export function itemTooltip(r: GroundItem): string {
   return r.kind === 'weapon' ? weaponTooltip(r) : byproductTooltip(r);
+}
+
+/** 행동 비용 → 1턴(100)당 속도 */
+export function speed(cost: number): string {
+  return (100 / cost).toFixed(1);
 }
