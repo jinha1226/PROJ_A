@@ -162,7 +162,7 @@ export class Bridge {
       group: 0,
       shield: p.shield,
       status: { burn: p.statuses.burn ? 1 : 0, freeze: p.statuses.slow ? 1 : 0, poison: 0 },
-      suit: p.engravings.map((e) => e.name),
+      suit: [],
       gear: { hands: [gear(p.hands[0]), gear(p.hands[1])], active: p.activeHand === 1 ? 1 : 0 },
       exitTime: 0,
     };

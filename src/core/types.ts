@@ -1,4 +1,4 @@
-// ───────── 어휘 (각인·액티브·적 공용) ─────────
+// ───────── 어휘 (액티브·적 공용) ─────────
 
 export type Element = 'fire' | 'cold' | 'lightning' | 'impact';
 export const ELEMENTS: Element[] = ['fire', 'cold', 'lightning', 'impact'];
@@ -15,18 +15,6 @@ export const SLOT_NAME: Record<Slot, string> = { body: '몸', arm: '팔', leg: '
 
 export type Grade = 'common' | 'holy' | 'forbidden';
 export const GRADE_NAME: Record<Grade, string> = { common: '일반', holy: '정예', forbidden: '금지' };
-
-/** 발동 조건 = 플레이어 행동 4가지 */
-export type Trigger = 'attack' | 'move' | 'hit' | 'wait';
-export const TRIGGERS: Trigger[] = ['attack', 'move', 'hit', 'wait'];
-
-export const TRIGGER_NAME: Record<Trigger, string> = {
-  attack: '공격할 때',
-  move: '이동할 때',
-  hit: '피격될 때',
-  wait: '대기할 때',
-};
-export const TRIGGER_SHORT: Record<Trigger, string> = { attack: '공격', move: '이동', hit: '피격', wait: '대기' };
 
 /** 효과 어휘 */
 export type EffectKind =
@@ -70,17 +58,6 @@ export interface EffectSpec {
   terrain?: TerrainKind;
   /** 잡식: 보유 원소 종류 수만큼 count/power 배수 */
   perElementKind?: boolean;
-  /** 연쇄 단계마다 위력 배율 증가 (0.5 = 단계마다 +50%) */
-  chainBonus?: number;
-}
-
-export interface EngravingDef {
-  id: string;
-  name: string;
-  trigger: Trigger;
-  effect: EffectSpec;
-  /** 레벨업 풀에 나오지 않음 (기원 전용 등) */
-  unique?: boolean;
 }
 
 // ───────── 액티브: 형태 × 원소 × 수치 ─────────
@@ -171,7 +148,6 @@ export interface WeaponDef {
   mag?: number;
   /** 원소 지팡이: 이 턴 수마다 1회 충전 (재장전 없음) */
   recharge?: number;
-  burden: number;
 }
 
 export interface WeaponInst {
@@ -207,15 +183,10 @@ export interface Actor {
   /** 손 2칸 (들고 있는 것 + 예비). 적은 비어 있을 수 있다 */
   hands: (WeaponInst | null)[];
   activeHand: number;
-  fixedSlot?: { slot: Slot; index: number };
-  burdenCap: number;
   /** 부위별 슈트 장갑 (현재값). 0이 되면 그 부위가 파손되어 부산물 효과가 절반 */
   partArmor: Record<Slot, number>;
-  /** 프레임이 정한 부위별 기본 장갑 */
+  /** 슈트의 부위별 기본 장갑 */
   partArmorBase: Record<Slot, number>;
-  engravings: EngravingDef[];
-  /** 턴당 각인 발동 횟수 (연쇄 상한 3) */
-  engravingFires: Map<string, number>;
   time: number; // 다음 행동 시각
   shield: number;
   statuses: Partial<Record<StatusKind, number>>;

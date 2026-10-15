@@ -1,10 +1,9 @@
-import { ALERT_THRESHOLDS, type Game } from '../core/game';
-import { describeEffect, describeByproduct } from '../core/describe';
+import { ALERT_THRESHOLDS, BREAK_PENALTY, type Game } from '../core/game';
+import { describeByproduct } from '../core/describe';
 import type { Actor, GameEvent, ByproductInst, GroundItem, Slot, WeaponInst } from '../core/types';
-import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
+import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME } from '../core/types';
 import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
-import { GODS } from '../data/start';
 import { OPTION_BY_ID } from '../data/options';
 import { TRAIT_TEXT } from '../data/weapons';
 import { isChainLine } from '../render/bridge';
@@ -100,7 +99,7 @@ export class Hud {
     if (g.lab) {
       const la = g.lastAction;
       this.tl.innerHTML = `<div class="cap amber">테스트</div><div class="big">무기 실험실</div><div class="sub2">[T] 무기·옵션 편집·초기화 · [E] 손 바꾸기</div>
-        <div class="labstat">직전 행동<br>준 피해 <b>${la.damage}</b> · 치명타 <b>${la.crits}</b>${la.triggers ? ` · 각인 <b>${la.triggers}</b>` : ''}</div>`;
+        <div class="labstat">직전 행동<br>준 피해 <b>${la.damage}</b> · 치명타 <b>${la.crits}</b></div>`;
     } else {
     const fuel = g.zone + (g.isBossFloor && !g.actors.some((a) => a.boss && !a.dead) ? 1 : 0);
     this.tl.innerHTML = `<div class="cap amber">회수 임무</div><div class="big">연료 결정을 회수하라</div><div class="num">${fuel} / 2</div>
@@ -143,13 +142,8 @@ export class Hud {
     const marks = ALERT_THRESHOLDS.map((t) => Math.round((t / last) * segs));
     this.alertBar.innerHTML = `<span class="lbl">ALERT ${g.alert}</span><span class="segs">${Array.from({ length: segs }, (_, i) => `<i class="${i < filled ? (g.alert >= 2 ? 'hot' : 'on') : ''} ${marks.includes(i + 1) ? 'mk' : ''}"></i>`).join('')}</span>`;
     const warns: string[] = [];
-    const over = s.burden - s.burdenCap;
-    if (over > 0) {
-      const sleeping = Object.values(p.slots).flat().filter((r) => r?.dormant).length;
-      warns.push(`부담 초과 ${over}: 절전 ${sleeping}개 · 회피 −${over * 3}%`);
-    }
     const here = g.mode === 'play' ? g.groundHere() : [];
-    if (here.length) warns.push(`발밑: ${here.map((r) => esc(r.def.name)).join(', ')} — [G] 줍기 · [C] 과부하`);
+    if (here.length) warns.push(`발밑: ${here.map((r) => esc(r.def.name)).join(', ')} — [G] 줍기`);
     this.warn.innerHTML = warns.map((w) => `<div>${w}</div>`).join('');
     // 오른쪽 아래: 무기 · 탄약 · 퀵슬롯
     const w = p.hands[p.activeHand];
@@ -159,17 +153,10 @@ export class Hud {
         ? `<span class="ammo ${w.ammo ? '' : 'bad'}">${w.ammo}</span><span class="mag">/ ${magOf(w)}${w.def.recharge ? ' 충전' : ''}</span>`
         : `<span class="mag">${w && w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}</span>`;
     const keys = !w || w.def.range <= 1 ? '' : w.def.mag !== undefined && !w.def.recharge ? ' · [R] 재장전 · [F] 사격' : ' · [F] 사격';
-    const actives = g.equippedActives(p);
-    const quick = actives
-      .map((r, i) => {
-        const a = r.def.active!;
-        return `<div class="qs ${r.cd ? 'cd' : ''} ${r.dormant ? 'off' : ''}" data-byproduct="${r.uid}"><span class="k">${i + 1}</span><span class="n">${a.element ? ELEMENT_NAME[a.element] : ''}${FORM_NAME[a.form]}</span>${r.cd ? `<span class="c">${r.cd}</span>` : ''}</div>`;
-      })
-      .join('');
     this.br.innerHTML = `<div class="wrow"><span class="wname" ${w ? `data-byproduct="${w.uid}"` : ''}>${w ? esc(w.def.name) : '맨주먹'}</span>${ammo}</div>
       <div class="sub2">[E] 예비: ${spare ? esc(spare.def.name) : '맨주먹'}${keys}</div>
       ${w?.options.length ? `<div class="sub2 opts">${w.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')}</div>` : ''}
-      <div class="quick">${quick}<div class="qs"><span class="k">Q</span><span class="n">응급 ×${g.kits}</span></div><div class="qs"><span class="k">C</span><span class="n">과부하</span></div></div>`;
+      <div class="quick"><div class="qs"><span class="k">Q</span><span class="n">응급 ×${g.kits}</span></div></div>`;
   }
 
   /** 매 프레임: 심전도와 최근 메시지 */
@@ -235,67 +222,34 @@ export class Hud {
     this.tooltip.style.top = `${Math.min(window.innerHeight - h - 8, y + 12)}px`;
   }
 
-  /** [I] 슈트 화면: 부위별 장갑·부산물, 손, 능력치, 부위별 각인, 신앙 */
+  /** [I] 슈트 화면: 능력치·색, 손 2칸 무기, 부위별 장갑과 파손 불이익 */
   suitScreen(g: Game): string {
     const p = g.player;
     const s = g.st(p);
-    let left = `<div class="stats">
+    const cl = p.colors!;
+    const left = `<div class="stats">
         <span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span><span>회피 <b>${s.dodge}%</b></span>
         <span>피해 <b>${s.damage}</b></span><span>시야 <b>${s.sight}</b></span>
         <span>이동 <b>${speed(s.moveCost)}칸/턴</b></span><span>공격 <b>${speed(s.attackCost)}회/턴</b></span>
-        <span>부담 <b class="${s.burden > s.burdenCap ? 'over' : ''}">${s.burden}/${s.burdenCap}</b></span><span>마석 <b>${g.ash}</b></span>
+        <span>마석 <b>${g.ash}</b></span>
       </div>
+      <h3>색</h3><div class="row">${(['power', 'tactics', 'survival'] as const).map((c) => `<span class="col ${c}">${COLOR_NAME[c]} ${cl[c]}</span>`).join(' ')}</div>
       <h3>손</h3>${p.hands
-        .map((w, i) => `<div class="slot ${i === p.activeHand ? '' : 'dormant'}" ${w ? `data-byproduct="${w.uid}"` : ''}><span class="k">손${i + 1}</span><span class="n">${w ? esc(w.def.name) : '맨주먹'}<div class="sub">${w ? `피해 ${w.def.damage} · ${w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}` : ''}</div></span>${w?.def.mag !== undefined ? `<span class="badge ${w.ammo ? 'ready' : 'bad'}">${w.ammo}/${w.def.mag}</span>` : ''}${i === p.activeHand ? '<span class="badge fixed">사용 중</span>' : ''}</div>`)
+        .map((w, i) => `<div class="card ${i === p.activeHand ? 'sel' : ''}" style="cursor:default"><div class="nm">손${i + 1}${i === p.activeHand ? ' (들고 있음)' : ''}</div>${w ? weaponTooltip(w) : '<div class="ds">맨주먹</div>'}</div>`)
         .join('')}`;
-    let armIdx = 0;
-    for (const slot of ['arm', 'body', 'leg', 'sense'] as Slot[]) {
-      const amax = partArmorMax(p, slot);
-      const broken = isBroken(p, slot);
-      left += `<h3>${SLOT_NAME[slot]} <span class="armor ${broken ? 'broken' : ''}">${broken ? '파손 · 효과 ½' : `장갑 ${p.partArmor[slot]}/${amax}`}</span></h3>`;
-      p.slots[slot].forEach((r, i) => {
-        if (!r) {
-          left += `<div class="slot empty"><span class="k">${SLOT_NAME[slot]}${i + 1}</span><span class="n">비어 있음</span></div>`;
-          return;
-        }
-        const badges: string[] = [];
-        if (r.fixed) badges.push('<span class="badge fixed">고정</span>');
-        if (broken) badges.push('<span class="badge bad">½</span>');
-        if (r.dormant) badges.push('<span class="badge bad">절전</span>');
-        if (r.upgrade) badges.push(`<span class="badge">+${r.upgrade}</span>`);
-        let sub = '';
-        if (r.def.active) {
-          const k = ++armIdx;
-          const a = r.def.active;
-          badges.push(r.cd > 0 ? `<span class="badge cd">[${k}] ${r.cd}</span>` : `<span class="badge ready">[${k}] 준비</span>`);
-          sub = `${a.element ? ELEMENT_NAME[a.element] + ' ' : ''}${FORM_NAME[a.form]} ${a.power}`;
-        }
-        if (slot === 'body' && r.def.stats.integrity) sub = `몸 장갑 +${r.def.stats.integrity}`;
-        left += `<div class="slot ${broken ? 'damaged' : ''} ${r.dormant ? 'dormant' : ''}" data-byproduct="${r.uid}"><span class="k">${SLOT_NAME[slot]}${i + 1}</span><span class="n">${byproductName(r)}${sub ? `<div class="sub">${sub}</div>` : ''}</span><span>${badges.join('')}</span></div>`;
-      });
-    }
-    const now = performance.now();
-    let right = `<h3>각인 ${p.engravings.length} / ${g.engravingCap()}</h3>`;
-    for (const trig of TRIGGERS) {
-      const list = p.engravings.filter((e) => e.trigger === trig);
-      if (!list.length) continue;
-      right += `<div class="trig-head">${TRIGGER_NAME[trig]}</div>`;
-      for (const e of list) {
-        const t = this.lit.get(e.name);
-        right += `<div class="eng ${t !== undefined && now - t < 700 ? 'lit' : ''}"><div class="nm">${esc(e.name)}</div><div class="ds">→ ${esc(describeEffect(e.effect))}</div></div>`;
-      }
-    }
-    if (g.god) {
-      const god = GODS.find((x) => x.id === g.god!.id)!;
-      const tier = g.godTier();
-      right += `<h3>신앙</h3><div><b style="color:var(--brass)">${esc(god.name)}</b> · 신앙 ${g.god.piety}</div>
-        <div style="color:var(--dim);font-size:11.5px">${esc(god.law)}</div>
-        ${god.boons.map((b, i) => `<div style="font-size:12px;color:${tier > i ? 'var(--good)' : '#5a4c3a'}">${'Ⅰ Ⅱ Ⅲ'.split(' ')[i]} ${esc(b)} <span style="color:var(--dim)">(${[3, 7, 12][i]})</span></div>`).join('')}`;
-    }
+    const right =
+      `<h3>슈트 부위</h3>` +
+      (['body', 'arm', 'leg', 'sense'] as Slot[])
+        .map((slot) => {
+          const broken = isBroken(p, slot);
+          return `<div class="slot ${broken ? 'damaged' : ''}"><span class="k">${SLOT_NAME[slot]}</span><span class="n">${broken ? '파손' : `장갑 ${p.partArmor[slot]}/${partArmorMax(p, slot)}`}<div class="sub">파손 시: ${BREAK_PENALTY[slot]}</div></span></div>`;
+        })
+        .join('');
     return `<div class="box suit"><h2>슈트 — ${esc(p.name)}</h2><div class="cols"><div>${left}</div><div>${right}</div></div>
       <div class="row"><button class="ghost" data-act="close">닫기 (I / Esc)</button></div></div>`;
   }
 }
+
 
 /** 심전도: 체력 비율만큼 살아 있는 파형, 나머지는 일자선. 체력이 낮을수록 빠르고 불규칙하고 붉다 */
 function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) {
@@ -359,7 +313,6 @@ export function actorTooltip(g: Game, a: Actor): string {
     <div class="r">체력 ${a.hp}/${s.maxHp} · 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${speed(s.moveCost)}칸/턴</div>
     ${st.length ? `<div style="color:#e0a050">${st.join(' · ')}</div>` : ''}
     ${byproducts.map((r) => `<div>${byproductName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
-    ${a.engravings.length ? `<div class="r">각인: ${a.engravings.map((e) => esc(e.name)).join(', ')}</div>` : ''}
     ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;
 }
 
@@ -371,7 +324,7 @@ export function weaponTooltip(w: WeaponInst): string {
   const lv = viewer ? colorLevel(viewer, d) : 0;
   const bonus = lv ? ` <span class="up">(색 ${lv}: +${Math.round(COLOR_STEP * 100 * lv)}%)</span>` : '';
   const ammo = d.mag === undefined ? '' : d.recharge ? `충전 ${w.ammo}/${magOf(w)} (${d.recharge}턴마다 1)` : `탄창 ${w.ammo}/${magOf(w)}`;
-  const parts = [`피해 ${d.damage}${bonus}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo, `부담 ${d.burden}`].filter(Boolean);
+  const parts = [`피해 ${d.damage}${bonus}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo].filter(Boolean);
   const colors = d.colors.map((c) => `<span class="col ${c}">${COLOR_NAME[c]}</span>`).join(' ');
   const trait = d.trait ? `<div class="r trait">★ ${esc(TRAIT_TEXT[d.trait])}</div>` : '';
   const opts = w.options

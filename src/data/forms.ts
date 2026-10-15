@@ -1,6 +1,6 @@
 import type { EffectSpec, Element, FormId } from '../core/types';
 
-// 액티브 = 형태 × 원소 × 수치. 원소 부가 효과는 각인과 같은 효과 어휘를 쓴다.
+// 액티브 = 형태 × 원소 × 수치. 원소 부가 효과는 공용 효과 어휘를 쓴다 (적 액티브).
 export const FORM_NAME: Record<FormId, string> = {
   sweep: '휩쓸기',
   dash: '돌진',

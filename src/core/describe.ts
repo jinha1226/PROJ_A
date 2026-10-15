@@ -1,5 +1,5 @@
-import type { EffectSpec, EngravingDef, ByproductDef } from './types';
-import { ELEMENT_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGER_NAME } from './types';
+import type { EffectSpec, ByproductDef } from './types';
+import { ELEMENT_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME } from './types';
 import { FORM_DESC, FORM_NAME } from '../data/forms';
 
 const TARGET: Record<EffectSpec['target'], string> = {
@@ -12,10 +12,6 @@ const TARGET: Record<EffectSpec['target'], string> = {
 };
 
 export function describeEffect(e: EffectSpec): string {
-  return describeEffectBase(e) + (e.chainBonus ? ` (연쇄 단계마다 +${Math.round(e.chainBonus * 100)}%)` : '');
-}
-
-function describeEffectBase(e: EffectSpec): string {
   const el = e.inheritElement ? '같은 원소' : e.element ? ELEMENT_NAME[e.element] : '물리';
   const kinds = e.perElementKind ? ' (보유 원소 종류 수만큼)' : '';
   const t = TARGET[e.target];
@@ -40,9 +36,6 @@ function describeEffectBase(e: EffectSpec): string {
   }
 }
 
-export function describeEngraving(g: EngravingDef): string {
-  return `${TRIGGER_NAME[g.trigger]} → ${describeEffect(g.effect)}`;
-}
 
 export function describeByproduct(r: ByproductDef): string[] {
   const st = r.stats;
@@ -56,7 +49,6 @@ export function describeByproduct(r: ByproductDef): string[] {
   if (st.dodge) parts.push(`회피 ${st.dodge}`);
   if (st.hp) parts.push(`체력 +${st.hp}`);
   if (st.sight) parts.push(`시야 +${st.sight}`);
-  parts.push(`부담 ${st.burden}`);
   lines.push(parts.join(' · '));
   if (r.active) {
     const a = r.active;

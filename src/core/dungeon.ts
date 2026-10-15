@@ -147,7 +147,7 @@ export function generateLevel(rng: Rng, opts: { altarGod?: string }): Level {
   throw new Error('level generation failed');
 }
 
-/** 각인 실험실: 방 하나. 왼쪽에 플레이어, 오른쪽에 허수아비들 */
+/** 무기 실험실: 방 하나. 왼쪽에 플레이어, 오른쪽에 허수아비들 */
 export function generateLabLevel(): Level {
   const lv = new Level(24, 15);
   const room: Room = { id: 0, x: 2, y: 2, w: 19, h: 11, visited: true };
