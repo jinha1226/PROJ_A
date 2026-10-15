@@ -118,7 +118,7 @@ function renderModal() {
   if (overlay === 'help') {
     modal.hidden = false;
     modal.innerHTML = `<div class="box"><h2>도움말</h2>${keysHelp()}
-      <p class="lead" style="margin-top:12px">부산물은 몬스터에게서 얻어 슈트 부위에 장착한다. 피격되면 몸 부산물(장갑)이 먼저 받고, 장갑이 바닥나거나 넘친 피해를 맞으면 부산물이 손상되어 효과가 절반이 된다. 손상은 보급 지점에서 모두 수리된다.
+      <p class="lead" style="margin-top:12px">부산물은 몬스터에게서 얻어 슈트 부위에 장착한다. 맞으면 맞은 부위(몸·팔·다리·감각)의 슈트 장갑이 먼저 깎이고, 0이 되면 그 부위가 파손되어 거기 붙은 부산물의 효과가 절반이 된다. 보급 지점에서 모두 수리된다.
       완전 파괴는 오직 <b>과부하</b>에서만 일어난다. 원소가 다른 공격이 잔류 원소와 섞이면 복합 반응(증기·플라즈마·초전도·충돌)이 일어난다.
       오래 머물면 경보가 올라 정예 순찰대가 몰려온다.</p>
       <div class="row"><button data-act="close">닫기 (Esc)</button></div></div>`;
@@ -232,7 +232,7 @@ function showOffer() {
   if (!offerSel || !cands.includes(offerSel)) {
     offerSel = null;
     const ground = new Set(g.groundHere());
-    modal.innerHTML = `<div class="box"><h2>과부하 — 무엇을 태울까</h2><p class="lead">부산물을 과부하시켜 태운다. 되돌릴 수 없다. 등급이 높을수록 일격이 강하다. 손상된 부산물도 쓸 수 있다.</p>
+    modal.innerHTML = `<div class="box"><h2>과부하 — 무엇을 태울까</h2><p class="lead">부산물을 과부하시켜 태운다. 되돌릴 수 없다. 등급이 높을수록 일격이 강하다.</p>
       <div class="cards">${cands.map((r, i) => `<div class="card" data-i="${i}"><span class="key">${i < 9 ? i + 1 : ''} ${ground.has(r) ? '· 발밑' : '· 장착됨'}</span>${relicTooltip(r)}</div>`).join('')}</div>
       <div class="row"><button class="ghost" data-act="close">취소 (Esc)</button></div></div>`;
     modal.querySelectorAll<HTMLElement>('[data-i]').forEach((el) => (el.onclick = () => ((offerSel = cands[Number(el.dataset.i)]), refresh())));
@@ -373,7 +373,7 @@ function startTargeting(arm: number) {
     g.useActive(arm);
     return refresh();
   }
-  if (r.cd > 0 || r.damaged || r.dormant) {
+  if (r.cd > 0 || r.dormant) {
     g.useActive(arm); // 이유를 로그로 남김
     return refresh();
   }

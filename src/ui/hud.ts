@@ -2,6 +2,7 @@ import type { Game } from '../core/game';
 import { describeEffect, describeRelic } from '../core/describe';
 import type { Actor, GameEvent, RelicInst, Slot } from '../core/types';
 import { ELEMENT_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
+import { isBroken, partArmorMax } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
 import { GODS } from '../data/start';
 
@@ -69,7 +70,7 @@ export class Hud {
       <div class="bar xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></div>
       <div class="stats">
         <span>레벨 <b>${g.plevel}</b></span><span>마석 <b>${g.ash}</b></span>
-        <span>장갑 <b>${s.armor}</b></span><span>회피 <b>${s.dodge}%</b></span>
+        <span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span><span>회피 <b>${s.dodge}%</b></span>
         <span>피해 <b>${s.damage}</b></span><span>시야 <b>${s.sight}</b></span>
         <span>이동 비용 <b>${s.moveCost}</b></span><span>공격 비용 <b>${s.attackCost}</b></span>
         <span>부담 <b class="${s.burden > s.burdenCap ? 'over' : ''}">${s.burden}/${s.burdenCap}</b></span><span>응급 키트 <b>${g.kits}</b></span>
@@ -82,7 +83,10 @@ export class Hud {
 
     let armIdx = 0;
     for (const slot of ['arm', 'body', 'leg', 'sense'] as Slot[]) {
-      html += `<h3>${SLOT_NAME[slot]}</h3>`;
+      const amax = partArmorMax(p, slot);
+      const broken = isBroken(p, slot);
+      html += `<h3>${SLOT_NAME[slot]} <span class="armor ${broken ? 'broken' : ''}">${broken ? '파손 · 효과 ½' : `장갑 ${p.partArmor[slot]}/${amax}`}</span></h3>
+        <div class="bar armor"><i style="width:${amax ? (p.partArmor[slot] / amax) * 100 : 0}%"></i></div>`;
       p.slots[slot].forEach((r, i) => {
         if (!r) {
           html += `<div class="slot empty"><span class="k">${SLOT_NAME[slot]}${i + 1}</span><span class="n">비어 있음</span></div>`;
@@ -90,7 +94,7 @@ export class Hud {
         }
         const badges: string[] = [];
         if (r.fixed) badges.push('<span class="badge fixed">고정</span>');
-        if (r.damaged) badges.push('<span class="badge bad">손상 ½</span>');
+        if (broken) badges.push('<span class="badge bad">½</span>');
         if (r.dormant) badges.push('<span class="badge bad">절전</span>');
         if (r.upgrade) badges.push(`<span class="badge">+${r.upgrade}</span>`);
         let sub = '';
@@ -100,8 +104,8 @@ export class Hud {
           badges.push(r.cd > 0 ? `<span class="badge cd">[${k}] ${r.cd}</span>` : `<span class="badge ready">[${k}] 준비</span>`);
           sub = `${a.element ? ELEMENT_NAME[a.element] + ' ' : ''}${FORM_NAME[a.form]} ${a.power}`;
         }
-        if (slot === 'body') sub = `장갑 ${r.integrity}/${r.def.stats.integrity ?? 0}`;
-        html += `<div class="slot ${r.damaged ? 'damaged' : ''} ${r.dormant ? 'dormant' : ''}" data-relic="${r.uid}">
+        if (slot === 'body' && r.def.stats.integrity) sub = `몸 장갑 +${r.def.stats.integrity}`;
+        html += `<div class="slot ${broken ? 'damaged' : ''} ${r.dormant ? 'dormant' : ''}" data-relic="${r.uid}">
           <span class="k">${SLOT_NAME[slot]}${i + 1}</span>
           <span class="n">${relicName(r)}${sub ? `<div class="sub">${sub}</div>` : ''}</span><span>${badges.join('')}</span></div>`;
       });
@@ -132,7 +136,7 @@ export class Hud {
     const here = g.mode === 'play' ? g.groundHere() : [];
     if (here.length) {
       rh += `<h3>발밑</h3>`;
-      for (const r of here) rh += `<div class="slot" data-relic="${r.uid}"><span class="n">${relicName(r)}${r.damaged ? ' <span class="badge bad">손상</span>' : ''}<div class="sub">${esc(describeRelic(r.def)[1])}</div></span></div>`;
+      for (const r of here) rh += `<div class="slot" data-relic="${r.uid}"><span class="n">${relicName(r)}<div class="sub">${esc(describeRelic(r.def)[1])}</div></span></div>`;
       rh += `<div style="color:var(--dim);font-size:11.5px">[G] 장착 · [F] 과부하</div>`;
     }
     this.right.innerHTML = rh;
@@ -154,7 +158,7 @@ export class Hud {
 
 export function relicTooltip(r: RelicInst): string {
   const lines = describeRelic(r.def);
-  return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}${r.damaged ? ' (손상: 효과 절반)' : ''}${r.dormant ? ' (절전)' : ''}</div>${lines.map((l) => `<div class="r">${esc(l)}</div>`).join('')}`;
+  return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}${r.dormant ? ' (절전)' : ''}</div>${lines.map((l) => `<div class="r">${esc(l)}</div>`).join('')}`;
 }
 
 export function actorTooltip(g: Game, a: Actor): string {
@@ -164,9 +168,9 @@ export function actorTooltip(g: Game, a: Actor): string {
   if (a.aura) st.push(`${ELEMENT_NAME[a.aura.element]} 잔류`);
   if (a.marked) st.push('표식');
   return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
-    <div class="r">체력 ${a.hp}/${s.maxHp} · 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${s.moveCost}</div>
+    <div class="r">체력 ${a.hp}/${s.maxHp} · 슈트 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${s.moveCost}</div>
     ${st.length ? `<div style="color:#e0a050">${st.join(' · ')}</div>` : ''}
-    ${relics.map((r) => `<div>${relicName(r)}${r.damaged ? ' <span class="badge bad">손상</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
+    ${relics.map((r) => `<div>${relicName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
     ${a.engravings.length ? `<div class="r">각인: ${a.engravings.map((e) => esc(e.name)).join(', ')}</div>` : ''}
     ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;
 }

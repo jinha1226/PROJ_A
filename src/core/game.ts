@@ -1,6 +1,6 @@
 import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLevel, hasLos, Level, linePoints } from './dungeon';
-import { allRelics, computeStats, relicFactor, type Stats } from './stats';
+import { allRelics, computeStats, HIT_WEIGHT, isBroken, partArmorMax, relicFactor, type Stats } from './stats';
 import type {
   Actor, EffectSpec, Element, EngravingDef, Faction, GameEvent, RelicDef, RelicInst, Slot, StatusKind, Trigger,
 } from './types';
@@ -32,8 +32,6 @@ export const ENGRAVING_SLOTS = 8;
 export const SHIELD_CAP = 25;
 export const ALERT_THRESHOLDS = [160, 240, 310]; // 층에 머문 턴 수
 export const MAX_KITS = 3;
-/** 넘친 피해로 다른 부산물이 손상될 확률의 상한 (한 대당) */
-export const DAMAGE_CHANCE_CAP = 0.2;
 const XP_TABLE = [0, 40, 80, 125, 175, 230, 290, 355, 425, 500];
 
 interface Ctx {
@@ -104,7 +102,7 @@ export class Game {
 
   makeRelic(def: RelicDef | string): RelicInst {
     const d = typeof def === 'string' ? RELIC_BY_ID[def] : def;
-    return { uid: this.nextUid++, def: d, damaged: false, dormant: false, fixed: false, integrity: d.stats.integrity ?? 0, cd: 0, upgrade: 0 };
+    return { uid: this.nextUid++, def: d, dormant: false, fixed: false, cd: 0, upgrade: 0 };
   }
 
   private newActor(name: string, faction: Faction, hp: number, dmg: number, slots: Record<Slot, number>): Actor {
@@ -112,7 +110,7 @@ export class Game {
     for (const k of SLOTS) s[k] = new Array(slots[k]).fill(null);
     return {
       id: this.nextId++, name, faction, isPlayer: false, x: 0, y: 0, hp, baseHp: hp, baseDamage: dmg, slots: s,
-      burdenCap: 99, engravings: [], engravingFires: new Map(), time: 0, shield: 0, statuses: {}, haste: 0,
+      burdenCap: 99, partArmor: { body: 0, arm: 0, leg: 0, sense: 0 }, partArmorBase: { body: 0, arm: 0, leg: 0, sense: 0 }, engravings: [], engravingFires: new Map(), time: 0, shield: 0, statuses: {}, haste: 0,
       marked: false, dead: false, awake: false, dropChance: 0,
     };
   }
@@ -124,6 +122,7 @@ export class Game {
     p.isPlayer = true;
     p.awake = true;
     p.burdenCap = body.burdenCap;
+    p.partArmorBase = { ...body.armor };
     const fixed = this.makeRelic(body.fixed.relic);
     fixed.fixed = true;
     p.slots[body.fixed.slot][0] = fixed;
@@ -132,6 +131,7 @@ export class Game {
     p.engravings.push(ENGRAVING_BY_ID[origin.engraving]);
     this.player = p;
     this.recomputeBurden(p);
+    this.fillArmor(p);
     p.hp = this.st(p).maxHp;
   }
 
@@ -157,6 +157,7 @@ export class Game {
     e.dropChance = t.dropChance;
     e.x = x;
     e.y = y;
+    this.fillArmor(e);
     e.hp = this.st(e).maxHp;
     e.time = this.player.time + this.rng.int(0, 60);
     this.actors.push(e);
@@ -271,7 +272,7 @@ export class Game {
     return computeStats(a, this.fullWhenDamaged(a));
   }
 
-  /** 녹의 신 2단계: 손상된 부산물도 온전한 효과 */
+  /** 녹의 신 2단계: 파손된 부위의 부산물도 온전한 효과 */
   fullWhenDamaged(a: Actor) {
     return a.isPlayer && this.god?.id === 'rust' && this.godTier() >= 2;
   }
@@ -479,6 +480,7 @@ export class Game {
     const arr = p.slots[r.def.slot];
     if (index < 0 || index >= arr.length) return false;
     const old = arr[index];
+    const armorBefore = this.armorMaxes(p);
     if (old?.fixed) {
       this.log('고정 슬롯은 교체할 수 없다.');
       return false;
@@ -514,6 +516,7 @@ export class Game {
       this.log('녹의 신이 새 부산물을 싫어한다. (신앙 -3)', 'bad');
     }
     this.recomputeBurden(p);
+    this.syncArmor(p, armorBefore);
     this.log(`${SLOT_NAME[r.def.slot]} 슬롯에 ${r.def.name} 장착. 슈트가 부산물을 변환했다.`, 'good');
     this.emit({ type: 'loadout', actor: p.id });
     if (this.mode === 'play') this.endPlayerAction(100);
@@ -549,7 +552,7 @@ export class Game {
     this.restItems = [];
     const p = this.player;
     // 보급 지점에서는 항상 모든 부산물을 수리한다
-    this.repairAll(p, 0.15);
+    this.repairAll(p, this.god?.id === 'rust' && this.godTier() >= 3 ? 0.4 : 0.15);
     this.restService = this.rng.pick(['shop', 'reforge', 'engrave'] as const);
     if (this.restService === 'shop') {
       this.shop = [0, 1, 2].map(() => {
@@ -1018,7 +1021,7 @@ export class Game {
   performActive(a: Actor, r: RelicInst, tgt?: { x: number; y: number }): boolean {
     const sp = r.def.active!;
     const el = sp.element;
-    const power = Math.round(sp.power * relicFactor(r, this.fullWhenDamaged(a)) * this.dmgMult(a));
+    const power = Math.round(sp.power * this.factorOf(a, r) * this.dmgMult(a));
     const rider = el ? FORM_RIDERS[sp.form][el] : undefined;
     const label = `${r.def.name}·${FORM_NAME[sp.form]}`;
     const hitWith = (t: Actor, pw: number) => {
@@ -1162,16 +1165,16 @@ export class Game {
       t.shield -= absorbed;
       dmg -= absorbed;
     }
-    // 몸 부산물(장갑)이 먼저 받는다. 내구가 0이 되면 그 부산물은 손상된다
+    // 맞은 부위의 슈트 장갑이 먼저 받는다. 0이 되면 그 부위가 파손된다
     let overflow = dmg;
     if (!pierce && dmg > 0) {
-      const armors = t.slots.body.filter((r): r is RelicInst => !!r && !r.damaged && !r.dormant && r.integrity > 0);
-      if (armors.length) {
-        const ar = this.rng.pick(armors);
-        const take = Math.min(ar.integrity, Math.ceil(dmg * 0.7));
-        ar.integrity -= take;
+      const part = this.rng.weighted(SLOTS, (k) => HIT_WEIGHT[k]);
+      const before = t.partArmor[part];
+      if (before > 0) {
+        const take = Math.min(before, dmg);
+        t.partArmor[part] -= take;
         overflow = dmg - take;
-        if (ar.integrity <= 0) this.damageRelic(t, ar);
+        if (t.partArmor[part] <= 0) this.breakPart(t, part);
       }
     }
     if (src?.isPlayer) this.stats.damageDealt += dmg;
@@ -1179,17 +1182,6 @@ export class Game {
     this.emit({ type: 'damage', target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label });
     if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}: ${dmg}${el ? ` ${ELEMENT_NAME[el]}` : ''} 피해`, 'bad');
 
-    // 넘친 피해가 낮은 확률로 다른 부산물을 손상시킨다 (손상 = 효과 절반)
-    if (overflow > 0 && !t.dead) {
-      const maxHp = ts.maxHp;
-      const pool = allRelics(t).filter((r) => !r.damaged && r.def.slot !== 'body');
-      if (pool.length) {
-        const r = this.rng.pick(pool);
-        let p = Math.min(DAMAGE_CHANCE_CAP, (overflow / maxHp) * 0.8) * (r.def.curse?.kind === 'fragile' ? 2 : 1);
-        if (t.isPlayer && this.god?.id === 'rust' && this.godTier() >= 3) p /= 2;
-        if (this.rng.chance(p)) this.damageRelic(t, r);
-      }
-    }
     if (el === 'fire' && !t.statuses.burn && this.rng.chance(0.4)) this.addStatus(t, 'burn', 2);
     if (el === 'cold') this.addStatus(t, 'slow', 1);
     if (t.hp <= 0) {
@@ -1206,14 +1198,55 @@ export class Game {
     this.log(`⟡ ${name}!`, 'combo');
   }
 
-  private damageRelic(a: Actor, r: RelicInst) {
-    if (r.damaged) return;
-    r.damaged = true;
-    r.integrity = 0;
+  private breakPart(a: Actor, part: Slot) {
     this.emit({ type: 'loadout', actor: a.id });
-    if (a.isPlayer) this.log(`${r.def.name} 손상: 효과가 절반으로 떨어졌다.`, 'bad');
+    if (a.isPlayer) {
+      const names = a.slots[part].filter((r): r is RelicInst => !!r).map((r) => r.def.name);
+      this.log(`${SLOT_NAME[part]} 슈트 파손: ${names.length ? names.join(', ') + ' 효과 절반' : '부착된 부산물 없음'}.`, 'bad');
+    }
     const maxHp = this.st(a).maxHp;
     if (a.hp > maxHp) a.hp = maxHp;
+  }
+
+  /** 부산물 효과 배율 (부위 파손 반영) */
+  factorOf(a: Actor, r: RelicInst) {
+    return relicFactor(r, !this.fullWhenDamaged(a) && isBroken(a, r.def.slot));
+  }
+
+  /** 모든 부위 장갑을 가득 채운다 */
+  fillArmor(a: Actor) {
+    for (const k of SLOTS) a.partArmor[k] = partArmorMax(a, k);
+  }
+
+  /** 장착이 바뀐 뒤: 늘어난 최대치만큼 채우고, 줄었으면 깎는다 */
+  private syncArmor(a: Actor, before: Record<Slot, number>) {
+    for (const k of SLOTS) {
+      const max = partArmorMax(a, k);
+      const delta = max - before[k];
+      a.partArmor[k] = Math.max(0, Math.min(max, a.partArmor[k] + Math.max(0, delta)));
+    }
+  }
+
+  private armorMaxes(a: Actor): Record<Slot, number> {
+    return { body: partArmorMax(a, 'body'), arm: partArmorMax(a, 'arm'), leg: partArmorMax(a, 'leg'), sense: partArmorMax(a, 'sense') };
+  }
+
+  /** 가장 많이 깎인 부위부터 n만큼 수리 */
+  repairArmor(a: Actor, n: number) {
+    while (n > 0) {
+      let worst: Slot | null = null;
+      let ratio = 1;
+      for (const k of SLOTS) {
+        const max = partArmorMax(a, k);
+        if (max <= 0 || a.partArmor[k] >= max) continue;
+        const rr = a.partArmor[k] / max;
+        if (rr < ratio) { ratio = rr; worst = k; }
+      }
+      if (!worst) return;
+      const add = Math.min(n, partArmorMax(a, worst) - a.partArmor[worst]);
+      a.partArmor[worst] += add;
+      n -= add;
+    }
   }
 
   private kill(t: Actor, src: Actor | null) {
@@ -1236,7 +1269,7 @@ export class Game {
         r.dormant = false;
         r.cd = 0;
         this.dropItem(t.x, t.y, r);
-        this.log(`잔해에서 ${r.def.name}${r.damaged ? '(손상)' : ''}이(가) 떨어졌다.`, 'item');
+        this.log(`잔해에서 ${r.def.name}이(가) 떨어졌다.`, 'item');
       }
       if (t.boss) {
         const loot = ZONES[this.zone].bossLoot;
@@ -1261,11 +1294,8 @@ export class Game {
   }
 
   repairAll(a: Actor, healFrac: number) {
-    for (const r of allRelics(a)) {
-      r.damaged = false;
-      r.integrity = r.def.stats.integrity ?? 0;
-    }
     this.recomputeBurden(a);
+    this.fillArmor(a);
     this.heal(a, Math.round(this.st(a).maxHp * healFrac));
     this.emit({ type: 'loadout', actor: a.id });
   }
@@ -1291,8 +1321,10 @@ export class Game {
     for (const s of SLOTS) {
       const i = p.slots[s].indexOf(r);
       if (i >= 0) {
+        const before = this.armorMaxes(p);
         p.slots[s][i] = null;
         this.recomputeBurden(p);
+        this.syncArmor(p, before);
         this.emit({ type: 'loadout', actor: p.id });
         return true;
       }
@@ -1430,14 +1462,7 @@ export class Game {
         this.emit({ type: 'fx', fx: 'heal', x: owner.x, y: owner.y });
         break;
       case 'repair': {
-        for (const r of owner.slots.body) {
-          if (!r) continue;
-          const max = r.def.stats.integrity ?? 0;
-          r.integrity = Math.min(max, r.integrity + power);
-          if (r.damaged && r.integrity > 0) r.damaged = false;
-        }
-        const broken = allRelics(owner).filter((r) => r.damaged);
-        if (broken.length && this.rng.chance(power * 0.1)) broken[0].damaged = false;
+        this.repairArmor(owner, power);
         this.emit({ type: 'fx', fx: 'heal', x: owner.x, y: owner.y });
         this.emit({ type: 'loadout', actor: owner.id });
         break;

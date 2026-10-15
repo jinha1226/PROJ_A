@@ -53,6 +53,10 @@ h3:first-child { margin-top: 0; }
 .bar > i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(#c04a36, #7a2418); }
 .bar > b { position: absolute; right: 0; top: 0; bottom: 0; background: rgba(156, 200, 220, 0.6); }
 .bar.xp { height: 6px; }
+.bar.armor { height: 4px; margin: 0 0 3px; }
+.bar.armor > i { background: var(--cold); }
+h3 .armor { float: right; font-size: 10.5px; letter-spacing: 0; color: var(--dim); font-weight: 400; }
+h3 .armor.broken { color: #e08070; }
 .bar.xp > i { background: var(--brass); }
 .bar > span { position: absolute; inset: 0; text-align: center; font-size: 11px; line-height: 13px; text-shadow: 0 1px 1px #000; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 10px; color: var(--dim); font-size: 12px; }

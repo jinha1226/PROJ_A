@@ -26,7 +26,7 @@ export function describeEffect(e: EffectSpec): string {
     case 'mark': return `${t}에게 표식`;
     case 'shield': return `보호막 +${e.power}`;
     case 'heal': return `체력 +${e.power}`;
-    case 'repair': return `몸 부산물 장갑 +${e.power}, 손상 부산물 복구 확률`;
+    case 'repair': return `가장 많이 깎인 부위의 슈트 장갑 +${e.power}`;
     case 'blink': return '적에게서 먼 곳으로 도약';
     case 'cdReduce': return `액티브 쿨다운 -${e.power}${kinds}`;
     case 'haste': return `다음 행동 비용 -${e.power}%`;
@@ -45,7 +45,7 @@ export function describeRelic(r: RelicDef): string[] {
   const lines: string[] = [];
   lines.push(`${GRADE_NAME[r.grade]} · ${SLOT_NAME[r.slot]}${r.elements.length ? ' · ' + r.elements.map((e) => ELEMENT_NAME[e]).join('/') : ''}`);
   const parts: string[] = [];
-  if (st.integrity) parts.push(`장갑 ${st.integrity}`);
+  if (st.integrity) parts.push(`몸 슈트 장갑 +${st.integrity}`);
   if (st.damage) parts.push(`피해 ${st.damage}`);
   if (st.attackCost && st.attackCost !== 100) parts.push(`공격 비용 ${st.attackCost}`);
   if (st.moveBonus) parts.push(`이동 비용 -${st.moveBonus}`);

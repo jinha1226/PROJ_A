@@ -40,7 +40,7 @@ export const RELICS: RelicDef[] = [
   { id: 'rime_spurs', name: '설원 늑대 다리', slot: 'leg', grade: 'common', elements: ['cold'], stats: { moveBonus: 8, dodge: 6, burden: 2 } },
   { id: 'storm_tendons', name: '묘지기 기사의 다리', slot: 'leg', grade: 'holy', elements: ['lightning'], stats: { moveBonus: 22, dodge: 6, burden: 3 } },
   { id: 'seraph_talons', name: '그리폰 발톱', slot: 'leg', grade: 'holy', elements: ['fire', 'lightning'], stats: { moveBonus: 15, dodge: 10, burden: 3 } },
-  { id: 'unbound_legs', name: '그림자 추적자 다리', slot: 'leg', grade: 'forbidden', elements: ['impact', 'cold'], stats: { moveBonus: 30, dodge: 14, burden: 2 }, curse: { text: '이 부산물은 손상되기 쉬움', kind: 'fragile' } },
+  { id: 'unbound_legs', name: '그림자 추적자 다리', slot: 'leg', grade: 'forbidden', elements: ['impact', 'cold'], stats: { moveBonus: 30, dodge: 14, burden: 2 }, curse: { text: '다리 슈트 장갑 절반', kind: 'fragile' } },
 
   // ── 감각 ──
   { id: 'glass_eye', name: '박쥐 귀', slot: 'sense', grade: 'common', elements: [], stats: { sight: 2, dodge: 2, burden: 1 } },

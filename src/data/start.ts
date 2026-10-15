@@ -25,28 +25,32 @@ export interface BodyDef {
   relics: string[];
   baseHp: number;
   burdenCap: number;
+  /** 부위별 슈트 장갑 기본값 (몸 부산물 장갑은 몸에 더해진다) */
+  armor: Record<Slot, number>;
 }
 
 export const BODIES: BodyDef[] = [
   {
     id: 'light',
     name: '경량 프레임',
-    desc: '다리 3, 팔 1. 빠르고 잘 피하지만 얇다. 고정 슬롯: 다리.',
+    desc: '다리 3, 팔 1. 빠르고 잘 피하지만 슈트 장갑이 얇다. 고정 슬롯: 다리.',
     slots: { body: 2, arm: 1, leg: 3, sense: 2 },
     fixed: { slot: 'leg', relic: 'pilgrim_greaves' },
     relics: ['bone_plates', 'bone_stilts', 'glass_eye'],
     baseHp: 34,
     burdenCap: 16,
+    armor: { body: 12, arm: 10, leg: 12, sense: 8 },
   },
   {
     id: 'heavy',
     name: '중장 프레임',
-    desc: '몸 3, 팔 2, 다리 1. 느리지만 두껍다. 고정 슬롯: 몸.',
+    desc: '몸 3, 팔 2, 다리 1. 느리지만 슈트 장갑이 두껍다. 고정 슬롯: 몸.',
     slots: { body: 3, arm: 2, leg: 1, sense: 2 },
     fixed: { slot: 'body', relic: 'rusted_cuirass' },
     relics: ['bone_sickle', 'bone_plates', 'glass_eye'],
     baseHp: 42,
     burdenCap: 22,
+    armor: { body: 18, arm: 12, leg: 8, sense: 8 },
   },
 ];
 
@@ -69,6 +73,6 @@ export const GODS: GodDef[] = [
     id: 'rust',
     name: '녹의 신',
     law: '계율: 새 부산물을 장착하지 마라. (장착하면 신앙 -3)',
-    boons: ['층마다 장착된 부산물 강화 +1', '손상된 부산물도 온전한 효과', '손상 확률 절반'],
+    boons: ['층마다 장착된 부산물 강화 +1', '파손된 부위의 부산물도 온전한 효과', '보급 지점에서 체력 추가 회복'],
   },
 ];

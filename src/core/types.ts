@@ -121,10 +121,8 @@ export interface RelicDef {
 export interface RelicInst {
   uid: number;
   def: RelicDef;
-  damaged: boolean;
   dormant: boolean;
   fixed: boolean;
-  integrity: number; // 현재 장갑 내구 (몸)
   cd: number; // 남은 쿨다운
   upgrade: number; // 녹의 신 강화 단계
 }
@@ -144,6 +142,10 @@ export interface Actor {
   slots: Record<Slot, (RelicInst | null)[]>;
   fixedSlot?: { slot: Slot; index: number };
   burdenCap: number;
+  /** 부위별 슈트 장갑 (현재값). 0이 되면 그 부위가 파손되어 부산물 효과가 절반 */
+  partArmor: Record<Slot, number>;
+  /** 프레임이 정한 부위별 기본 장갑 */
+  partArmorBase: Record<Slot, number>;
   engravings: EngravingDef[];
   /** 턴당 각인 발동 횟수 (연쇄 상한 3) */
   engravingFires: Map<string, number>;

@@ -57,7 +57,7 @@ export function botStep(g: Game): boolean {
   if (here.length) {
     const r = here[0];
     if (tryGraft(g, r)) return true;
-    return g.offer(r, p.slots.body.some((b) => b?.damaged) ? 'repair' : 'cooldown');
+    return g.offer(r, g.st(p).armor < g.st(p).armorMax * 0.5 ? 'repair' : 'cooldown');
   }
   const dir = g.autoExploreDir();
   if (dir === 'enemy') return g.wait();
@@ -72,10 +72,10 @@ export function botStep(g: Game): boolean {
 export function tryGraft(g: Game, r: RelicInst): boolean {
   const arr = g.player.slots[r.def.slot];
   let idx = arr.findIndex((x) => !x);
-  if (idx < 0) idx = arr.findIndex((x) => x && !x.fixed && (x.damaged || gradeVal(x) < gradeVal(r)));
+  if (idx < 0) idx = arr.findIndex((x) => x && !x.fixed && gradeVal(x) < gradeVal(r));
   if (idx < 0) return false;
   return g.graft(r, idx, 'offer');
 }
-const gradeVal = (r: RelicInst) => ({ common: 0, holy: 1, forbidden: 2 })[r.def.grade] + (r.damaged ? -2 : 0);
+const gradeVal = (r: RelicInst) => ({ common: 0, holy: 1, forbidden: 2 })[r.def.grade];
 const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 
