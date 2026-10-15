@@ -104,11 +104,14 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); 
 #vname { font-size: 15px; margin-bottom: 6px; letter-spacing: 1px; }
 .vrow { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 3px 0; }
 .vrow .vl { width: 30px; color: var(--hud-dim); flex: none; }
-.vrow .vv { margin-left: auto; min-width: 46px; text-align: right; }
+.vrow .vv { min-width: 46px; text-align: left; }
 #ecg { flex: none; }
-#hpnum { margin-left: auto; font-size: 14px; }
+#hpnum { font-size: 14px; }
 #hpnum small { color: var(--hud-dim); font-size: 11px; }
 #hpnum .shield { color: var(--hud-cyan); font-size: 11px; }
+/* 슈트 칸 막대는 생체 그래프(170px)와 같은 폭 */
+#bl .seg { display: flex; gap: 2px; width: 170px; flex: none; }
+#bl .seg i { flex: 1; }
 .seg { display: inline-flex; gap: 2px; }
 .seg i { width: 11px; height: 8px; background: #ffffff1a; }
 .seg i.on { background: var(--seg-on); box-shadow: 0 0 4px var(--seg-glow); }
