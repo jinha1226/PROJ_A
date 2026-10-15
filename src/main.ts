@@ -101,7 +101,7 @@ function refresh() {
   if (targeting) hud.setHint('조준 중 — Tab: 다음 대상 · 클릭: 지점 선택 · Enter/같은 키: 발사 · Esc: 취소', true);
   else {
     const f = game.level.featureAt(game.player.x, game.player.y);
-    hud.setHint(f?.kind === 'exit' ? '[&gt;] 보급 지점으로 이동' : auto ? '자동 이동 중… (아무 키나 눌러 중단)' : 'o 오토탐험 · 클릭 이동 · ? 도움말');
+    hud.setHint(f?.kind === 'exit' ? '[&gt;] 보급 지점으로 이동' : auto ? '자동 이동 중… (아무 키나 눌러 중단)' : '');
   }
   renderModal();
 }
@@ -738,7 +738,7 @@ canvas.addEventListener('mouseleave', () => {
 // HD / 도트 전환 (P)
 const pxbtn = document.getElementById('pxbtn')!;
 function pixelLabel() {
-  pxbtn.textContent = renderer?.pixelated ? '도트 ▸ HD (P)' : 'HD ▸ 도트 (P)';
+  pxbtn.textContent = `화질: ${renderer?.pixelated ? '도트' : 'HD'} (P)`;
 }
 function togglePixel() {
   renderer.pixelated = !renderer.pixelated;
@@ -750,7 +750,7 @@ pxbtn.addEventListener('click', togglePixel);
 const pacebtn = document.getElementById('pacebtn')!;
 const PACE_NAME: Record<Pace, string> = { normal: '보통', fast: '빠름', instant: '즉시' };
 function paceLabel() {
-  pacebtn.textContent = `연출 ${PACE_NAME[renderer?.pace ?? 'normal']} (V)`;
+  pacebtn.textContent = `연출 속도: ${PACE_NAME[renderer?.pace ?? 'normal']} (V)`;
 }
 function cyclePace() {
   const order: Pace[] = ['normal', 'fast', 'instant'];
@@ -776,7 +776,7 @@ function loadTheme(): Theme {
 function applyTheme(t: Theme) {
   document.body.dataset.theme = t;
   clearThemeCache();
-  themebtn.textContent = `HUD ${THEME_NAME[t]} (C)`;
+  themebtn.textContent = `HUD 색: ${THEME_NAME[t]} (C)`;
   try {
     localStorage.setItem('model0.theme', t);
   } catch {
@@ -793,13 +793,31 @@ themebtn.addEventListener('click', cycleTheme);
 // 시점 (Z): 45° 비스듬히 ↔ 완전 탑뷰
 const viewbtn = document.getElementById('viewbtn')!;
 function viewLabel() {
-  viewbtn.textContent = renderer?.topDown ? '탑뷰 ▸ 45° (Z)' : '45° ▸ 탑뷰 (Z)';
+  viewbtn.textContent = `시점: ${renderer?.topDown ? '탑뷰' : '45°'} (Z)`;
 }
 function toggleView() {
   renderer.topDown = !renderer.topDown;
   viewLabel();
 }
 viewbtn.addEventListener('click', toggleView);
+
+// 오른쪽 위 메뉴: 화면·설정을 한곳에
+const menuEl = document.getElementById('menu')!;
+document.getElementById('menubtn')!.addEventListener('click', () => (menuEl.hidden = !menuEl.hidden));
+menuEl.querySelectorAll<HTMLElement>('[data-menu]').forEach(
+  (el) =>
+    (el.onclick = () => {
+      menuEl.hidden = true;
+      if (!game) return;
+      const k = el.dataset.menu!;
+      if (k === 'log') hud.toggleLog();
+      else overlay = k as typeof overlay;
+      refresh();
+    }),
+);
+document.addEventListener('click', (e) => {
+  if (!menuEl.hidden && !(e.target as HTMLElement).closest('#tr')) menuEl.hidden = true;
+});
 applyTheme(loadTheme());
 
 // 심전도·최근 메시지 애니메이션

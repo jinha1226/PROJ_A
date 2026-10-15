@@ -1,4 +1,4 @@
-import type { Element, OptionId, StatusKind } from '../core/types';
+import type { OptionId, StatusKind } from '../core/types';
 
 // 상태·옵션 배지: 색 배지에 줄이지 않은 이름. HUD와 캐릭터 머리 위에서 같은 모양을 쓴다.
 
@@ -22,14 +22,7 @@ export const STATUS_ICON: Record<StatusKind, { g: string; c: string; name: strin
   bleed: { g: '출혈', c: '#e8384a', name: '출혈' },
   poison: { g: '중독', c: '#7ad04a', name: '중독' },
   oil: { g: '기름', c: '#c8a040', name: '기름' },
-};
-
-/** 원소 잔류 (복합 반응의 재료) */
-export const AURA_ICON: Record<Element, { g: string; c: string }> = {
-  fire: { g: '화염 잔류', c: '#ff9a50' },
-  cold: { g: '냉기 잔류', c: '#9fd8ff' },
-  lightning: { g: '번개 잔류', c: '#ffe680' },
-  impact: { g: '충격 잔류', c: '#c09060' },
+  shock: { g: '감전', c: '#ffe680', name: '감전' },
 };
 
 /** 무기 옵션: 줄이지 않은 짧은 문구 (자세한 설명은 마우스를 올리면) */
@@ -44,15 +37,14 @@ export const OPTION_ICON: Record<OptionId, { g: string; c: string }> = {
   iceShield: { g: '막으면 빙결', c: '#9fe8ff' }, frenzy: { g: '폭주', c: '#ff4a3a' },
 };
 
-/** 액터의 상태 배지 목록 (상태 + 원소 잔류) */
-export function statusBadges(statuses: Partial<Record<StatusKind, number>>, aura?: { element: Element; turns: number }): Badge[] {
+/** 액터의 상태 배지 목록 */
+export function statusBadges(statuses: Partial<Record<StatusKind, number>>): Badge[] {
   const out: Badge[] = [];
   for (const [k, n] of Object.entries(statuses) as [StatusKind, number][]) {
     if (!n) continue;
     const s = STATUS_ICON[k];
     out.push({ g: s.g, c: s.c, n, tip: `${s.name} ${n}${k === 'poison' ? '중첩' : '턴'}` });
   }
-  if (aura) out.push({ ...AURA_ICON[aura.element], n: aura.turns, tip: '원소 잔류 (다른 원소에 맞으면 복합 반응)' });
   return out;
 }
 

@@ -23,6 +23,20 @@ export const REST_NAME: Record<RestService, string> = {
 
 export const SHIELD_CAP = 25;
 export const ALERT_THRESHOLDS = [160, 240, 310]; // 층에 머문 턴 수
+/** 대상에 남아 있는 원소 효과 중 el과 다른 것 (반응 재료). 충격은 효과를 남기지 않는다 */
+function elementPresent(t: Actor, el: Element): Element | undefined {
+  const has: Element[] = [];
+  if (t.statuses.burn) has.push('fire');
+  if (t.statuses.slow || t.statuses.freeze) has.push('cold');
+  if (t.statuses.shock) has.push('lightning');
+  return has.find((e) => e !== el);
+}
+function clearElement(t: Actor, el: Element) {
+  if (el === 'fire') delete t.statuses.burn;
+  if (el === 'cold') { delete t.statuses.slow; delete t.statuses.freeze; }
+  if (el === 'lightning') delete t.statuses.shock;
+}
+
 const XP_TABLE = [0, 40, 80, 125, 175, 230, 290, 355, 425, 500];
 
 /** 부위 파손 불이익 (플레이어 슈트) */
@@ -284,7 +298,6 @@ export class Game {
     p.x = lv.startX;
     p.y = lv.startY;
     p.statuses = {};
-    p.aura = undefined;
     const startRoom = lv.roomOf[lv.idx(p.x, p.y)];
     if (startRoom >= 0) lv.rooms[startRoom].visited = true;
 
@@ -1564,13 +1577,16 @@ export class Game {
       this.comboFx(t, '기름 점화');
     }
     if (src && el) dmg *= 1 + 0.08 * this.st(src).attune[el];
-    if (el) dmg *= 1 - Math.min(0.45, 0.12 * ts.attune[el]);
+    // 원소 저항: 플레이어는 슈트 부위 칸 부산물의 원소마다 25%(최대 50%), 적은 몸 부산물 원소마다 12%
+    if (el && t.isPlayer) dmg *= 1 - Math.min(0.5, 0.25 * allByproducts(t).reduce((k, r) => k + (r.def.elements.includes(el) ? 1 : 0), 0));
+    else if (el) dmg *= 1 - Math.min(0.45, 0.12 * ts.attune[el]);
 
-    // 원소 복합 반응 (대상에 남은 다른 원소의 잔류와 섞임)
+    // 원소 복합 반응: 대상에 남아 있는 다른 원소의 효과(화상·둔화/빙결·감전)에 맞으면 섞인다. 재료가 된 효과는 사라진다
     let comboAura: Element | undefined;
-    if (el && t.aura && t.aura.element !== el) {
-      comboAura = t.aura.element;
-      t.aura = undefined;
+    const reactWith = el ? elementPresent(t, el) : undefined;
+    if (el && reactWith) {
+      comboAura = reactWith;
+      clearElement(t, reactWith);
       const pair = new Set([el, comboAura]);
       this.stats.combos++;
       if (pair.has('fire') && pair.has('cold')) {
@@ -1593,8 +1609,6 @@ export class Game {
         this.addStatus(t, 'stun', 1);
         dmg *= 1.25;
       }
-    } else if (el) {
-      t.aura = { element: el, turns: STATUS_TURNS };
     }
     dmg = Math.max(1, Math.round(dmg));
 
@@ -1627,8 +1641,12 @@ export class Game {
     if (t.isPlayer && dmg > 0) t.hurtAt = this.stats.turns;
     if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}: ${dmg}${el ? ` ${ELEMENT_NAME[el]}` : ''} 피해`, 'bad');
 
-    if (el === 'fire' && !t.statuses.burn && this.rng.chance(0.4)) this.addStatus(t, 'burn', 2);
-    if (el === 'cold' && !t.dead) this.addStatus(t, 'slow', STATUS_TURNS);
+    // 원소 공격은 그 원소의 효과를 남긴다 (반응이 일어났으면 남기지 않는다): 화염 → 화상, 냉기 → 둔화, 번개 → 감전
+    if (!comboAura && !t.dead) {
+      if (el === 'fire') this.addStatus(t, 'burn', STATUS_TURNS);
+      if (el === 'cold') this.addStatus(t, 'slow', STATUS_TURNS);
+      if (el === 'lightning') this.addStatus(t, 'shock', STATUS_TURNS);
+    }
     if (t.hp <= 0 && t.ai === 'dummy') {
       // 허수아비는 쓰러지지 않지만, 처치 효과 시험을 위해 처치로 친다
       t.hp = t.baseHp;
@@ -1745,7 +1763,6 @@ export class Game {
       }
       a.freshStatus?.clear();
       // 원소 잔류도 플레이어 턴 기준 (예전에는 적의 차례에만 줄어 플레이어 잔류가 사라지지 않았다)
-      if (a.aura && !a.dead && --a.aura.turns <= 0) a.aura = undefined;
     }
   }
 
@@ -1958,10 +1975,8 @@ export class Game {
       const nx = t.x + dx,
         ny = t.y + dy;
       if (!this.level.isFloor(nx, ny) || this.actorAt(nx, ny)) {
-        // 충돌: 충격 피해 + 잔류 원소 발동
-        const aura = t.aura?.element;
+        // 충돌: 충격 피해 (대상에 원소 효과가 남아 있으면 충돌 반응이 난다)
         this.dealDamage(src, t, 3 + this.zone * 2, 'impact', { label: '충돌' });
-        if (aura && aura !== 'impact' && !t.dead) this.dealDamage(src, t, 4, aura, { label: `충돌·${ELEMENT_NAME[aura]}` });
         return true;
       }
       this.stepActor(t, nx, ny);

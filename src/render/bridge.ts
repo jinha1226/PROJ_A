@@ -126,7 +126,7 @@ export class Bridge {
       elite: a.elite || a.boss,
       marked: a.marked,
       status: { burn: a.statuses.burn ? 1 : 0, freeze: a.statuses.slow || a.statuses.freeze ? 1 : 0, poison: a.statuses.poison || a.statuses.bleed ? 1 : 0 },
-      badges: statusBadges(a.statuses, a.aura),
+      badges: statusBadges(a.statuses),
     };
   }
 
@@ -146,7 +146,7 @@ export class Bridge {
       group: 0,
       shield: p.shield,
       status: { burn: p.statuses.burn ? 1 : 0, freeze: p.statuses.slow || p.statuses.freeze ? 1 : 0, poison: p.statuses.poison || p.statuses.bleed ? 1 : 0 },
-      badges: statusBadges(p.statuses, p.aura),
+      badges: statusBadges(p.statuses),
       suit: [],
       gear: { hands: [gear(p.hands[0]), gear(p.hands[1])], active: p.activeHand === 1 ? 1 : 0 },
       exitTime: 0,

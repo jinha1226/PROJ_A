@@ -75,7 +75,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); 
 #hud .corner { position: absolute; }
 #tl { left: 22px; top: 18px; }
 #tr { right: 22px; top: 18px; text-align: right; }
-#bl { left: 22px; bottom: 18px; width: 300px; }
+#bl { left: 22px; bottom: 18px; width: 380px; }
 #br { right: 22px; bottom: 18px; text-align: right; }
 #tc { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; width: min(640px, 50vw); }
 #bc { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; width: min(620px, 46vw); }
@@ -254,3 +254,14 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 .sp-mod { margin-bottom: 2px; } .sp .up { color: var(--g-hi); } .sp .warnc { color: var(--warn); }
 .sp-empty { color: var(--g-dim); font-style: italic; } .sp-break { color: var(--g-dim); font-size: 10.5px; margin-top: 4px; }
 .circuits { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* 오른쪽 위 메뉴 */
+#menubtn { font-size: 12px; padding: 4px 12px; }
+#menu { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; padding: 8px; background: var(--g-bg); border: 1px solid var(--g-line); pointer-events: auto; min-width: 170px; }
+#menu .hudbtn { text-align: left; font-size: 12px; padding: 4px 10px; }
+#menu hr { border: 0; border-top: 1px solid var(--g-line); margin: 2px 0; width: 100%; }
+/* 경보 단계 기준 */
+#alertbar .thr { font-size: 11px; color: var(--hud-dim); }
+#alertbar .thr .hit { color: var(--hud-warn); }
+#vname .lv { font-size: 11px; color: var(--hud-dim); margin-left: 6px; }
+#vname .lv .xp { margin-left: 4px; }

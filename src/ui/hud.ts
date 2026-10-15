@@ -42,7 +42,6 @@ const $ = (id: string) => document.getElementById(id)!;
  *  왼쪽 아래 MODEL 이름·생체 신호·부위별 슈트 장갑·상태이상 · 가운데 아래 안내·경보 · 오른쪽 아래 무기·탄약·퀵슬롯 */
 export class Hud {
   private tl = $('mission');
-  private trinfo = $('trinfo');
   private order = $('order');
   private tickerEl = $('ticker');
   private vname = $('vname');
@@ -109,18 +108,14 @@ export class Hud {
     viewer = g.player;
     const p = g.player;
     const s = g.st(p);
-    // 왼쪽 위: 임무
+    // 왼쪽 위: 미니맵 아래 현재 위치와 체류 턴
     if (g.lab) {
       const la = g.lastAction;
       this.tl.innerHTML = `<div class="cap amber">테스트</div><div class="big">무기 실험실</div><div class="sub2">[T] 무기·옵션 편집·초기화 · [E] 손 바꾸기</div>
         <div class="labstat">직전 행동<br>준 피해 <b>${la.damage}</b> · 치명타 <b>${la.crits}</b></div>`;
     } else {
-    const fuel = g.zone + (g.isBossFloor && !g.actors.some((a) => a.boss && !a.dead) ? 1 : 0);
-    this.tl.innerHTML = `<div class="cap amber">회수 임무</div><div class="big">연료 결정을 회수하라</div><div class="num">${fuel} / 2</div>
-      <div class="sub2">${esc(g.depthLabel)}</div><div class="sub2">LV ${g.plevel} <span class="xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></span> · 마석 ${g.ash}</div>`;
+    this.tl.innerHTML = `<div class="big">${esc(g.depthLabel)}</div><div class="sub2">체류 ${g.floorTurns}턴</div>`;
     }
-    // 오른쪽 위
-    this.trinfo.innerHTML = `<div class="big">체류 ${g.floorTurns}턴</div><div class="sub2">탐사 깊이 ${g.zone * 4 + g.floor + 1} · [Tab] 구역 지도</div><div class="sub2">[I] 슈트 · [M] 기록</div>`;
     this.drawMap(this.minimap, g, 0);
     // 위 가운데: 적이 보일 때만 행동 순서
     const foes = g.visibleEnemies().length > 0;
@@ -133,7 +128,7 @@ export class Hud {
     // 왼쪽 아래: 이름 · 생체 · 장갑 · 상태
     const origin = p.name;
     const cl = p.colors;
-    this.vname.innerHTML = `${esc(origin)}${cl ? ` <span class="colors">${(['power', 'tactics', 'survival'] as const).map((c) => `<span class="col ${c}">${COLOR_NAME[c]} ${cl[c]}</span>`).join(' ')}</span>` : ''}`;
+    this.vname.innerHTML = `${esc(origin)} <span class="lv">Lv ${g.plevel}<span class="xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></span></span>${cl ? ` <span class="colors">${(['power', 'tactics', 'survival'] as const).map((c) => `<span class="col ${c}">${COLOR_NAME[c]} ${cl[c]}</span>`).join(' ')}</span>` : ''}`;
     this.hpnum.innerHTML = `${Math.max(0, p.hp)}<small>/${s.maxHp}</small>${p.shield ? ` <span class="shield">+${p.shield}</span>` : ''}`;
     this.armor.innerHTML = (['body', 'arm', 'leg', 'sense'] as Slot[])
       .map((k) => {
@@ -145,7 +140,7 @@ export class Hud {
       })
       .join('');
     // 상태는 아이콘 배지 (마우스를 올리면 이름과 남은 턴), 주사제는 남은 방 수
-    const st = statusBadges(p.statuses, p.aura).map((b) => badgeHtml(b));
+    const st = statusBadges(p.statuses).map((b) => badgeHtml(b));
     if (p.imbue) st.push(`<span class="dim">다음 공격 ${ELEMENT_NAME[p.imbue]}</span>`);
     for (const [k, n] of Object.entries(p.injections ?? {})) st.push(`<span class="good">${esc(INJECTION_BY_ID[k as InjectionId].name.replace(' 주사제', ''))} ${n}방</span>`);
     this.statusRow.innerHTML = `<span class="vl">이상</span><span>${st.length ? st.join(' ') : '<span class="dim">없음</span>'}</span>`;
@@ -154,7 +149,8 @@ export class Hud {
     const segs = 24;
     const filled = Math.min(segs, Math.round((g.floorTurns / last) * segs));
     const marks = ALERT_THRESHOLDS.map((t) => Math.round((t / last) * segs));
-    this.alertBar.innerHTML = `<span class="lbl">ALERT ${g.alert}</span><span class="segs">${Array.from({ length: segs }, (_, i) => `<i class="${i < filled ? (g.alert >= 2 ? 'hot' : 'on') : ''} ${marks.includes(i + 1) ? 'mk' : ''}"></i>`).join('')}</span>`;
+    this.alertBar.innerHTML = `<span class="lbl">경보 ${g.alert}</span><span class="segs">${Array.from({ length: segs }, (_, i) => `<i class="${i < filled ? (g.alert >= 2 ? 'hot' : 'on') : ''} ${marks.includes(i + 1) ? 'mk' : ''}"></i>`).join('')}</span>
+      <span class="thr">${ALERT_THRESHOLDS.map((t, i) => `<span class="${g.alert > i ? 'hit' : ''}">${i + 1}단계 ${t}턴</span>`).join(' · ')}</span>`;
     const warns: string[] = [];
     const here = g.mode === 'play' ? g.groundHere() : [];
     if (here.length) warns.push(`발밑: ${here.map((r) => esc(r.def.name)).join(', ')} — [G] 줍기`);
@@ -283,7 +279,7 @@ export class Hud {
         <span>이동 <b>${speed(s.moveCost)}칸/턴</b></span><span>공격 <b>${speed(s.attackCost)}회/턴</b></span>
         <span>시야 <b>${s.sight}</b></span><span>마석 <b>${g.ash}</b></span>
       </div>
-      <h3>상태</h3><div>${statusBadges(p.statuses, p.aura).map((b) => badgeHtml(b)).join(' ') || '<span style="color:var(--dim)">없음</span>'}</div>`;
+      <h3>상태</h3><div>${statusBadges(p.statuses).map((b) => badgeHtml(b)).join(' ') || '<span style="color:var(--dim)">없음</span>'}</div>`;
     return `<div class="box suit"><h2>슈트 — ${esc(p.name)}</h2>
       <div class="suit-lay">
         <div class="suit-hands"><h3>손</h3>${hands}</div>
@@ -342,21 +338,24 @@ function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) 
 }
 
 export function byproductTooltip(r: ByproductInst): string {
-  const mod = suitModule(r.def);
-  return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</div>
-    <div class="r">${GRADE_NAME[r.def.grade]} · ${SLOT_NAME[r.def.slot]} 부산물 · 강화 재료</div>
-    <div class="r"><b>무기에 부여하면</b>${starOf(r.def) && SIGNATURE[starOf(r.def)!] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[starOf(r.def)!]!.weapon]!.name)}과 맞는다)</span>` : ''}</div>
-    ${starOf(r.def) ? `<div class="r trait">★ ${esc(TRAIT_TEXT[starOf(r.def)!])}</div>` : ''}
-    ${infuseOptions(r.def).map((o) => `<div class="r opt">${badgeHtml(OPTION_ICON[o])} ${esc(OPTION_BY_ID[o].desc)}</div>`).join('')}
-    <div class="r"><b>슈트 ${SLOT_NAME[r.def.slot]} 칸에 끼우면</b></div>
-    ${mod.pros.map((x) => `<div class="r up">+ ${esc(x)}</div>`).join('')}${mod.cons.map((x) => `<div class="r" style="color:var(--warn)">− ${esc(x)}</div>`).join('')}`;
+  const d = r.def;
+  const mod = suitModule(d);
+  const star = starOf(d);
+  const weapon = infuseOptions(d)
+    .map((o) => (OPTION_BY_ID[o].kind === 'hit' ? `${OPTION_ICON[o].g} 부여` : OPTION_ICON[o].g))
+    .join(' · ');
+  const suit = [...mod.pros.map((x) => esc(x)), ...mod.cons.map((x) => `<span style="color:var(--warn)">${esc(x)}</span>`)].join(' · ');
+  return `<div class="t g-${d.grade}">${elDots(r)} ${esc(d.name)}</div>
+    <div class="r">${GRADE_NAME[d.grade]} · 강화 재료</div>
+    <div class="r"><b>무기:</b> ${esc(weapon)}</div>
+    ${star ? `<div class="r trait"><b>★ ${esc(TRAIT_NAME[star] ?? '')}</b> ${esc(TRAIT_TEXT[star])}${SIGNATURE[star] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[star]!.weapon]!.name)}에 넣으면 고유 이름)</span>` : ''}</div>` : ''}
+    <div class="r"><b>슈트(${SLOT_NAME[d.slot]}):</b> ${suit}</div>`;
 }
 
 export function actorTooltip(g: Game, a: Actor): string {
   const s = g.st(a);
   const byproducts = (['arm', 'body', 'leg', 'sense'] as Slot[]).flatMap((k) => a.slots[k]).filter((r): r is ByproductInst => !!r);
   const st = Object.entries(a.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
-  if (a.aura) st.push(`${ELEMENT_NAME[a.aura.element]} 잔류`);
   if (a.marked) st.push('표식');
   return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
     <div class="r">체력 ${a.hp}/${s.maxHp} · 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${speed(s.moveCost)}칸/턴</div>

@@ -35,9 +35,9 @@ export function suitModule(d: ByproductDef): { pros: string[]; cons: string[] } 
   if (st.moveBonus) pros.push(`이동 비용 −${st.moveBonus}`);
   if (st.dodge) pros.push(`회피 +${st.dodge}%`);
   if (st.sight) pros.push(`시야 +${st.sight}`);
-  for (const e of d.elements) pros.push(`${EL_NAME[e]} 피해 −12%`);
+  for (const e of d.elements) pros.push(`${EL_NAME[e]} 저항 +25%`);
   if (d.slot !== 'leg' && st.burden) cons.push(`무게: 이동 비용 +${st.burden * WEIGHT_MOVE}`);
-  for (const e of d.elements) cons.push(`${EL_NAME[OPPOSITE[e]]} 피해 +${WEAKNESS_STEP * 100}%`);
+  for (const e of d.elements) cons.push(`${EL_NAME[OPPOSITE[e]]} 약점 +${WEAKNESS_STEP * 100}%`);
   if (d.curse) cons.push(`저주: ${d.curse.text}`);
   return { pros, cons };
 }

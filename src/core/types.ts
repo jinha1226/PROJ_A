@@ -38,8 +38,8 @@ export type EffectKind =
 
 export type TargetKind = 'self' | 'target' | 'around' | 'random' | 'marked' | 'nearest';
 
-export type StatusKind = 'burn' | 'slow' | 'stun' | 'blind' | 'freeze' | 'bleed' | 'poison' | 'oil';
-export const STATUS_NAME: Record<StatusKind, string> = { burn: '화상', slow: '둔화', stun: '기절', blind: '실명', freeze: '빙결', bleed: '출혈', poison: '중독', oil: '기름' };
+export type StatusKind = 'burn' | 'slow' | 'stun' | 'blind' | 'freeze' | 'bleed' | 'poison' | 'oil' | 'shock';
+export const STATUS_NAME: Record<StatusKind, string> = { burn: '화상', slow: '둔화', stun: '기절', blind: '실명', freeze: '빙결', bleed: '출혈', poison: '중독', oil: '기름', shock: '감전' };
 
 export type TerrainKind = 'flame' | 'ice' | 'current';
 
@@ -202,7 +202,6 @@ export interface Actor {
   time: number; // 다음 행동 시각
   shield: number;
   statuses: Partial<Record<StatusKind, number>>;
-  aura?: { element: Element; turns: number };
   imbue?: Element;
   haste: number; // 다음 행동 비용 감소 %
   marked: boolean;
