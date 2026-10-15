@@ -65,7 +65,7 @@ h3:first-child { margin-top: 0; }
 .slot .n { flex: 1; }
 .slot .sub { color: var(--dim); font-size: 11px; }
 .slot.damaged { border-left-color: var(--blood); }
-.slot.damaged .n { color: #a07060; text-decoration: line-through; }
+.slot.damaged .n { color: #c09080; }
 .slot.dormant { opacity: 0.5; }
 .badge { font-size: 10px; padding: 0 4px; border: 1px solid var(--line); color: var(--dim); margin-left: 3px; white-space: nowrap; }
 .badge.fixed { border-color: var(--brass); color: var(--brass); }

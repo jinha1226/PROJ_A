@@ -122,7 +122,7 @@ export function generateLevel(rng: Rng, opts: { altarGod?: string }): Level {
         b = rng.pick(lv.rooms);
       if (a !== b) carveCorridor(lv, rng, center(a).x, center(a).y, center(b).x, center(b).y);
     }
-    // 시작 방 / 출구(정비 방으로 이어짐)
+    // 시작 방 / 출구(보급 지점으로 이어짐)
     const start = lv.rooms[0];
     const c0 = center(start);
     lv.startX = c0.x;

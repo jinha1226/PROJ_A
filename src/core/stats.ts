@@ -1,17 +1,18 @@
 import type { Actor, Element, RelicInst, Slot } from './types';
 import { SLOTS } from './types';
 
-/** 효과가 살아있는 유물 (손상·잠듦 제외). 녹의 신 2단계는 손상 유물도 절반 효과 */
+/** 장착된 부산물 전부 */
 export function allRelics(a: Actor): RelicInst[] {
   const out: RelicInst[] = [];
   for (const s of SLOTS) for (const r of a.slots[s]) if (r) out.push(r);
   return out;
 }
 
-export function relicFactor(r: RelicInst, halfDamaged = false): number {
+/** 부산물 효과 배율: 절전 0, 손상 절반(녹의 신 2단계는 온전), 강화 단계당 +15% */
+export function relicFactor(r: RelicInst, fullWhenDamaged = false): number {
   if (r.dormant) return 0;
-  if (r.damaged) return halfDamaged ? 0.5 : 0;
-  return 1 + r.upgrade * 0.15;
+  const base = 1 + r.upgrade * 0.15;
+  return r.damaged && !fullWhenDamaged ? base * 0.5 : base;
 }
 
 export interface Stats {
@@ -28,7 +29,7 @@ export interface Stats {
   elementKinds: number;
 }
 
-export function computeStats(a: Actor, halfDamaged = false): Stats {
+export function computeStats(a: Actor, fullWhenDamaged = false): Stats {
   let hp = a.baseHp,
     dodge = 0,
     sight = 7,
@@ -43,7 +44,7 @@ export function computeStats(a: Actor, halfDamaged = false): Stats {
   for (const r of allRelics(a)) {
     const st = r.def.stats;
     burden += st.burden + (r.def.curse?.kind === 'heavy' ? 4 : 0);
-    const f = relicFactor(r, halfDamaged);
+    const f = relicFactor(r, fullWhenDamaged);
     if (f === 0) continue;
     hp += (st.hp ?? 0) * f;
     dodge += (st.dodge ?? 0) * f;

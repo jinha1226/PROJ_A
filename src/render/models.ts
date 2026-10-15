@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Actor, Element, RelicInst } from '../core/types';
 
-// 재질: 놋쇠·뼈·수정·녹슨 청동. 크롬·네온 금지.
+// 재질: 슈트는 SF(무광 금속), 부산물은 원래 몬스터의 색을 남긴다.
 export const ELEMENT_COLOR: Record<Element | 'none', number> = {
   fire: 0xd8682a,
   cold: 0x9cc8dc,
@@ -34,7 +34,7 @@ function relicMat(r: RelicInst | null, base: number) {
   if (!r) return mat(base);
   const el = r.def.elements[0] ?? 'none';
   let c = ELEMENT_COLOR[el];
-  if (r.damaged) c = new THREE.Color(c).multiplyScalar(0.35).getHex();
+  if (r.damaged) c = new THREE.Color(c).multiplyScalar(0.6).getHex();
   const emissive = r.damaged ? 0x401010 : r.def.grade === 'forbidden' ? 0x3a0f2a : r.def.grade === 'holy' ? ELEMENT_COLOR[el] : 0;
   return mat(c, { emissive: r.dormant ? 0 : emissive, metal: 0.5, opacity: r.dormant ? 0.35 : 1 });
 }
@@ -54,7 +54,7 @@ function part(geo: THREE.BufferGeometry, m: THREE.Material, sx: number, sy: numb
   return mesh;
 }
 
-/** 유물 구성이 바뀌면 다시 조립해야 하는지 판별하는 서명 */
+/** 부산물 구성이 바뀌면 다시 조립해야 하는지 판별하는 서명 */
 export function loadoutSignature(a: Actor): string {
   const parts: string[] = [];
   for (const s of ['body', 'arm', 'leg', 'sense'] as const)
@@ -64,7 +64,7 @@ export function loadoutSignature(a: Actor): string {
 
 /**
  * 부위 교체식 캐릭터 조립. 몸 슬롯 → 흉갑 판, 팔 슬롯 → 팔과 무기, 다리 슬롯 → 다리, 감각 → 머리의 눈/수정.
- * 화면에 보이는 유물이 실제로 쓰는 유물이다.
+ * 화면에 보이는 부산물이 실제로 쓰는 부산물이다.
  */
 export function buildActorModel(a: Actor): THREE.Group {
   const g = new THREE.Group();
@@ -91,7 +91,7 @@ export function buildActorModel(a: Actor): THREE.Group {
     const m = relicMat(r, skin);
     if (i === 0) g.add(part(G.box, m, 0.46, 0.34, 0.2, 0, 0.7, 0.1));
     else if (i === 1) g.add(part(G.box, m, 0.5, 0.14, 0.38, 0, 0.92, 0)); // 어깨 판
-    else g.add(part(G.cone, m, 0.3, 0.3, 0.3, 0, 0.45, -0.18)); // 등 성유물함
+    else g.add(part(G.cone, m, 0.3, 0.3, 0.3, 0, 0.45, -0.18)); // 등 부산물
   });
   // 머리
   const head = part(G.ico, skinMat, 0.3, 0.3, 0.3, 0, 1.08, 0);

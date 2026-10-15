@@ -15,7 +15,7 @@ export function relicName(r: RelicInst) {
   return `<span class="g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</span>`;
 }
 
-/** HTML/CSS 오버레이: 행동 순서 바, 유물 슬롯, 각인 목록, 로그 */
+/** HTML/CSS 오버레이: 행동 순서 바, 부산물 슬롯, 각인 목록, 로그 */
 export class Hud {
   private logEl = document.getElementById('log')!;
   private left = document.getElementById('left')!;
@@ -61,18 +61,18 @@ export class Hud {
       .map((a, i) => `<div class="tok ${a.isPlayer ? 'player' : a.faction === 'player' ? 'ally' : 'enemy'} ${i === 0 ? 'first' : ''}" title="${esc(a.name)}">${a.isPlayer ? '나' : esc(a.name[0])}</div>`)
       .join('');
 
-    // 왼쪽: 심장 + 능력치 + 유물
+    // 왼쪽: 체력 + 능력치 + 부산물
     const hpPct = Math.max(0, (p.hp / s.maxHp) * 100);
     const shPct = Math.min(100, (p.shield / s.maxHp) * 100);
-    let html = `<h3>심장</h3>
+    let html = `<h3>체력</h3>
       <div class="bar"><i style="width:${hpPct}%"></i>${p.shield ? `<b style="width:${shPct}%"></b>` : ''}<span>${p.hp} / ${s.maxHp}${p.shield ? ` (+${p.shield} 보호막)` : ''}</span></div>
       <div class="bar xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></div>
       <div class="stats">
-        <span>레벨 <b>${g.plevel}</b></span><span>잿가루 <b>${g.ash}</b></span>
+        <span>레벨 <b>${g.plevel}</b></span><span>마석 <b>${g.ash}</b></span>
         <span>장갑 <b>${s.armor}</b></span><span>회피 <b>${s.dodge}%</b></span>
         <span>피해 <b>${s.damage}</b></span><span>시야 <b>${s.sight}</b></span>
         <span>이동 비용 <b>${s.moveCost}</b></span><span>공격 비용 <b>${s.attackCost}</b></span>
-        <span>부담 <b class="${s.burden > s.burdenCap ? 'over' : ''}">${s.burden}/${s.burdenCap}</b></span><span>수리 키트 <b>${g.kits}</b></span>
+        <span>부담 <b class="${s.burden > s.burdenCap ? 'over' : ''}">${s.burden}/${s.burdenCap}</b></span><span>응급 키트 <b>${g.kits}</b></span>
       </div>`;
     const st = Object.entries(p.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
     if (p.aura) st.push(`${ELEMENT_NAME[p.aura.element]} 잔류`);
@@ -90,8 +90,8 @@ export class Hud {
         }
         const badges: string[] = [];
         if (r.fixed) badges.push('<span class="badge fixed">고정</span>');
-        if (r.damaged) badges.push('<span class="badge bad">손상</span>');
-        if (r.dormant) badges.push('<span class="badge bad">잠듦</span>');
+        if (r.damaged) badges.push('<span class="badge bad">손상 ½</span>');
+        if (r.dormant) badges.push('<span class="badge bad">절전</span>');
         if (r.upgrade) badges.push(`<span class="badge">+${r.upgrade}</span>`);
         let sub = '';
         if (r.def.active) {
@@ -133,7 +133,7 @@ export class Hud {
     if (here.length) {
       rh += `<h3>발밑</h3>`;
       for (const r of here) rh += `<div class="slot" data-relic="${r.uid}"><span class="n">${relicName(r)}${r.damaged ? ' <span class="badge bad">손상</span>' : ''}<div class="sub">${esc(describeRelic(r.def)[1])}</div></span></div>`;
-      rh += `<div style="color:var(--dim);font-size:11.5px">[G] 접목 · [F] 봉헌</div>`;
+      rh += `<div style="color:var(--dim);font-size:11.5px">[G] 장착 · [F] 과부하</div>`;
     }
     this.right.innerHTML = rh;
   }
@@ -154,7 +154,7 @@ export class Hud {
 
 export function relicTooltip(r: RelicInst): string {
   const lines = describeRelic(r.def);
-  return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}${r.damaged ? ' (손상)' : ''}${r.dormant ? ' (잠듦)' : ''}</div>${lines.map((l) => `<div class="r">${esc(l)}</div>`).join('')}`;
+  return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}${r.damaged ? ' (손상: 효과 절반)' : ''}${r.dormant ? ' (절전)' : ''}</div>${lines.map((l) => `<div class="r">${esc(l)}</div>`).join('')}`;
 }
 
 export function actorTooltip(g: Game, a: Actor): string {
@@ -163,10 +163,10 @@ export function actorTooltip(g: Game, a: Actor): string {
   const st = Object.entries(a.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
   if (a.aura) st.push(`${ELEMENT_NAME[a.aura.element]} 잔류`);
   if (a.marked) st.push('표식');
-  return `<div class="t">${esc(a.name)}${a.boss ? ' (수문장)' : a.elite ? ' (정예)' : ''}</div>
+  return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
     <div class="r">체력 ${a.hp}/${s.maxHp} · 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${s.moveCost}</div>
     ${st.length ? `<div style="color:#e0a050">${st.join(' · ')}</div>` : ''}
     ${relics.map((r) => `<div>${relicName(r)}${r.damaged ? ' <span class="badge bad">손상</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
     ${a.engravings.length ? `<div class="r">각인: ${a.engravings.map((e) => esc(e.name)).join(', ')}</div>` : ''}
-    ${a.dropChance ? `<div class="r">유물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;
+    ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;
 }

@@ -171,7 +171,7 @@ export class Renderer {
     this.floorMesh!.instanceColor!.needsUpdate = true;
     this.wallMesh!.instanceColor!.needsUpdate = true;
 
-    // 동적 오브젝트(지형, 유물, 시설)
+    // 동적 오브젝트(지형, 부산물, 시설)
     for (const c of [...this.dynGroup.children]) {
       if (!c.userData.dyn) continue;
       this.dynGroup.remove(c);

@@ -8,6 +8,7 @@ const TARGET: Record<EffectSpec['target'], string> = {
   around: '주변 적',
   random: '무작위 적',
   marked: '표식된 적',
+  nearest: '가장 가까운 적',
 };
 
 export function describeEffect(e: EffectSpec): string {
@@ -25,13 +26,13 @@ export function describeEffect(e: EffectSpec): string {
     case 'mark': return `${t}에게 표식`;
     case 'shield': return `보호막 +${e.power}`;
     case 'heal': return `체력 +${e.power}`;
-    case 'repair': return `장갑 유물 내구 +${e.power}, 손상 유물 복구 확률`;
+    case 'repair': return `몸 부산물 장갑 +${e.power}, 손상 부산물 복구 확률`;
     case 'blink': return '적에게서 먼 곳으로 도약';
     case 'cdReduce': return `액티브 쿨다운 -${e.power}${kinds}`;
     case 'haste': return `다음 행동 비용 -${e.power}%`;
     case 'imbue': return `다음 기본 공격에 ${el} 부여`;
     case 'terrain': return `${t} 칸에 ${{ flame: '불길', ice: '얼음', current: '전류 웅덩이' }[e.terrain!]} ${e.duration}턴`;
-    case 'summon': return `망령 수호자 소환 (${e.duration}턴)`;
+    case 'summon': return `홀로그램 분신 투사 (${e.duration}턴)`;
   }
 }
 

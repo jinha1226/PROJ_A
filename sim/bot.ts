@@ -17,7 +17,6 @@ export function botStep(g: Game): boolean {
       g.acceptGod(true);
       return true;
     case 'rest': {
-      if (g.restService === 'repair') g.restRepair();
       if (g.restService === 'engrave' && g.levelChoices[0]) g.chooseEngraving(g.levelChoices[0].id, 0);
       if (g.restService === 'shop') {
         g.buyKit();
@@ -33,7 +32,7 @@ export function botStep(g: Game): boolean {
   if (enemies.length) {
     if (p.hp < s.maxHp * 0.35 && g.kits > 0) return g.useKit();
     const near = enemies.reduce((a, b) => (dist(p, a) <= dist(p, b) ? a : b));
-    // 위급하면 봉헌으로 수리
+    // 위급하면 과부하로 수리
     if (p.hp < s.maxHp * 0.25) {
       const fuel = [...p.slots.sense, ...p.slots.leg].find((r): r is RelicInst => !!r && !r.fixed);
       if (fuel) return g.offer(fuel, 'repair');
@@ -41,7 +40,7 @@ export function botStep(g: Game): boolean {
     const actives = g.equippedActives(p);
     for (let i = 0; i < actives.length; i++) {
       const r = actives[i];
-      if (r.cd > 0 || r.damaged || r.dormant) continue;
+      if (r.cd > 0 || r.dormant) continue;
       const sp = r.def.active!;
       const d = dist(p, near);
       const ok = sp.form === 'sweep' ? d <= 1 : sp.form === 'nova' ? d <= 2 : d <= (sp.range ?? 1) && (sp.form !== 'dash' || d >= 2);

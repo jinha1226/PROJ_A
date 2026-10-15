@@ -1,4 +1,4 @@
-// ───────── 어휘 (각인·액티브·적 유물 공용) ─────────
+// ───────── 어휘 (각인·액티브·적 공용) ─────────
 
 export type Element = 'fire' | 'cold' | 'lightning' | 'impact';
 export const ELEMENTS: Element[] = ['fire', 'cold', 'lightning', 'impact'];
@@ -14,7 +14,7 @@ export const SLOTS: Slot[] = ['body', 'arm', 'leg', 'sense'];
 export const SLOT_NAME: Record<Slot, string> = { body: '몸', arm: '팔', leg: '다리', sense: '감각' };
 
 export type Grade = 'common' | 'holy' | 'forbidden';
-export const GRADE_NAME: Record<Grade, string> = { common: '평범', holy: '성스러운', forbidden: '금지된' };
+export const GRADE_NAME: Record<Grade, string> = { common: '일반', holy: '정예', forbidden: '금지' };
 
 /** 발동 조건 = 플레이어 행동 4가지 */
 export type Trigger = 'attack' | 'move' | 'hit' | 'wait';
@@ -48,7 +48,7 @@ export type EffectKind =
   | 'terrain' // 지형 생성
   | 'summon'; // 소환
 
-export type TargetKind = 'self' | 'target' | 'around' | 'random' | 'marked';
+export type TargetKind = 'self' | 'target' | 'around' | 'random' | 'marked' | 'nearest';
 
 export type StatusKind = 'burn' | 'slow' | 'stun' | 'blind';
 export const STATUS_NAME: Record<StatusKind, string> = { burn: '화상', slow: '둔화', stun: '기절', blind: '실명' };
@@ -90,7 +90,7 @@ export interface ActiveSpec {
   power: number;
   cooldown: number;
   range?: number;
-  /** 금지된 유물의 고유 액티브 */
+  /** 금지 부산물의 고유 액티브 */
   unique?: string;
 }
 
