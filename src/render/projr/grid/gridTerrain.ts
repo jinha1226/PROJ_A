@@ -6,6 +6,7 @@ import { addDecor, cornerColumns, runColumns } from './gridDecor';
 import { chasmMesh, sealMesh } from './toolGates';
 import { applyXray } from './xray';
 import { applyFog, updateFog } from './fog';
+import { buildDecals } from './gridDecals';
 
 /** Metres per grid cell. */
 export const CELL = 1.0;
@@ -111,7 +112,13 @@ export class GridTerrain {
     }
     this.addProps();
     for (const [cell, obj] of addDecor(m, faces, kit)) this.addProp(cell, obj);
-    if (decal) this.addLitter(floors, decal);
+    // (MODEL 0) 예전 칠각형 웅덩이 장식은 데칼로 대체 (decal 색은 쓰지 않음)
+    void decal;
+    // (MODEL 0) 바닥 균열·얼룩·혈흔 데칼과 벽 가장자리 잔해
+    for (const d of buildDecals(m, floors)) {
+      this.root.add(d.mesh);
+      this.instanced.push({ ...d, fog: true });
+    }
   }
 
   /** (MODEL 0) 구워 넣은 앰비언트 오클루전: 벽에 닿는 바닥 가장자리에 부드럽게 어두워지는 띠. 구석은 두 띠가 겹쳐 더 어둡다 */
@@ -144,23 +151,6 @@ export class GridTerrain {
     this.root.add(mesh);
     // 보이지 않는 칸에서는 꺼지도록 시야 음영을 같이 받는다 (밝기 0이면 투명 띠도 보이지 않는다)
     this.instanced.push({ mesh, cells: faces.map((f) => idx(this.m, f.floor)) });
-  }
-
-  /** Floor litter in the zone's colour (puddles, bone chips, moss) on a fixed scatter of cells. */
-  private addLitter(floors: number[], color: string): void {
-    const cells = floors.filter((i) => ((i * 2654435761) >>> 0) % 100 < 9 && this.m.tiles[i] === 'floor');
-    if (!cells.length) return;
-    const mesh = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 7).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.35, metalness: 0.1 }), cells.length);
-    cells.forEach((i, k) => {
-      const h = ((i * 40503) >>> 0) % 1000 / 1000;
-      const p = toWorld(i % this.m.w, Math.floor(i / this.m.w));
-      const r = CELL * (0.1 + h * 0.22);
-      mesh.setMatrixAt(k, new THREE.Matrix4().compose(new THREE.Vector3(p.x + (h - 0.5) * CELL * 0.5, 0.012, p.z + (((i * 7) % 10) / 10 - 0.5) * CELL * 0.5), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), h * 6), new THREE.Vector3(r * (0.7 + h * 0.6), 1, r)));
-      mesh.setColorAt(k, new THREE.Color(0, 0, 0));
-    });
-    this.root.add(mesh);
-    applyFog(mesh.material as THREE.Material);
-    this.instanced.push({ mesh, cells, tint: new THREE.Color(color), fog: true });
   }
 
   /** One instanced mesh of a pack piece over many cells; matrices come from `place`. */

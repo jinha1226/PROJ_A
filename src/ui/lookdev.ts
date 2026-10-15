@@ -25,7 +25,7 @@ const CHECKLIST: [string, boolean][] = [
   ['현재 카메라 위치·회전값 저장하고 60° 고도각 테스트', true],
   ['벽 메시를 하단·상단으로 나누고 카메라 쪽 벽 숨김 구현', false],
   ['환경광을 약하게 추가하고 시야 시스템 유지 확인', false],
-  ['바닥 균열·잔해·혈흔 데칼 추가', false],
+  ['바닥 균열·잔해·혈흔 데칼 추가', true],
   ['기둥과 벽의 변형 모델 배치', false],
   ['블룸과 횃불 연출 최종 조정', false],
 ];
@@ -35,6 +35,9 @@ export function mountLookdev(view: View3D, hudEl: HTMLElement) {
   el.id = 'lookdev';
   document.body.appendChild(el);
   let shots = loadShots();
+  // 기준 값 (2026-10-15 사용자 선택): 환경광 0, 고도각 30°
+  setCameraTarget(30);
+  view.rt!.hemi.intensity = 0;
 
   const render = () => {
     const rt = view.rt!;
