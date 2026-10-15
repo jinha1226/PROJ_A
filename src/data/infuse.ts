@@ -1,5 +1,5 @@
 import type { ByproductDef, Element, OptionId, Slot, WeaponTrait } from '../core/types';
-import { STAR_TRAITS } from './weapons';
+import { FIXED_STAR, STAR_TRAITS } from './weapons';
 
 // 부산물 → 강화 규칙. 부산물마다 정하지 않고 원소·부위·등급으로 뽑는다 (새 몬스터도 바로 쓸 수 있게).
 
@@ -51,6 +51,7 @@ export function suitModule(d: ByproductDef): { pros: string[]; cons: string[] } 
  */
 export function starOf(d: ByproductDef): WeaponTrait | undefined {
   if (d.grade === 'common') return undefined;
+  if (FIXED_STAR[d.id]) return FIXED_STAR[d.id];
   let h = 0;
   for (const ch of d.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return STAR_TRAITS[h % STAR_TRAITS.length];

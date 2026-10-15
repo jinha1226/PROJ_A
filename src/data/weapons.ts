@@ -53,17 +53,21 @@ export const TRAIT_TEXT: Record<WeaponTrait, string> = {
   frost: '둔화 부여 (2턴). 이미 둔화면 빙결 (2턴)',
   storm: '번개: 옆 적 2명에게 피해 50% 전달',
   arcane: '원소 공격: 옆 적 1명에게 피해 50% 전달. 원소는 부여한 부산물을 따른다 (없으면 충격)',
+  deathmark: '이 무기로 적을 처치하면 다음 공격 치명타',
 };
 
 /** ★ 칭호: 그 싸움 방식을 하는 사람의 칭호. 무기 이름 앞에 붙는다 (예: 암습자의 도끼) */
 export const TRAIT_NAME: Partial<Record<WeaponTrait, string>> = {
   ambush: '암습자의', sadist: '도살자의', combo3: '검무가의', balanced: '수련자의', grudge: '복수자의', desperate: '광전사의', giant: '도전자의', flawless: '근위병의',
   pyreBlade: '화형관의', execute: '처형인의', cleave: '투사의', pierce: '창기병의', harpoon: '포경꾼의', fourth: '대장장이의', nutcracker: '쇄빙꾼의',
-  marksman: '저격수의', pointBlank: '척후병의', repeater: '덫사냥꾼의', pyro: '방화범의', frost: '서리술사의', storm: '뇌술사의', lastShot: '도박사의', steady: '파수꾼의',
+  marksman: '저격수의', pointBlank: '척후병의', repeater: '덫사냥꾼의', pyro: '방화범의', frost: '서리술사의', storm: '뇌술사의', lastShot: '도박사의', steady: '파수꾼의', deathmark: '망자의',
 };
 
 /** 부산물이 주는 ★ 후보 (방패 막기·지팡이 원소 튐은 기본 무기의 동작이라 제외) */
-export const STAR_TRAITS = Object.keys(TRAIT_NAME) as WeaponTrait[];
+/** (망자의는 리치의 금지 부산물 전용이라 무작위 배정에서 뺀다) */
+export const STAR_TRAITS: WeaponTrait[] = (Object.keys(TRAIT_NAME) as WeaponTrait[]).filter((t) => t !== 'deathmark');
+/** 부산물마다 고정된 ★ (나머지는 starOf가 id로 배정) */
+export const FIXED_STAR: Record<string, WeaponTrait> = { heretic_hide: 'deathmark' };
 
 /** 원거리 무기에서만 의미가 있는 ★ */
 export const RANGED_TRAITS = new Set<WeaponTrait>(['lastShot', 'marksman', 'pointBlank']);
@@ -74,10 +78,10 @@ export const SIGNATURE: Partial<Record<WeaponTrait, { weapon: string; name: stri
   sadist: { weapon: 'dagger', name: '혈흔 단도' },
   combo3: { weapon: 'longsword', name: '세 박자' },
   balanced: { weapon: 'longsword', name: '백련검' },
-  grudge: { weapon: 'longsword', name: '보복의 칼날' },
-  desperate: { weapon: 'longsword', name: '벼랑 끝' },
-  giant: { weapon: 'longsword', name: '하극상' },
-  flawless: { weapon: 'longsword', name: '순백' },
+  grudge: { weapon: 'shield', name: '보복의 방패' },
+  desperate: { weapon: 'greataxe', name: '벼랑 끝' },
+  giant: { weapon: 'spear', name: '하극상' },
+  flawless: { weapon: 'shield', name: '순백의 성벽' },
   pyreBlade: { weapon: 'longsword', name: '잿불검' },
   execute: { weapon: 'greataxe', name: '단두 도끼' },
   cleave: { weapon: 'greataxe', name: '회오리 도끼' },
@@ -93,4 +97,5 @@ export const SIGNATURE: Partial<Record<WeaponTrait, { weapon: string; name: stri
   storm: { weapon: 'staff', name: '뇌명 지팡이' },
   lastShot: { weapon: 'pistol', name: '막탄' },
   steady: { weapon: 'pistol', name: '숨 멈춤' },
+  deathmark: { weapon: 'pistol', name: '망자의 탄' },
 };

@@ -11,7 +11,7 @@ export const TRAIT_SCORE: Record<WeaponTrait, number> = {
   ambush: 0, combo3: 0, balanced: 2.667, grudge: 4.667, desperate: 3.333, execute: 1.333, pierce: 4, harpoon: 4,
   fourth: 2.667, nutcracker: 0, cleave: 0, sadist: 0, torch: 2, block: 3, smash: 2, giant: 4.667,
   flawless: 0, pyreBlade: 0.667, lastShot: 4, scatter: 3, steady: 4.667, marksman: 3.333, pointBlank: 8,
-  repeater: 0, knives: 1, pyro: 3.333, frost: 2.667, storm: 1.333, arcane: 2,
+  repeater: 0, knives: 1, pyro: 3.333, frost: 2.667, storm: 1.333, arcane: 2, deathmark: 3,
 };
 export const BOT_VALUE = {
   diversity: 1.3, signature: 1.25, hp: 0.12, armor: 0.12, ac: 1.1, dodge: 0.35,

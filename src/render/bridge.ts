@@ -3,10 +3,11 @@
 import type { Game } from '../core/game';
 import { Tile as LvTile, type Level } from '../core/dungeon';
 import { heldWeapon } from '../core/stats';
+import { foeKind } from '../core/foeKind';
 import { INJECTIONS } from '../data/consumables';
 import { statusBadges } from '../data/statusIcons';
 import type { Actor, GameEvent, WeaponInst } from '../core/types';
-import type { Cell, Ent, FloorItem, FoeKind, GEvent, GridMap, GridSim, GridState, Hero, Tile, TileFx, Weapon, WeaponGroup } from './projr/sim';
+import type { Cell, Ent, FloorItem, GEvent, GridMap, GridSim, GridState, Hero, Tile, TileFx, Weapon, WeaponGroup } from './projr/sim';
 
 /** 우리 무기 → PROJ_R 무기 모양 */
 const WEAPON_LOOK: Record<string, WeaponGroup> = {
@@ -22,19 +23,6 @@ const WEAPON_LOOK: Record<string, WeaponGroup> = {
 };
 
 const gear = (w: WeaponInst | null | undefined): Weapon | null => (w ? { group: WEAPON_LOOK[w.def.id] ?? 'sword' } : null);
-
-/** 적의 외형 종류: 마네킹 하나를 색·크기·무기로 구분한다 */
-function foeKind(a: Actor): FoeKind {
-  if (a.ai === 'dummy') return 'minion';
-  if (a.boss) return 'champion';
-  if (a.elite) return 'brute';
-  if (a.ai === 'ranged') {
-    const el = a.slots.arm.find((r) => r?.def.active)?.def.active?.element;
-    return el === 'fire' || el === 'lightning' ? 'mage' : 'archer';
-  }
-  if (a.ai === 'skirmisher') return 'ghoul';
-  return a.baseHp >= 25 ? 'brute' : 'minion';
-}
 
 /** 각인 연쇄 기록 줄 (게임이 trigger 이벤트 바로 뒤에 남긴다) */
 export const isChainLine = (cls?: string): boolean => cls === 'trigger' || cls === 'chain';

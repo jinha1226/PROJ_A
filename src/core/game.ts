@@ -12,7 +12,8 @@ import { FISTS, TRAIT_NAME, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/we
 import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS, INFUSION_TUNING } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
 import { infuseOptions, OPPOSITE, starOf, WEAKNESS_STEP } from '../data/infuse';
-import { ENEMIES, ENEMY_BY_ID, ZONES, ENEMY_DAMAGE_MULT, type EnemyTemplate } from '../data/enemies';
+import { ENEMIES, ENEMY_BY_ID, ZONES, ENEMY_DAMAGE_MULT, FLOOR_ELITE, FOE_WEAPON_DROP, type EnemyTemplate } from '../data/enemies';
+import { FOE_WEAPON, foeKind } from './foeKind';
 
 export type Mode = 'play' | 'levelup' | 'rest' | 'dead' | 'won';
 export type RestService = 'shop' | 'reforge';
@@ -347,6 +348,19 @@ export class Game {
         const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
         if (!pos) continue;
         this.spawnEnemy(this.rng.weighted(pool, (t) => t.weight), pos[0], pos[1]);
+      }
+      // 층마다 정예: 방 하나를 지키고 있다가 가까이 오면 깨어난다. ★ 부산물을 확정으로 떨어뜨린다
+      const [lo, hi] = FLOOR_ELITE.perZone[this.zone] ?? [1, 1];
+      for (let i = this.rng.int(lo, hi); i > 0; i--) {
+        const room = this.rng.pick(rooms);
+        const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
+        if (!pos) continue;
+        const e = this.spawnEnemy(this.rng.weighted(pool, (t) => t.weight), pos[0], pos[1]);
+        e.elite = true;
+        e.name = `정예 ${e.name}`;
+        e.baseHp = Math.round(e.baseHp * FLOOR_ELITE.hpMult);
+        e.hp = this.st(e).maxHp;
+        e.awake = false;
       }
       // 잔해 더미: 무작위 부산물 2개
       for (let i = 0; i < 2; i++) {
@@ -1309,6 +1323,8 @@ export class Game {
       w.hits = (w.hits ?? 0) + 1;
     }
     const m = this.weaponMods(a, t, w);
+    // 망자의: 준비된 치명타는 이번 공격에 쓴다 (빗나가도 사라진다)
+    if (w?.primed) w.primed = false;
     a.blockReady = false;
     a.counterReady = false;
     const before = { slow: !!t.statuses.slow };
@@ -1398,6 +1414,7 @@ export class Game {
       case 'marksman': if (dist >= 4) crit ??= why; break;
       case 'pointBlank': if (dist <= 1) crit ??= why; break;
       case 'repeater': if (st.slow || st.freeze) crit ??= why; break;
+      case 'deathmark': if (w.primed) crit ??= why; break;
       case 'pyro': if (st.oil) crit ??= why; break;
     }
     }
@@ -1422,6 +1439,7 @@ export class Game {
     const has = (o: OptionId) => this.optsOf(a, w).includes(o);
     const killed = this.lastKill === t;
     const trs = traitsOf(w);
+    if (killed && trs.includes('deathmark')) w.primed = true;
     const is = (x: WeaponTrait) => trs.includes(x);
     const T = STATUS_TURNS;
     const alive = !t.dead;
@@ -1802,11 +1820,24 @@ export class Game {
       }
       if (this.rng.chance(0.1)) this.dropItem(t.x, t.y, this.rollInjection());
       // ★ 부산물: 보스는 반드시 금지 부산물, 정예는 절반 확률로 정예 부산물 (무기에 넣으면 ★ 고유 효과)
-      if (t.boss || (t.elite && this.rng.chance(0.5))) {
+      // ★ 부산물: 보스는 금지 부산물, 층 정예는 확정으로 정예 부산물(그 몬스터 원소에 맞는 것 우선), 정예 순찰대는 절반 확률
+      const floorElite = t.elite && t.templateId !== 'inquisitor';
+      if (t.boss || floorElite || (t.elite && this.rng.chance(0.5))) {
         const grade = t.boss ? 'forbidden' : 'holy';
-        const r = this.makeByproduct(this.rng.pick(DROP_POOL.filter((d) => d.grade === grade)));
+        const els = new Set(allByproducts(t).flatMap((r) => r.def.elements));
+        const pool = DROP_POOL.filter((d) => d.grade === grade);
+        const match = pool.filter((d) => d.elements.some((e) => els.has(e)));
+        const r = this.makeByproduct(this.rng.pick(match.length ? match : pool));
         this.dropItem(t.x, t.y, r);
         this.log(`${josa(t.name, '이/가')} ${josa(r.def.name, '을/를')} 떨어뜨렸다.`, 'item');
+      }
+      // 무기: 들고 있던 무기 모양 그대로 (층 정예는 정예 무기 30%, 일반은 12%)
+      const held = FOE_WEAPON[foeKind(t)];
+      if (!t.boss && held.length && this.rng.chance(floorElite ? FLOOR_ELITE.weaponChance : FOE_WEAPON_DROP)) {
+        const w = this.makeWeapon(this.rng.pick(held));
+        if (floorElite) w.elite = true;
+        this.dropItem(t.x, t.y, w);
+        this.log(`${josa(t.name, '이/가')} ${josa(weaponName(w), '을/를')} 떨어뜨렸다.`, 'item');
       }
       if (t.boss) {
         const loot = ZONES[this.zone].bossLoot;

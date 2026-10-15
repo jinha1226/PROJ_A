@@ -19,6 +19,11 @@ export interface EnemyTemplate {
 /** 밸런스 3차: 원래 배율에서 시작해 최종 조정. 실제 팔 피해를 포함하여 C1 검사 */
 export const ENEMY_DAMAGE_MULT = { normalBase: 0.8, eliteBossBase: 1.7, perZone: 0.3, perFloor: 0.04 } as const;
 
+/** 층마다 정예: 구역 1은 1마리, 구역 2는 1~2마리. 체력 배율, ★ 부산물 확정 + 정예 무기 확률 */
+export const FLOOR_ELITE = { perZone: [[1, 1], [1, 2]] as [number, number][], hpMult: 2, weaponChance: 0.3 };
+/** 몬스터가 들고 있는 무기를 떨어뜨릴 확률 (맨손 몬스터·보스 제외) */
+export const FOE_WEAPON_DROP = 0.12;
+
 export const ENEMIES: EnemyTemplate[] = [
   // 구역 1: 버섯 동굴
   { id: 'husk', name: '고블린', hp: 28, baseDamage: 4, accuracy: 1, evasion: 3, ac: 0, byproducts: ['claw', 'bone_plates'], ai: 'melee', zone: [1], weight: 10, dropChance: 0.35 },
