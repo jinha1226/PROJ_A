@@ -4,7 +4,7 @@ import type { Element, ByproductInst, GroundItem, OptionId, WeaponInst } from '.
 import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_NAME, TRIGGER_SHORT, TRIGGERS } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
-import { OPTIONS } from './data/options';
+import { OPTIONS, optionFits } from './data/options';
 import { TRAIT_TEXT, WEAPONS } from './data/weapons';
 import { loadAssets, View3D, type Pace } from './render/view3d';
 import { actorTooltip, esc, Hud, byproductName, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
@@ -177,17 +177,17 @@ function showLab() {
     .map((h) => {
       const w = g.player.hands[h];
       const pick = WEAPONS.map((d) => `<option value="${d.id}" ${w?.def.id === d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('');
-      const opts = OPTIONS.map((o) => {
+      const opts = OPTIONS.filter((o) => !w || optionFits(o, w.def)).map((o) => {
         const sel = !!w?.options.includes(o.id);
-        return `<div class="card ${sel ? 'sel' : ''}" data-opt="${h}:${o.id}"><div class="nm">${sel ? '■ ' : '□ '}${o.kind === 'hit' ? '◆' : '◇'} ${esc(o.name)}</div><div class="ds">${esc(o.desc)}</div></div>`;
+        return `<div class="card ${sel ? 'sel' : ''}" data-opt="${h}:${o.id}"><div class="nm">${sel ? '■ ' : '□ '}${o.kind === 'cond' ? '◇' : '◆'} ${esc(o.name)}</div><div class="ds">${esc(o.desc)}</div></div>`;
       }).join('');
       return `<h3>손 ${h + 1}${g.player.activeHand === h ? ' (들고 있음)' : ''} <select data-hand="${h}">${pick}</select></h3>
-        ${w?.def.trait ? `<p class="lead">${esc(TRAIT_TEXT[w.def.trait])}</p>` : ''}<div class="cards">${opts}</div>`;
+        ${w?.def.trait ? `<p class="lead">★ ${esc(TRAIT_TEXT[w.def.trait])}</p>` : ''}<div class="cards">${opts}</div>`;
     })
     .join('');
   const la = g.lastAction;
   modal.innerHTML = `<div class="box lab"><h2>무기 실험실</h2>
-    <p class="lead">손마다 무기를 고르고 옵션을 켜고 끈다(개수 제한 없음). ◆ 적중 효과는 맞으면 상태를 만들고, ◇ 조건 효과는 조건이 맞으면 피해를 키운다. 치명타(×2)는 조건으로만 생긴다.<br>
+    <p class="lead">손마다 무기를 고르고 옵션을 켜고 끈다(개수 제한 없음). ★ 무기 고유 효과가 치명타(×2) 조건을 정하고, ◆ 옵션은 상태를 만들고, ◇ 옵션은 상태·상황에 따라 피해를 키운다. 상태는 내 턴 기준 2턴.<br>
     직전 행동: 준 피해 <b>${la.damage}</b></p>
     ${hands}
     <details><summary>각인 (정리 예정)</summary>${groups}</details>

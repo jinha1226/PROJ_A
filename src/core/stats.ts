@@ -132,3 +132,8 @@ export function slotCount(a: Actor, s: Slot) {
 export function heldWeapon(a: Actor): WeaponInst | null {
   return a.hands[a.activeHand] ?? null;
 }
+
+/** 탄창·충전 수 (추가 탄창 옵션 +3) */
+export function magOf(w: WeaponInst): number {
+  return w.def.mag === undefined ? 0 : w.def.mag + (w.options.includes('extraAmmo') ? 3 : 0);
+}

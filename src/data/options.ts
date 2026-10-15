@@ -1,31 +1,56 @@
-import type { Element, OptionId } from '../core/types';
+import type { Element, OptionId, WeaponDef } from '../core/types';
 
-/** 무기 옵션 12종 (MVP). 적중 효과는 맞으면 상태를 만들고, 조건 효과는 조건이 맞으면 피해를 키운다.
- *  한 무기가 상태를 만들고 다른 무기가 그 상태를 이용하는 것이 조합의 기본이다. */
+/** 무기 옵션 28종 (데드셀 인챈트 각색). 치명타는 무기 고유 효과가 정하고, 옵션은 상태를 만들거나 상태에 따라 피해를 키운다 */
 export interface OptionDef {
   id: OptionId;
   name: string;
-  kind: 'hit' | 'cond';
+  kind: 'hit' | 'kill' | 'cond' | 'ranged' | 'shield' | 'forbidden';
   desc: string;
-  /** 적중 효과 중 원소: 공격 원소가 된다 (한 무기에 하나만) */
+  /** 원소 적중 옵션: 공격 원소가 된다 (한 무기에 하나만) */
   element?: Element;
 }
 
 export const OPTIONS: OptionDef[] = [
-  { id: 'fire', name: '화염', kind: 'hit', element: 'fire', desc: '맞은 적에게 화상 3턴' },
-  { id: 'cold', name: '냉기', kind: 'hit', element: 'cold', desc: '맞은 적 둔화. 이미 둔화된 적은 1턴 빙결' },
-  { id: 'lightning', name: '번개', kind: 'hit', element: 'lightning', desc: '맞은 적 옆의 적 하나에게 피해 절반이 튐' },
-  { id: 'impact', name: '충격', kind: 'hit', element: 'impact', desc: '맞은 적을 1칸 밀침. 벽에 박으면 기절' },
+  { id: 'fire', name: '화염', kind: 'hit', element: 'fire', desc: '맞은 적에게 화상 2턴' },
+  { id: 'cold', name: '냉기', kind: 'hit', element: 'cold', desc: '맞은 적 둔화 2턴, 이미 둔화면 빙결 2턴' },
+  { id: 'lightning', name: '번개', kind: 'hit', element: 'lightning', desc: '옆의 적 하나에게 피해 절반이 튐' },
+  { id: 'impact', name: '충격', kind: 'hit', element: 'impact', desc: '맞은 적을 1칸 밀침, 막히면 기절 2턴' },
+  { id: 'bleed', name: '출혈', kind: 'hit', desc: '맞은 적에게 출혈 2턴 (이동할 때마다 피해)' },
+  { id: 'poison', name: '중독', kind: 'hit', desc: '맞은 적에게 중독 1중첩 (최대 5)' },
+  { id: 'oil', name: '기름', kind: 'hit', desc: '맞은 적에게 기름 4턴 (화염에 맞으면 점화)' },
   { id: 'leech', name: '흡수', kind: 'hit', desc: '준 피해의 1/4만큼 가장 많이 깎인 부위의 장갑 수리' },
-  { id: 'blast', name: '처치 폭발', kind: 'hit', desc: '이 무기로 처치하면 주변 1칸에 무기 피해 절반의 폭발' },
-  { id: 'burnHunt', name: '화염 사냥', kind: 'cond', desc: '불붙은 적에게 치명타' },
-  { id: 'iceBreak', name: '얼음 깨기', kind: 'cond', desc: '둔화된 적에게 피해 ×1.5, 빙결된 적에게 치명타' },
-  { id: 'ambush', name: '기습', kind: 'cond', desc: '이동한 직후의 첫 공격 피해 +40%' },
-  { id: 'aim', name: '정조준', kind: 'cond', desc: '대기·재장전한 다음 첫 공격 치명타' },
+  { id: 'corpseBlast', name: '시체 폭발', kind: 'kill', desc: '처치하면 주변 1칸에 무기 피해 절반의 폭발' },
+  { id: 'deathFreeze', name: '사망 빙결', kind: 'kill', desc: '처치하면 주변 적 빙결 2턴' },
+  { id: 'deathFlame', name: '사망 화염', kind: 'kill', desc: '처치하면 그 자리와 주변에 불길' },
+  { id: 'burnDmg', name: '화염 피해', kind: 'cond', desc: '불붙은 적에게 피해 +60%' },
+  { id: 'bleedDmg', name: '출혈 피해', kind: 'cond', desc: '출혈 적에게 피해 +50%' },
+  { id: 'poisonDmg', name: '독 피해', kind: 'cond', desc: '중독 중첩마다 피해 +15%' },
+  { id: 'freezeDmg', name: '빙결 피해', kind: 'cond', desc: '빙결 적에게 피해 +100%' },
+  { id: 'stunDmg', name: '기절 피해', kind: 'cond', desc: '기절 적에게 피해 +60%' },
+  { id: 'fullHp', name: '풀 체력', kind: 'cond', desc: '내 체력이 가득일 때 피해 +40%' },
+  { id: 'despair', name: '궁지', kind: 'cond', desc: '내 체력 50% 이하일 때 피해 +30%' },
+  { id: 'ambush', name: '기습', kind: 'cond', desc: '이동한 직후의 공격 피해 +40%' },
+  { id: 'aim', name: '정조준', kind: 'cond', desc: '대기·재장전한 다음 공격 피해 +60%' },
   { id: 'riposte', name: '반격', kind: 'cond', desc: '직전 적의 차례에 맞았다면 피해 +50%' },
-  { id: 'despair', name: '궁지', kind: 'cond', desc: '체력 50% 이하일 때 피해 +30%' },
+  { id: 'critDmg', name: '강화 치명타', kind: 'cond', desc: '치명타 피해 ×2 → ×2.5' },
+  { id: 'pierceShot', name: '관통탄', kind: 'ranged', desc: '대상 뒤의 적까지 뚫는다' },
+  { id: 'extraAmmo', name: '추가 탄창', kind: 'ranged', desc: '탄창·충전 +3' },
+  { id: 'counter', name: '카운터', kind: 'shield', desc: '막은 뒤 다음 공격 피해 +200%' },
+  { id: 'fireShield', name: '화염 방패', kind: 'shield', desc: '막으면 공격자에게 화상 2턴' },
+  { id: 'iceShield', name: '빙결 방패', kind: 'shield', desc: '막으면 공격자 빙결 2턴' },
+  { id: 'frenzy', name: '광기', kind: 'forbidden', desc: '이 무기를 든 동안 주는 피해 +100%, 받는 피해 +100%' },
 ];
 export const OPTION_BY_ID = Object.fromEntries(OPTIONS.map((o) => [o.id, o])) as Record<OptionId, OptionDef>;
 
-/** 치명타 배율 (치명타는 조건으로만 생긴다) */
+/** 이 무기에 붙을 수 있는 옵션인가: 원거리 옵션은 원거리에만(추가 탄창은 탄창이 있는 무기만), 방패 옵션은 방패에만, 광기는 금지 등급에만 */
+export function optionFits(o: OptionDef, w: WeaponDef): boolean {
+  if (o.kind === 'ranged') return w.range > 1 && (o.id !== 'extraAmmo' || w.mag !== undefined);
+  if (o.kind === 'shield') return w.trait === 'block';
+  if (o.kind === 'forbidden') return w.grade === 'forbidden';
+  return true;
+}
+
+/** 치명타 배율 (치명타는 무기 고유 효과로만 생긴다) */
 export const CRIT_MULT = 2;
+/** 무기가 거는 상태의 기본 지속 (플레이어 턴) */
+export const STATUS_TURNS = 2;

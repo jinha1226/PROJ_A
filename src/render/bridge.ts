@@ -9,18 +9,34 @@ import type { Cell, Ent, FloorItem, FoeKind, GEvent, GridMap, GridSim, GridState
 /** 우리 무기 → PROJ_R 무기 모양 */
 const WEAPON_LOOK: Record<string, WeaponGroup> = {
   pistol: 'pistol',
+  shotgun: 'pistol',
+  rifle: 'pistol',
   longbow: 'bow',
+  infantry_bow: 'bow',
+  repeater: 'bow',
+  knives: 'dagger',
   fire_staff: 'staff',
   frost_staff: 'staff',
   storm_staff: 'staff',
   shield: 'shield',
   dagger: 'dagger',
+  sadist: 'dagger',
   longsword: 'sword',
+  balanced: 'sword',
+  grudge: 'sword',
+  desperate: 'sword',
   knight_sword: 'sword',
-  spear: 'spear',
-  mace: 'mace',
+  giantkiller: 'sword',
+  flawless: 'sword',
+  pyre_blade: 'sword',
+  hatchet: 'axe',
   greataxe: 'axe',
   ogre_club: 'axe',
+  spear: 'spear',
+  harpoon: 'spear',
+  mace: 'mace',
+  nutcracker: 'mace',
+  torch: 'mace',
 };
 
 const gear = (w: WeaponInst | null | undefined): Weapon | null => (w ? { group: WEAPON_LOOK[w.def.id] ?? 'sword' } : null);
@@ -126,7 +142,7 @@ export class Bridge {
       group: 0,
       elite: a.elite || a.boss,
       marked: a.marked,
-      status: { burn: a.statuses.burn ? 1 : 0, freeze: a.statuses.slow || a.statuses.freeze ? 1 : 0, poison: 0 },
+      status: { burn: a.statuses.burn ? 1 : 0, freeze: a.statuses.slow || a.statuses.freeze ? 1 : 0, poison: a.statuses.poison || a.statuses.bleed ? 1 : 0 },
     };
   }
 

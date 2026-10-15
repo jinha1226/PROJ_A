@@ -2,7 +2,7 @@ import { ALERT_THRESHOLDS, type Game } from '../core/game';
 import { describeEffect, describeByproduct } from '../core/describe';
 import type { Actor, GameEvent, ByproductInst, GroundItem, Slot, WeaponInst } from '../core/types';
 import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
-import { isBroken, partArmorMax } from '../core/stats';
+import { isBroken, magOf, partArmorMax } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
 import { GODS } from '../data/start';
 import { OPTION_BY_ID } from '../data/options';
@@ -154,7 +154,7 @@ export class Hud {
     const spare = p.hands[1 - p.activeHand];
     const ammo =
       w?.def.mag !== undefined
-        ? `<span class="ammo ${w.ammo ? '' : 'bad'}">${w.ammo}</span><span class="mag">/ ${w.def.mag}${w.def.recharge ? ' 충전' : ''}</span>`
+        ? `<span class="ammo ${w.ammo ? '' : 'bad'}">${w.ammo}</span><span class="mag">/ ${magOf(w)}${w.def.recharge ? ' 충전' : ''}</span>`
         : `<span class="mag">${w && w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}</span>`;
     const keys = !w || w.def.range <= 1 ? '' : w.def.mag !== undefined && !w.def.recharge ? ' · [R] 재장전 · [F] 사격' : ' · [F] 사격';
     const actives = g.equippedActives(p);
@@ -363,14 +363,14 @@ export function actorTooltip(g: Game, a: Actor): string {
 
 export function weaponTooltip(w: WeaponInst): string {
   const d = w.def;
-  const ammo = d.mag === undefined ? '' : d.recharge ? `충전 ${w.ammo}/${d.mag} (${d.recharge}턴마다 1)` : `탄창 ${w.ammo}/${d.mag}`;
+  const ammo = d.mag === undefined ? '' : d.recharge ? `충전 ${w.ammo}/${magOf(w)} (${d.recharge}턴마다 1)` : `탄창 ${w.ammo}/${magOf(w)}`;
   const parts = [`피해 ${d.damage}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo, `부담 ${d.burden}`].filter(Boolean);
   const colors = d.colors.map((c) => `<span class="col ${c}">${COLOR_NAME[c]}</span>`).join(' ');
-  const trait = d.trait ? `<div class="r trait">${esc(TRAIT_TEXT[d.trait])}</div>` : '';
+  const trait = d.trait ? `<div class="r trait">★ ${esc(TRAIT_TEXT[d.trait])}</div>` : '';
   const opts = w.options
     .map((o) => {
       const od = OPTION_BY_ID[o];
-      return `<div class="r opt ${od.kind}"><b>${od.kind === 'hit' ? '◆' : '◇'} ${esc(od.name)}</b> ${esc(od.desc)}</div>`;
+      return `<div class="r opt ${od.kind}"><b>${od.kind === 'cond' ? '◇' : '◆'} ${esc(od.name)}</b> ${esc(od.desc)}</div>`;
     })
     .join('');
   return `<div class="t g-${d.grade}">⚔ ${esc(d.name)}</div><div class="r">${GRADE_NAME[d.grade]} · ${FAMILY_NAME[d.family]} · ${colors}</div><div class="r">${parts.join(' · ')}</div>${trait}${opts}`;

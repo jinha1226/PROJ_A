@@ -50,8 +50,8 @@ export type EffectKind =
 
 export type TargetKind = 'self' | 'target' | 'around' | 'random' | 'marked' | 'nearest';
 
-export type StatusKind = 'burn' | 'slow' | 'stun' | 'blind' | 'freeze';
-export const STATUS_NAME: Record<StatusKind, string> = { burn: '화상', slow: '둔화', stun: '기절', blind: '실명', freeze: '빙결' };
+export type StatusKind = 'burn' | 'slow' | 'stun' | 'blind' | 'freeze' | 'bleed' | 'poison' | 'oil';
+export const STATUS_NAME: Record<StatusKind, string> = { burn: '화상', slow: '둔화', stun: '기절', blind: '실명', freeze: '빙결', bleed: '출혈', poison: '중독', oil: '기름' };
 
 export type TerrainKind = 'flame' | 'ice' | 'current';
 
@@ -138,27 +138,26 @@ export const FAMILY_NAME: Record<WeaponFamily, string> = { melee: '근접', gun:
 export type Color = 'power' | 'tactics' | 'survival';
 export const COLOR_NAME: Record<Color, string> = { power: '화력', tactics: '기술', survival: '생존' };
 
-/** 계열 특성: 무기 종류마다 고정된 성질 */
+/** 무기 고유 효과: 무기 종류마다 고정. 대부분 "언제 치명타가 나는가"를 정한다 (데드셀) */
 export type WeaponTrait =
-  | 'ambush' // 단검: 잠든·기절·빙결한 적에게 치명타
-  | 'parry' // 장검: 근접 공격을 20% 확률로 쳐냄
-  | 'cleave' // 도끼: 주변의 다른 적에게도 절반 피해
-  | 'pierce' // 창: 대상 바로 뒤의 적도 찌름
-  | 'smash' // 철퇴: 1칸 밀침, 막히면 기절
-  | 'block' // 방패: 어느 손에 있든 공격을 25% 확률로 막고, 막으면 다음 공격 치명타
-  | 'fresh' // 활: 상처 없는 적에게 치명타
-  | 'arcane'; // 원소 지팡이: 원소를 남기고 옆의 적에게 절반이 튐
+  | 'ambush' | 'combo3' | 'balanced' | 'grudge' | 'desperate' | 'execute' | 'pierce' | 'harpoon' | 'fourth' | 'nutcracker'
+  | 'cleave' | 'sadist' | 'torch' | 'block' | 'smash' | 'giant' | 'flawless' | 'pyreBlade'
+  | 'lastShot' | 'scatter' | 'steady' | 'marksman' | 'pointBlank' | 'repeater' | 'knives' | 'pyro' | 'frost' | 'storm';
 
-/** 무기 옵션: 적중 효과(맞으면 상태를 만든다) 또는 조건 효과(조건이 맞으면 피해가 커진다) */
+/** 무기 옵션 (데드셀 인챈트 각색): 상태를 만들거나, 상태에 따라 피해를 키운다. 치명타는 만들지 않는다 */
 export type OptionId =
-  | 'fire' | 'cold' | 'lightning' | 'impact' | 'leech' | 'blast'
-  | 'burnHunt' | 'iceBreak' | 'ambush' | 'aim' | 'riposte' | 'despair';
+  | 'fire' | 'cold' | 'lightning' | 'impact' | 'bleed' | 'poison' | 'oil' | 'leech'
+  | 'corpseBlast' | 'deathFreeze' | 'deathFlame'
+  | 'burnDmg' | 'bleedDmg' | 'poisonDmg' | 'freezeDmg' | 'stunDmg' | 'fullHp' | 'despair' | 'ambush' | 'aim' | 'riposte' | 'critDmg'
+  | 'pierceShot' | 'extraAmmo' | 'counter' | 'fireShield' | 'iceShield' | 'frenzy';
 
 export interface WeaponDef {
   id: string;
   name: string;
   family: WeaponFamily;
   grade: Grade;
+  /** 고유 무기 (보스·정예 드롭) */
+  unique?: boolean;
   /** 색 1~2개: 레벨업으로 올린 그 색의 레벨만큼 강해진다 (7단계) */
   colors: Color[];
   trait?: WeaponTrait;
@@ -183,8 +182,10 @@ export interface WeaponInst {
   ammo: number;
   /** 옵션 0~2개 (일반 0~1, 정예 1~2, 금지 2) */
   options: OptionId[];
-  /** 원소 지팡이: 다음 충전까지 지난 턴 */
+  /** 충전식: 다음 충전까지 지난 턴 */
   charging?: number;
+  /** 이 무기로 한 공격 수 (철퇴: 4번째마다 치명타) */
+  hits?: number;
 }
 
 /** 바닥에 놓인 것: 부산물 또는 무기 */
@@ -229,6 +230,14 @@ export interface Actor {
   wasHit?: boolean;
   /** 방패로 막았다: 다음 공격 치명타 */
   blockReady?: boolean;
+  /** 카운터 방패로 막았다: 다음 공격 피해 +200% */
+  counterReady?: boolean;
+  /** 같은 대상 연속 공격 (장검·균형 잡힌 검) */
+  combo?: { target: number; weapon: number; n: number };
+  /** 마지막으로 피해를 받은 플레이어 행동 번호 (완전무결) */
+  hurtAt?: number;
+  /** 이번 플레이어 행동에 걸린 상태: 이번 턴 끝에는 줄지 않는다 */
+  freshStatus?: Set<StatusKind>;
   // AI
   ai?: 'melee' | 'ranged' | 'skirmisher' | 'boss' | 'wraith' | 'dummy';
   awake: boolean;
