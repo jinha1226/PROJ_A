@@ -4,6 +4,7 @@ import type { DungeonKit, DungeonPiece } from './dungeonKit';
 import { wallFaces, type WallFace } from './gridLayout';
 import { addDecor, cornerColumns, runColumns } from './gridDecor';
 import { chasmMesh, sealMesh } from './toolGates';
+import { applyXray } from './xray';
 
 /** Metres per grid cell. */
 export const CELL = 1.0;
@@ -50,6 +51,8 @@ export class GridTerrain {
 
   constructor(private readonly m: GridMap, private readonly kit: DungeonKit, decal?: string) {
     this.built = [...m.tiles];
+    // (MODEL 0) 벽·기둥·문은 주인공을 가리면 비쳐 보이게
+    for (const n of ['Wall_Modular', 'Wall_Modular2', 'Column', 'Column2', 'Arch_Door'] as DungeonPiece[]) for (const mt of [kit.piece(n)?.material ?? []].flat()) applyXray(mt);
     const faces = wallFaces(m);
     const floors = m.tiles.map((t, i) => [t, i] as const).filter(([t]) => t !== 'wall' && t !== 'chasm').map(([, i]) => i);
     const q = new THREE.Quaternion();
@@ -82,7 +85,9 @@ export class GridTerrain {
     this.instanceFaces(faces);
     this.bakeOcclusion(faces);
     // a thin stone cap on top of each wall panel only, so walls read as walls and not as solid blocks
-    const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(CELL + 0.02, 0.08, PANEL_DEPTH + 0.04), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1 }), faces.length);
+    const capMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1 });
+    applyXray(capMat);
+    const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(CELL + 0.02, 0.08, PANEL_DEPTH + 0.04), capMat, faces.length);
     const capQ = new THREE.Quaternion();
     faces.forEach((f, k) => {
       const p = toWorld(f.wall.x + f.dir.x * (0.5 - PANEL_DEPTH / 2), f.wall.y + f.dir.y * (0.5 - PANEL_DEPTH / 2));

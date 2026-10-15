@@ -35,6 +35,7 @@ import { sensedFoes } from '../sim';
 import { feel } from './feel';
 import { StrikeFx } from './strikeFx';
 import { Gore } from './gore';
+import { XRAY } from './xray';
 import { StrikeCues } from './strikeCues';
 let ELEVATION = (45 * Math.PI) / 180;
 /** Scripted views (the comparison demo) may tilt the camera. */
@@ -357,6 +358,9 @@ export class GridRuntime {
     this.sun.target.position.set(this.center.x, 0, this.center.z);
     if (this.sim.s.hero.exitTime > 0) this.terrain.pulseExit(this.clock);
     if (Math.abs(ELEVATION - elevationTarget) > 1e-4) ELEVATION = chase(ELEVATION, elevationTarget, dt, 6);
+    // (MODEL 0) 벽 투시: 주인공 위치, 탑뷰에 가까울수록 끈다 (위에서 보면 가리지 않는다)
+    XRAY.hero.value.set(hero.x, 0, hero.z);
+    XRAY.on.value = THREE.MathUtils.clamp((80 - (ELEVATION * 180) / Math.PI) / 15, 0, 1);
     this.placeCamera();
     this.fx.setIcons(this.icons.map((i) => ({ ...i, at: this.actors.pos(i.id) ?? this.stationAt.get(i.id) ?? new THREE.Vector3() })));
     if (this.pixelated) this.pixel.render(this.h.scene, this.h.camera);
