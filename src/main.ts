@@ -574,6 +574,9 @@ window.addEventListener('keydown', (e) => {
   const dir = DIR_KEYS[e.key] ?? (e.code.startsWith('Numpad') ? DIR_KEYS[e.code] : undefined);
   if (dir) {
     e.preventDefault();
+    // OS 키 반복은 무시하고, 누르고 있는 동안은 아래 걸음 루프가 WALK_EVERY마다 한 걸음씩 보낸다
+    if (e.repeat) return;
+    held = { key: e.key, code: e.code, dir, at: performance.now(), hp: g.player.hp, foes: g.visibleEnemies().length };
     g.move(dir[0], dir[1]);
     return refresh();
   }
@@ -644,6 +647,30 @@ window.addEventListener('keydown', (e) => {
   refresh();
 });
 
+/** 한 걸음 간격: PROJ_R 렌더러의 걷는 속도(0.14초에 한 칸)와 맞춘다. 더 빠르면 모델이 뒤처졌다가 달려서 따라잡는다 */
+const WALK_EVERY_MS = 140;
+let held: { key: string; code: string; dir: [number, number]; at: number; hp: number; foes: number } | null = null;
+
+window.addEventListener('keyup', (e) => {
+  if (held && (e.key === held.key || e.code === held.code)) held = null;
+});
+window.addEventListener('blur', () => (held = null));
+
+// 이동 키를 누르고 있는 동안: 일정한 간격으로 한 걸음씩. 새 적이 보이거나 맞으면 멈춘다
+setInterval(() => {
+  if (!held || !game) return;
+  const g = game;
+  if (!g.canAct() || overlay || targeting || !modal.hidden) return void (held = null);
+  const now = performance.now();
+  if (now - held.at < WALK_EVERY_MS) return;
+  const foes = g.visibleEnemies().length;
+  if (g.player.hp < held.hp || foes > held.foes) return void (held = null);
+  held.at = now;
+  held.foes = foes;
+  if (!g.move(held.dir[0], held.dir[1])) held = null;
+  refresh();
+}, 20);
+
 // 자동 이동 (오토탐험 / 이동): 적이 보이거나 피해를 입으면 멈춘다
 setInterval(() => {
   if (!game || !auto) return;
@@ -665,7 +692,7 @@ setInterval(() => {
   if (step === 'done' || step === 'enemy' || !g.move(step[0], step[1])) auto = null;
   autoHp = Math.min(autoHp, g.player.hp);
   refresh();
-}, 70);
+}, WALK_EVERY_MS);
 
 // 마우스
 const canvas = view;
