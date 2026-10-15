@@ -29,6 +29,14 @@ export function botStep(g: Game): boolean {
   }
   const s = g.st(p);
   const enemies = g.visibleEnemies();
+  // 경보 2단계부터는 출구를 알면 싸움을 피해 출구로 (실제 플레이어처럼). 길을 막은 적만 친다
+  const ex = g.level.exit;
+  if (g.alert >= 2 && !g.isBossFloor && g.level.explored[g.level.idx(ex.x, ex.y)]) {
+    if (p.x === ex.x && p.y === ex.y && g.descend()) return true;
+    if (p.hp < s.maxHp * 0.35 && g.flask > 0 && enemies.length) return g.useFlask();
+    const st = g.stepToward(ex.x, ex.y);
+    if (st !== 'done' && g.move(st[0], st[1])) return true;
+  }
   if (enemies.length) {
     if (p.hp < s.maxHp * 0.35 && g.flask > 0) return g.useFlask();
     // 주사제: 맞고 있는 게 없으면 하나
@@ -64,7 +72,6 @@ export function botStep(g: Game): boolean {
   const dir = g.autoExploreDir();
   if (dir === 'enemy') return g.wait();
   if (dir !== 'done') return g.move(dir[0], dir[1]);
-  const ex = g.level.exit;
   if (p.x === ex.x && p.y === ex.y) return g.descend() || g.wait();
   const st = g.stepToward(ex.x, ex.y);
   if (st === 'done') return g.wait();

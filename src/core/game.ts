@@ -1707,8 +1707,9 @@ export class Game {
     if (t.isPlayer && healthDamage > 0) t.hurtAt = this.stats.turns;
     if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}에 맞았다${hitPunct(healthDamage)}`, 'bad');
 
-    // 원소 공격은 그 원소의 효과를 남긴다 (반응이 일어났으면 남기지 않는다): 화염 → 화상, 냉기 → 둔화, 번개 → 감전
-    if (!comboAura && !t.dead) {
+    // 원소 공격은 그 원소의 효과를 남긴다 (반응이 일어났으면 남기지 않는다): 화염 → 화상, 냉기 → 둔화, 번개 → 감전.
+    // 공격자가 있는 피해만: 화상 같은 지속 피해(공격자 없음)가 자기 상태를 다시 걸어 끝나지 않는 일을 막는다
+    if (src && !comboAura && !t.dead) {
       if (el === 'fire') this.addStatus(t, 'burn', STATUS_TURNS);
       if (el === 'cold') this.addStatus(t, 'slow', STATUS_TURNS);
       if (el === 'lightning') this.addStatus(t, 'shock', STATUS_TURNS);
