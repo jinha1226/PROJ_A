@@ -1,13 +1,13 @@
 import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
-import { allByproducts, allOptions, heldWeapon, magOf, signatureOf, traitsOf, weaponName, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
+import { allByproducts, allOptions, heldWeapon, magOf, traitsOf, weaponName, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
   Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color, ConsumableInst, InjectionId, WeaponTrait,
 } from './types';
 import { COLOR_NAME, ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
-import { FISTS, SIGNATURE_CRIT, TRAIT_NAME, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
+import { FISTS, TRAIT_NAME, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
 import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
 import { infuseOptions, RESIST_CAP, RESIST_STEP, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
@@ -1303,11 +1303,8 @@ export class Game {
     if (a.counterReady) mult *= 3;
     // ── 고유 효과: 치명타 조건 ──
     const combo = a.combo?.target === t.id ? a.combo.n : 0;
-    // 기본 무기의 동작 + 부산물 부여의 ★ (둘 다 확인). 맞는 짝이면 그 ★의 치명타는 ×3
-    const sig = signatureOf(w);
-    let sigCrit = false;
+    // 기본 무기의 동작 + 부산물 부여의 ★ (둘 다 확인)
     for (const tr of traitsOf(w)) {
-    const before = crit;
     // 치명타 이유: ★ 칭호에서 '의'를 뗀 말 (예: 암습자)
     const why = TRAIT_NAME[tr]?.replace(/의$/, '') ?? tr;
     switch (tr) {
@@ -1346,11 +1343,10 @@ export class Game {
       case 'repeater': if (st.slow || st.freeze) crit ??= why; break;
       case 'pyro': if (st.oil) crit ??= why; break;
     }
-    if (!before && crit && tr === sig) sigCrit = true;
     }
     // 감각 파손: 치명타가 일반 피해로
     if (crit && a.isPlayer && isBroken(a, 'sense')) crit = null;
-    const critMult = crit ? (sigCrit ? SIGNATURE_CRIT : CRIT_MULT) + (has('critDmg') ? 0.5 : 0) : 1;
+    const critMult = crit ? CRIT_MULT + (has('critDmg') ? 0.5 : 0) : 1;
     return { mult, crit, critMult };
   }
 

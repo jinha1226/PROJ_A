@@ -68,7 +68,7 @@ export const STAR_TRAITS = Object.keys(TRAIT_NAME) as WeaponTrait[];
 /** 원거리 무기에서만 의미가 있는 ★ */
 export const RANGED_TRAITS = new Set<WeaponTrait>(['lastShot', 'marksman', 'pointBlank']);
 
-/** 맞는 짝: 이 ★를 이 기본 무기에 넣으면 이름 있는 무기가 되고 치명타 ×3 */
+/** 맞는 짝: 이 ★를 이 기본 무기에 넣으면 고유 이름이 붙는다 (힘의 차이는 없다. 어느 무기에 넣어도 손해가 없게) */
 export const SIGNATURE: Partial<Record<WeaponTrait, { weapon: string; name: string }>> = {
   ambush: { weapon: 'dagger', name: '그림자 바늘' },
   sadist: { weapon: 'dagger', name: '혈흔 단도' },
@@ -94,5 +94,3 @@ export const SIGNATURE: Partial<Record<WeaponTrait, { weapon: string; name: stri
   lastShot: { weapon: 'pistol', name: '막탄' },
   steady: { weapon: 'pistol', name: '숨 멈춤' },
 };
-/** 맞는 짝의 치명타 배율 */
-export const SIGNATURE_CRIT = 3;

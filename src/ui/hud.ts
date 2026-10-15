@@ -355,7 +355,7 @@ export function weaponTooltip(w: WeaponInst): string {
     .map((t) => {
       const ranged = RANGED_TRAITS.has(t) && d.range <= 1 ? ' <span style="color:var(--warn)">(이 무기에서는 발동하지 않음)</span>' : '';
       const pair = SIGNATURE[t];
-      const hint = t === sig ? ' <span class="up">— 맞는 짝: 치명타 ×3</span>' : pair && t === w.infusion?.trait ? ` <span style="color:var(--dim)">— ${esc(WEAPON_BY_ID[pair.weapon]!.name)}과 맞는다</span>` : '';
+      const hint = t === sig ? ' <span class="up">— 맞는 짝</span>' : pair && t === w.infusion?.trait ? ` <span style="color:var(--dim)">— ${esc(WEAPON_BY_ID[pair.weapon]!.name)}에 넣으면 고유 이름</span>` : '';
       return `<div class="r trait">★ ${TRAIT_NAME[t] ? `<b>${esc(TRAIT_NAME[t]!)}</b> ` : ''}${esc(TRAIT_TEXT[t])}${ranged}${hint}</div>`;
     })
     .join('');
