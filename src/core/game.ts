@@ -10,7 +10,7 @@ import { FORM_NAME, FORM_RIDERS } from '../data/forms';
 import { FISTS, TRAIT_NAME, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
 import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
-import { infuseOptions, RESIST_CAP, RESIST_STEP, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
+import { infuseOptions, OPPOSITE, starOf, WEAKNESS_STEP } from '../data/infuse';
 import { ENEMIES, ENEMY_BY_ID, ZONES, type EnemyTemplate } from '../data/enemies';
 
 export type Mode = 'play' | 'levelup' | 'rest' | 'dead' | 'won';
@@ -150,11 +150,11 @@ export class Game {
 
   /** MODEL 0: 권총 하나와 슈트. 부산물은 장착하지 않는다 (강화 재료) */
   private createPlayer() {
-    const p = this.newActor('MODEL 0', 'player', SUIT.hp, SUIT.damage, { body: 0, arm: 0, leg: 0, sense: 0 });
+    // 슈트 부위 칸: 몸·팔·다리·감각에 부산물 하나씩
+    const p = this.newActor('MODEL 0', 'player', SUIT.hp, SUIT.damage, { body: 1, arm: 1, leg: 1, sense: 1 });
     p.isPlayer = true;
     p.awake = true;
     p.colors = { power: 0, tactics: 0, survival: 0 };
-    p.suitMods = { body: { n: 0, armor: 0, resist: [] }, arm: { n: 0, armor: 0, resist: [] }, leg: { n: 0, armor: 0, resist: [] }, sense: { n: 0, armor: 0, resist: [] } };
     p.partArmorBase = { ...SUIT.armor };
     p.hands = [this.makeWeapon('pistol'), null];
     p.belt = new Array(BELT_SLOTS).fill(null);
@@ -678,21 +678,25 @@ export class Game {
     return true;
   }
 
-  /** 슈트 부여: 부산물의 부위 장갑 최대치와 원소 저항 (부위마다 3회) */
-  infuseSuit(r: ByproductInst): boolean {
+  /** 슈트 부위 칸에 끼운다. 그 부위에 있던 부산물은 발밑(보급 지점이면 포드 바닥)에 내려놓는다 */
+  equipSuit(r: ByproductInst): boolean {
     const p = this.player;
-    const inf = suitInfusion(r.def);
-    const m = p.suitMods![inf.slot];
-    if (m.n >= SUIT_INFUSE_MAX) {
-      this.log(`${SLOT_NAME[inf.slot]} 부위는 이미 ${SUIT_INFUSE_MAX}번 부여했다.`, 'warn');
-      return false;
-    }
+    const slot = r.def.slot;
+    const before = partArmorMax(p, slot);
     if (!this.takeByproduct(r)) return false;
-    m.n++;
-    m.armor += inf.armor;
-    m.resist.push(...inf.resist);
-    p.partArmor[inf.slot] += inf.armor;
-    this.log(`슈트 ${SLOT_NAME[inf.slot]}에 ${r.def.name} 부여: 장갑 +${inf.armor}${inf.resist.length ? `, ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 저항` : ''} (${m.n}/${SUIT_INFUSE_MAX})`, 'good');
+    const old = p.slots[slot][0];
+    p.slots[slot][0] = r;
+    r.cd = 0;
+    if (old) {
+      if (this.mode === 'rest') this.restItems.push(old);
+      else this.dropItem(p.x, p.y, old);
+    }
+    // 장갑 최대치가 늘면 그만큼 채우고, 줄면 넘치는 만큼 깎는다
+    const after = partArmorMax(p, slot);
+    p.partArmor[slot] = Math.max(0, Math.min(after, p.partArmor[slot] + Math.max(0, after - before)));
+    const hpMax = this.st(p).maxHp;
+    if (p.hp > hpMax) p.hp = hpMax;
+    this.log(`슈트 ${SLOT_NAME[slot]}에 ${r.def.name}을(를) 끼웠다.${old ? ` (${old.def.name}은(는) 내려놓았다)` : ''}`, 'good');
     this.emit({ type: 'loadout', actor: p.id });
     if (this.mode === 'play') this.endPlayerAction(100);
     return true;
@@ -808,7 +812,7 @@ export class Game {
       p.baseHp += 4;
       this.heal(p, Math.round(this.st(p).maxHp * 0.25));
       this.emit({ type: 'levelup' });
-      this.log(`레벨 ${this.plevel}! 화력 · 기술 · 생존 중 하나를 키울 수 있다.`, 'good');
+      this.log(`레벨 ${this.plevel}! 근력 · 연산 · 외피 회로 중 하나를 강화할 수 있다.`, 'good');
     }
     this.checkLevelUp();
   }
@@ -1543,10 +1547,10 @@ export class Game {
     // 광기: 이 무기를 든 동안 받는 피해 +100%
     const tw = heldWeapon(t);
     if (tw && allOptions(tw).includes('frenzy')) dmg *= 2;
-    // 슈트 부여 원소 저항 (플레이어)
-    if (el && t.suitMods) {
-      const n = SLOTS.reduce((k, sl) => k + t.suitMods![sl].resist.filter((r) => r === el).length, 0);
-      dmg *= 1 - Math.min(RESIST_CAP, RESIST_STEP * n);
+    // 슈트 부위 칸의 약점: 끼운 부산물 원소의 반대 원소 피해 +25%씩 (저항은 아래 attune에서)
+    if (el && t.isPlayer) {
+      const n = allByproducts(t).reduce((k, r) => k + r.def.elements.filter((e) => OPPOSITE[e] === el).length, 0);
+      dmg *= 1 + WEAKNESS_STEP * n;
     }
     // 몸 파손: 받는 피해 +20%
     if (t.isPlayer && isBroken(t, 'body')) dmg *= 1.2;

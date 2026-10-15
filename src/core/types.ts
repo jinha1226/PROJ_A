@@ -113,7 +113,7 @@ export const FAMILY_NAME: Record<WeaponFamily, string> = { melee: '근접', gun:
 
 /** 성장의 세 갈래 (데드셀의 세 가지 색) */
 export type Color = 'power' | 'tactics' | 'survival';
-export const COLOR_NAME: Record<Color, string> = { power: '화력', tactics: '기술', survival: '생존' };
+export const COLOR_NAME: Record<Color, string> = { power: '근력', tactics: '연산', survival: '외피' };
 
 /** 무기 고유 효과: 무기 종류마다 고정. 대부분 "언제 치명타가 나는가"를 정한다 (데드셀) */
 export type WeaponTrait =
@@ -207,8 +207,6 @@ export interface Actor {
   haste: number; // 다음 행동 비용 감소 %
   marked: boolean;
   dead: boolean;
-  /** 슈트 부여 (플레이어): 부위별 횟수·장갑 증가·원소 저항 */
-  suitMods?: Record<Slot, { n: number; armor: number; resist: Element[] }>;
   /** 벨트 (플레이어): 주사제 3칸 */
   belt?: (ConsumableInst | null)[];
   /** 맞고 있는 주사제: 남은 방 수 */

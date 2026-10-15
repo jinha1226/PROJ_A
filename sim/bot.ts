@@ -87,5 +87,9 @@ const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.
 function useByproduct(g: Game, r: ByproductInst): boolean {
   const p = g.player;
   if (p.hands[p.activeHand] && !p.hands[p.activeHand]!.infusion) return g.infuseWeapon(r, p.activeHand);
-  return g.infuseSuit(r) || g.dismantle(r);
+  // 슈트 칸: 비었거나 지금 것보다 등급이 높으면 끼운다
+  const cur = p.slots[r.def.slot][0];
+  const rank = { common: 0, holy: 1, forbidden: 2 };
+  if (!cur || rank[r.def.grade] > rank[cur.def.grade]) return g.equipSuit(r);
+  return g.dismantle(r);
 }

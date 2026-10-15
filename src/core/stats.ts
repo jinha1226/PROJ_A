@@ -14,7 +14,7 @@ export const HIT_WEIGHT: Record<Slot, number> = { body: 40, arm: 25, leg: 20, se
 
 /** 부위의 최대 슈트 장갑 = 슈트 기본값 + (몸이면) 몸 부산물 장갑. 'fragile' 저주가 있으면 그 부위 절반 */
 export function partArmorMax(a: Actor, slot: Slot): number {
-  let max = a.partArmorBase[slot] + (a.suitMods?.[slot].armor ?? 0);
+  let max = a.partArmorBase[slot];
   for (const r of a.slots[slot]) {
     if (!r || r.dormant) continue;
     if (slot === 'body') max += r.def.stats.integrity ?? 0;
@@ -92,6 +92,8 @@ export function computeStats(a: Actor): Stats {
     sight += st.sight ?? 0;
     moveBonus += (st.moveBonus ?? 0) * f;
     if (r.def.curse?.kind === 'heavy') heavy += 15;
+    // 플레이어 슈트 부위 칸의 무게: 다리를 뺀 부위는 이동 비용 + 무게 × 2
+    if (a.isPlayer && r.def.slot !== 'leg') heavy += st.burden * 2;
     if (st.damage) {
       const d = st.damage * f;
       if (d > bestDmg) {
@@ -109,7 +111,7 @@ export function computeStats(a: Actor): Stats {
   let weapon: WeaponDef = FISTS;
   if (held || a.isPlayer) {
     weapon = held?.def ?? FISTS;
-    // 무기 피해에 그 색의 레벨 배율 (맨주먹은 화력)
+    // 무기 피해에 그 색의 레벨 배율 (맨주먹은 근력)
     damage = (a.baseDamage + weapon.damage * (held?.elite ? ELITE_DAMAGE : 1) + (bestDmg + otherDmg) * 0.3) * colorMult(a, weapon);
     attackCost = weapon.attackCost;
   } else {

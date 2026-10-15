@@ -1,9 +1,9 @@
 import { Game, REST_NAME } from './core/game';
 import { FLASK } from './data/consumables';
 import type { Color, ByproductInst, GroundItem, OptionId, WeaponInst, WeaponTrait } from './core/types';
-import { COLOR_NAME, ELEMENT_NAME, SLOT_NAME } from './core/types';
+import { COLOR_NAME, SLOT_NAME } from './core/types';
 import { OPTION_BY_ID, OPTIONS, optionFits } from './data/options';
-import { infuseOptions, starOf, SUIT_INFUSE_MAX, suitInfusion } from './data/infuse';
+import { infuseOptions, starOf, suitModule } from './data/infuse';
 import { SIGNATURE, STAR_TRAITS, TRAIT_NAME, TRAIT_TEXT, WEAPONS } from './data/weapons';
 import { loadAssets, View3D, type Pace } from './render/view3d';
 import { actorTooltip, clearThemeCache, esc, Hud, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
@@ -30,7 +30,7 @@ function showTitle() {
   const seed = (document.getElementById('seed') as HTMLInputElement | null)?.value ?? randomSeed();
   modal.innerHTML = `<div class="box title">
     <h1>MODEL 0</h1>
-    <div class="sub">판타지 세계에 추락한 클론. 현지 무기를 갈아 들며 화력 · 기술 · 생존 중 하나를 키우고, 연료를 모아 탈출한다.</div>
+    <div class="sub">판타지 세계에 추락한 클론. 현지 무기를 갈아 들며 근력 · 연산 · 외피 회로 중 하나를 키우고, 연료를 모아 탈출한다.</div>
     <div class="row"><span style="color:var(--dim)">시드</span><input id="seed" value="${esc(seed)}" size="16"/>
       <button class="ghost" data-act="reseed">무작위</button><span style="flex:1"></span><button class="ghost" data-act="lab">무기 실험실 (테스트)</button><button data-act="start">출격 (Enter)</button></div>
     ${keysHelp()}
@@ -51,7 +51,7 @@ function keysHelp() {
     ['o', '오토탐험'],
     ['x', '출구로 자동 이동'],
     ['>', '출구에서 보급 지점으로'],
-    ['g', '발밑 무기 줍기 · 부산물 부여(무기·슈트)·분해'],
+    ['g', '발밑 무기 줍기 · 부산물(무기에 부여 · 슈트 칸에 끼우기 · 분해)'],
     ['f', '사격 (원거리 무기, Tab 대상 변경)'],
     ['r', '재장전 (대기로 침)'],
     ['e', '무기 교체 (손 1 ↔ 2)'],
@@ -138,7 +138,7 @@ function renderModal() {
     modal.hidden = false;
     modal.innerHTML = `<div class="box"><h2>도움말</h2>${keysHelp()}
       <p class="lead" style="margin-top:12px">무기는 손 2칸에 들고 E로 바꾼다(1턴). 무기마다 ★ 고유 효과가 치명타 조건을 정하고, 옵션은 상태(화상·빙결·출혈 등, 내 턴 기준 2턴)를 만들거나 상태에 따라 피해를 키운다.
-      레벨업마다 화력 · 기술 · 생존 중 하나를 키우면 그 색의 무기가 강해진다.
+      레벨업마다 근력 · 연산 · 외피 회로 중 하나를 강화하면 그 회로의 무기가 강해진다.
       맞으면 맞은 부위(몸·팔·다리·감각)의 슈트 장갑이 먼저 깎이고, 0이 되면 그 부위가 파손된다(몸: 받는 피해 +20%, 팔: 공격 −20%, 다리: 이동 느림, 감각: 시야 감소·치명타 무효). 보급 지점에서 모두 수리된다.
       원소가 다른 공격이 잔류 원소와 섞이면 복합 반응(증기·플라즈마·초전도·충돌)이 일어난다. 오래 머물면 경보가 올라 정예 순찰대가 몰려온다.</p>
       <div class="row"><button data-act="close">닫기 (Esc)</button></div></div>`;
@@ -149,7 +149,7 @@ function renderModal() {
   modal.hidden = true;
 }
 
-/** 무기 실험실 편집: 색 레벨, 손마다 무기와 옵션 */
+/** 무기 실험실 편집: 회로 레벨, 손마다 무기와 옵션 */
 function showLab() {
   const g = game!;
   modal.hidden = false;
@@ -173,7 +173,7 @@ function showLab() {
   ).join(' ');
   const la = g.lastAction;
   modal.innerHTML = `<div class="box lab"><h2>무기 실험실</h2>
-    <h3>색 레벨 (무기 피해 +${Math.round(COLOR_STEP * 100)}%/레벨)</h3><div class="row">${colorRow}</div>
+    <h3>회로 레벨 (무기 피해 +${Math.round(COLOR_STEP * 100)}%/레벨)</h3><div class="row">${colorRow}</div>
     <p class="lead">손마다 기본 무기를 고르고, ★(정예·보스 부산물이 주는 고유 효과)를 직접 붙여 본다. ★는 치명타(×2) 조건이고, 맞는 짝(이름 있는 무기)이면 ×3. ◆ 옵션은 상태를 만들고 ◇ 옵션은 상태·상황에 따라 피해를 키운다. 상태는 내 턴 기준 2턴.<br>
     직전 행동: 준 피해 <b>${la.damage}</b></p>
     ${hands}
@@ -229,12 +229,12 @@ function closeOverlay() {
 
 const COLORS: Color[] = ['power', 'tactics', 'survival'];
 const COLOR_DESC: Record<Color, string> = {
-  power: '근접 공격, 순간 화력, 폭발',
-  tactics: '원거리, 원소, 설치',
-  survival: '방어, 반격, 회복 · 체력 +4, 모든 부위 장갑 +1',
+  power: '근접 무기 · 순간 피해 · 폭발',
+  tactics: '원거리 무기 · 원소 · 지팡이',
+  survival: '방패 · 철퇴 · 버티기 · 체력 +4, 모든 부위 장갑 +1',
 };
 
-/** 레벨업: 화력 · 기술 · 생존 중 하나를 +1. 지금 든 무기들이 얼마나 강해지는지 보여준다 */
+/** 레벨업: 근력 · 연산 · 외피 회로 중 하나를 +1. 지금 든 무기들이 얼마나 강해지는지 보여준다 */
 function showColorPick() {
   const g = game!;
   const p = g.player;
@@ -253,8 +253,8 @@ function showColorPick() {
       .join('');
     return `<div class="card colorpick ${c}" data-color="${c}"><span class="key">${i + 1}</span><div class="nm"><span class="col ${c}">${COLOR_NAME[c]}</span> ${lv} → ${lv + 1}</div><div class="ds">${COLOR_DESC[c]}</div>${gains}</div>`;
   }).join('');
-  modal.innerHTML = `<div class="box"><h2>레벨 ${g.plevel} — 무엇을 키울까</h2>
-    <p class="lead">무기는 자기 색의 레벨당 피해 +${Math.round(COLOR_STEP * 100)}%. 색이 둘인 무기는 높은 쪽을 따른다. 레벨업마다 체력 +4.</p>
+  modal.innerHTML = `<div class="box"><h2>레벨 ${g.plevel} — 어느 회로를 강화할까</h2>
+    <p class="lead">무기는 자기 회로의 레벨당 피해 +${Math.round(COLOR_STEP * 100)}%. 회로가 둘인 무기는 높은 쪽을 따른다. 레벨업마다 체력 +4.</p>
     <div class="cards">${cards}</div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-color]').forEach((el) => (el.onclick = () => (g.chooseColor(el.dataset.color as Color), refresh())));
 }
@@ -283,8 +283,8 @@ function showPickup() {
   const p = g.player;
   const star = starOf(r.def);
   const opts = [...(star ? [`★ ${TRAIT_TEXT[star]}`] : []), ...infuseOptions(r.def).map((o) => OPTION_BY_ID[o].desc)].map(esc).join('<br>');
-  const inf = suitInfusion(r.def);
-  const sm = p.suitMods![inf.slot];
+  const mod = suitModule(r.def);
+  const cur = p.slots[r.def.slot][0];
   const hands = [0, 1]
     .map((h) => {
       const w = p.hands[h];
@@ -294,21 +294,21 @@ function showPickup() {
         <div class="row"><button data-inf="${h}">부여 (${h + 1})</button></div></div>`;
     })
     .join('');
-  const full = sm.n >= SUIT_INFUSE_MAX;
   modal.innerHTML = `<div class="box"><h2>부산물 — ${esc(r.def.name)}</h2>
     <div class="card" style="cursor:default">${byproductTooltip(r)}</div>
     <h3>무엇에 쓸까 (1턴)</h3>
     <div class="cards">${hands}
-      <div class="card ${full ? 'disabled' : ''}"><span class="key">3</span><div class="nm">슈트 ${SLOT_NAME[inf.slot]}에 부여</div>
-        <div class="ds">장갑 최대치 +${inf.armor}${inf.resist.length ? ` · ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 피해 −20%` : ''}<br>${SLOT_NAME[inf.slot]} 부여 ${sm.n}/${SUIT_INFUSE_MAX}</div>
-        <div class="row"><button data-act="suit" ${full ? 'disabled' : ''}>부여 (3)</button></div></div>
+      <div class="card"><span class="key">3</span><div class="nm">슈트 ${SLOT_NAME[r.def.slot]} 칸에 끼우기</div>
+        <div class="ds">${mod.pros.map((x) => `<span class="up">+ ${esc(x)}</span>`).join('<br>')}${mod.cons.length ? '<br>' + mod.cons.map((x) => `<span style="color:var(--warn)">− ${esc(x)}</span>`).join('<br>') : ''}
+        <br>${cur ? `<span style="color:var(--dim)">지금: ${esc(cur.def.name)} (내려놓는다)</span>` : '<span style="color:var(--dim)">지금 비어 있음</span>'}</div>
+        <div class="row"><button data-act="suit">끼우기 (3)</button></div></div>
       <div class="card"><span class="key">4</span><div class="nm">분해</div><div class="ds">마석 +${{ common: 2, holy: 4, forbidden: 6 }[r.def.grade]}</div>
         <div class="row"><button class="ghost" data-act="dismantle">분해 (4)</button></div></div>
     </div>
     <div class="row"><span style="flex:1"></span><button class="ghost" data-act="close">두고 가기 (Esc)</button></div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-inf]').forEach((el) => (el.onclick = () => (g.infuseWeapon(r, Number(el.dataset.inf)), closeOverlay())));
   bind(modal, {
-    suit: () => (g.infuseSuit(r), closeOverlay()),
+    suit: () => (g.equipSuit(r), closeOverlay()),
     dismantle: () => (g.dismantle(r), closeOverlay()),
     close: closeOverlay,
   });
@@ -401,7 +401,7 @@ function showEnd() {
       <tr><td>레벨</td><td>${g.plevel}</td></tr>
       <tr><td>행동 수</td><td>${s.turns}</td></tr>
       <tr><td>처치</td><td>${s.kills}</td></tr>
-      <tr><td>색</td><td>${(['power', 'tactics', 'survival'] as const).map((c) => `${COLOR_NAME[c]} ${g.player.colors![c]}`).join(' · ')}</td></tr>
+      <tr><td>회로</td><td>${(['power', 'tactics', 'survival'] as const).map((c) => `${COLOR_NAME[c]} ${g.player.colors![c]}`).join(' · ')}</td></tr>
       <tr><td>복합 반응</td><td>${s.combos}</td></tr>
       <tr><td>무기</td><td>${g.player.hands.map((w) => (w ? esc(weaponName(w)) : '맨주먹')).join(' / ')}</td></tr>
     </table>
@@ -525,7 +525,7 @@ window.addEventListener('keydown', (e) => {
         g.pickConsumable(pickItem);
         closeOverlay();
       } else if (pickItem) {
-        const done = i <= 1 ? g.infuseWeapon(pickItem, i) : i === 2 ? g.infuseSuit(pickItem) : i === 3 ? g.dismantle(pickItem) : false;
+        const done = i <= 1 ? g.infuseWeapon(pickItem, i) : i === 2 ? g.equipSuit(pickItem) : i === 3 ? g.dismantle(pickItem) : false;
         if (done) closeOverlay();
       } else {
         const items = g.groundHere();

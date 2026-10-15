@@ -16,16 +16,31 @@ export function infuseOptions(d: ByproductDef): OptionId[] {
   return out;
 }
 
-/** 슈트에 부여할 때: 그 부위 장갑 최대치 증가와 원소 저항 */
-export function suitInfusion(d: ByproductDef): { slot: Slot; armor: number; resist: Element[] } {
-  return { slot: d.slot, armor: { common: 2, holy: 3, forbidden: 4 }[d.grade], resist: [...d.elements] };
-}
+/** 원소의 반대 원소 (슈트 부위 칸의 약점) */
+export const OPPOSITE: Record<Element, Element> = { fire: 'cold', cold: 'fire', lightning: 'impact', impact: 'lightning' };
+/** 슈트 부위 칸: 원소 저항(능력치 계산의 attune), 반대 원소 약점, 무게 → 이동 비용 */
+export const WEAKNESS_STEP = 0.25;
+export const WEIGHT_MOVE = 2;
 
-/** 부위마다 슈트 부여 최대 횟수 */
-export const SUIT_INFUSE_MAX = 3;
-/** 원소 저항: 부여한 원소 하나당 그 원소 피해 감소, 상한 */
-export const RESIST_STEP = 0.2;
-export const RESIST_CAP = 0.6;
+const EL_NAME: Record<Element, string> = { fire: '화염', cold: '냉기', lightning: '번개', impact: '충격' };
+
+/** 슈트 부위 칸에 끼웠을 때의 장점과 대가 (부산물 수치에서 규칙으로) */
+export function suitModule(d: ByproductDef): { pros: string[]; cons: string[] } {
+  const st = d.stats;
+  const pros: string[] = [];
+  const cons: string[] = [];
+  if (st.integrity) pros.push(`몸 장갑 +${st.integrity}`);
+  if (st.hp) pros.push(`체력 +${st.hp}`);
+  if (st.damage) pros.push(`공격 피해 +${Math.round(st.damage * 0.3)}`);
+  if (st.moveBonus) pros.push(`이동 비용 −${st.moveBonus}`);
+  if (st.dodge) pros.push(`회피 +${st.dodge}%`);
+  if (st.sight) pros.push(`시야 +${st.sight}`);
+  for (const e of d.elements) pros.push(`${EL_NAME[e]} 피해 −12%`);
+  if (d.slot !== 'leg' && st.burden) cons.push(`무게: 이동 비용 +${st.burden * WEIGHT_MOVE}`);
+  for (const e of d.elements) cons.push(`${EL_NAME[OPPOSITE[e]]} 피해 +${WEAKNESS_STEP * 100}%`);
+  if (d.curse) cons.push(`저주: ${d.curse.text}`);
+  return { pros, cons };
+}
 
 /**
  * 정예·보스(금지) 부산물이 무기에 주는 ★ 고유 효과.

@@ -1,5 +1,5 @@
 import { ALERT_THRESHOLDS, BREAK_PENALTY, type Game } from '../core/game';
-import { infuseOptions, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
+import { infuseOptions, starOf, suitModule } from '../data/infuse';
 import type { Actor, GameEvent, ByproductInst, GroundItem, InjectionId, Slot, WeaponInst } from '../core/types';
 import { INJECTION_BY_ID } from '../data/consumables';
 import { badgeHtml, OPTION_ICON, statusBadges } from '../data/statusIcons';
@@ -238,36 +238,61 @@ export class Hud {
     this.tooltip.style.top = `${Math.min(window.innerHeight - h - 8, y + 12)}px`;
   }
 
-  /** [I] 슈트 화면: 능력치·색, 손 2칸 무기, 부위별 장갑과 파손 불이익 */
+  /** [I] 슈트 화면: 가운데 슈트 실루엣과 부위 칸(장갑·끼운 부산물·장점과 대가), 왼쪽 손 2칸, 오른쪽 회로와 능력치 */
   suitScreen(g: Game): string {
     const p = g.player;
     const s = g.st(p);
     const cl = p.colors!;
-    const left = `<div class="stats">
-        <span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span><span>회피 <b>${s.dodge}%</b></span>
-        <span>피해 <b>${s.damage}</b></span><span>시야 <b>${s.sight}</b></span>
+    // 부위 상태: 장갑 비율로 색
+    const state = (slot: Slot): { cls: string; ratio: number } => {
+      const max = partArmorMax(p, slot);
+      const r = max ? Math.max(0, p.partArmor[slot]) / max : 1;
+      return { cls: isBroken(p, slot) ? 'broken' : r < 0.5 ? 'warn' : 'ok', ratio: r };
+    };
+    const part = (slot: Slot) => {
+      const st = state(slot);
+      const max = partArmorMax(p, slot);
+      const mod = p.slots[slot][0];
+      const segs = Array.from({ length: 10 }, (_, k) => `<i class="${max && Math.max(0, p.partArmor[slot]) > (k * max) / 10 ? 'on' : ''}"></i>`).join('');
+      const m = mod ? suitModule(mod.def) : null;
+      return `<div class="sp sp-${slot} ${st.cls}">
+        <div class="sp-h"><b>${SLOT_NAME[slot]}</b><span>${isBroken(p, slot) ? '파손' : `${Math.max(0, p.partArmor[slot])}/${max}`}</span></div>
+        <div class="seg ${isBroken(p, slot) ? 'broken' : ''}">${segs}</div>
+        ${
+          mod
+            ? `<div class="sp-mod" data-byproduct="${mod.uid}">${byproductName(mod)}</div>${m!.pros.map((x) => `<div class="up">+ ${esc(x)}</div>`).join('')}${m!.cons.map((x) => `<div class="warnc">− ${esc(x)}</div>`).join('')}`
+            : `<div class="sp-empty">빈 칸 · ${SLOT_NAME[slot]} 부산물을 끼울 수 있다</div>`
+        }
+        <div class="sp-break">파손 시: ${BREAK_PENALTY[slot]}</div>
+      </div>`;
+    };
+    const fill = (slot: Slot) => `class="sv-${state(slot).cls}"`;
+    const svg = `<svg class="suit-svg" viewBox="0 0 200 320" aria-hidden="true">
+      <g ${fill('sense')}><path d="M78 18 Q100 4 122 18 L126 50 Q100 62 74 50 Z"/><rect class="visor" x="82" y="28" width="36" height="9" rx="3"/></g>
+      <g ${fill('body')}><path d="M66 64 L134 64 L142 132 L124 168 L76 168 L58 132 Z"/><path class="line" d="M100 70 L100 160 M72 100 L128 100"/></g>
+      <g ${fill('arm')}><path d="M60 66 L40 74 L28 140 L40 186 L52 184 L48 142 L62 100 Z"/><path d="M140 66 L160 74 L172 140 L160 186 L148 184 L152 142 L138 100 Z"/></g>
+      <g ${fill('leg')}><path d="M76 172 L98 172 L96 250 L92 306 L72 306 L74 250 Z"/><path d="M102 172 L124 172 L126 250 L128 306 L108 306 L104 250 Z"/></g>
+    </svg>`;
+    const hands = p.hands
+      .map((w, i) => `<div class="card ${i === p.activeHand ? 'sel' : ''}" style="cursor:default"><div class="nm">손${i + 1}${i === p.activeHand ? ' (들고 있음)' : ''}</div>${w ? weaponTooltip(w) : '<div class="ds">맨주먹</div>'}</div>`)
+      .join('');
+    const right = `<h3>회로</h3><div class="circuits">${(['power', 'tactics', 'survival'] as const).map((c) => `<div><span class="col ${c}">${COLOR_NAME[c]}</span> <b>${cl[c]}</b></div>`).join('')}</div>
+      <h3>능력치</h3><div class="stats">
+        <span>체력 <b>${Math.max(0, p.hp)}/${s.maxHp}</b></span><span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span>
+        <span>피해 <b>${s.damage}</b></span><span>회피 <b>${s.dodge}%</b></span>
         <span>이동 <b>${speed(s.moveCost)}칸/턴</b></span><span>공격 <b>${speed(s.attackCost)}회/턴</b></span>
-        <span>마석 <b>${g.ash}</b></span>
+        <span>시야 <b>${s.sight}</b></span><span>마석 <b>${g.ash}</b></span>
       </div>
-      <h3>색</h3><div class="row">${(['power', 'tactics', 'survival'] as const).map((c) => `<span class="col ${c}">${COLOR_NAME[c]} ${cl[c]}</span>`).join(' ')}</div>
-      <h3>손</h3>${p.hands
-        .map((w, i) => `<div class="card ${i === p.activeHand ? 'sel' : ''}" style="cursor:default"><div class="nm">손${i + 1}${i === p.activeHand ? ' (들고 있음)' : ''}</div>${w ? weaponTooltip(w) : '<div class="ds">맨주먹</div>'}</div>`)
-        .join('')}`;
-    const right =
-      `<h3>슈트 부위</h3>` +
-      (['body', 'arm', 'leg', 'sense'] as Slot[])
-        .map((slot) => {
-          const broken = isBroken(p, slot);
-          const m = p.suitMods![slot];
-          const res = m.resist.length ? ` · ${[...new Set(m.resist)].map((e) => `${ELEMENT_NAME[e]} −${Math.round(Math.min(0.6, 0.2 * m.resist.filter((x) => x === e).length) * 100)}%`).join(' ')}` : '';
-          return `<div class="slot ${broken ? 'damaged' : ''}"><span class="k">${SLOT_NAME[slot]}</span><span class="n">${broken ? '파손' : `장갑 ${p.partArmor[slot]}/${partArmorMax(p, slot)}`}<div class="sub">부여 ${m.n}/${SUIT_INFUSE_MAX}${m.armor ? ` (장갑 +${m.armor})` : ''}${res}</div><div class="sub">파손 시: ${BREAK_PENALTY[slot]}</div></span></div>`;
-        })
-        .join('');
-    return `<div class="box suit"><h2>슈트 — ${esc(p.name)}</h2><div class="cols"><div>${left}</div><div>${right}</div></div>
+      <h3>상태</h3><div>${statusBadges(p.statuses, p.aura).map((b) => badgeHtml(b)).join(' ') || '<span style="color:var(--dim)">없음</span>'}</div>`;
+    return `<div class="box suit"><h2>슈트 — ${esc(p.name)}</h2>
+      <div class="suit-lay">
+        <div class="suit-hands"><h3>손</h3>${hands}</div>
+        <div class="suit-body">${part('sense')}${part('arm')}<div class="suit-fig">${svg}</div>${part('body')}${part('leg')}</div>
+        <div class="suit-side">${right}</div>
+      </div>
       <div class="row"><button class="ghost" data-act="close">닫기 (I / Esc)</button></div></div>`;
   }
 }
-
 
 /** 심전도: 체력 비율만큼 살아 있는 파형, 나머지는 일자선. 체력이 낮을수록 빠르고 불규칙하고 붉다 */
 function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) {
@@ -317,13 +342,14 @@ function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) 
 }
 
 export function byproductTooltip(r: ByproductInst): string {
-  const inf = suitInfusion(r.def);
+  const mod = suitModule(r.def);
   return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</div>
     <div class="r">${GRADE_NAME[r.def.grade]} · ${SLOT_NAME[r.def.slot]} 부산물 · 강화 재료</div>
     <div class="r"><b>무기에 부여하면</b>${starOf(r.def) && SIGNATURE[starOf(r.def)!] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[starOf(r.def)!]!.weapon]!.name)}과 맞는다)</span>` : ''}</div>
     ${starOf(r.def) ? `<div class="r trait">★ ${esc(TRAIT_TEXT[starOf(r.def)!])}</div>` : ''}
     ${infuseOptions(r.def).map((o) => `<div class="r opt">${badgeHtml(OPTION_ICON[o])} ${esc(OPTION_BY_ID[o].desc)}</div>`).join('')}
-    <div class="r opt cond"><b>슈트 부여</b> ${SLOT_NAME[inf.slot]} 장갑 +${inf.armor}${inf.resist.length ? ` · ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 저항` : ''}</div>`;
+    <div class="r"><b>슈트 ${SLOT_NAME[r.def.slot]} 칸에 끼우면</b></div>
+    ${mod.pros.map((x) => `<div class="r up">+ ${esc(x)}</div>`).join('')}${mod.cons.map((x) => `<div class="r" style="color:var(--warn)">− ${esc(x)}</div>`).join('')}`;
 }
 
 export function actorTooltip(g: Game, a: Actor): string {
@@ -345,7 +371,7 @@ let viewer: Actor | null = null;
 export function weaponTooltip(w: WeaponInst): string {
   const d = w.def;
   const lv = viewer ? colorLevel(viewer, d) : 0;
-  const bonus = lv ? ` <span class="up">(색 ${lv}: +${Math.round(COLOR_STEP * 100 * lv)}%)</span>` : '';
+  const bonus = lv ? ` <span class="up">(회로 ${lv}: +${Math.round(COLOR_STEP * 100 * lv)}%)</span>` : '';
   const ammo = d.mag === undefined ? '' : d.recharge ? `충전 ${w.ammo}/${magOf(w)} (${d.recharge}턴마다 1)` : `탄창 ${w.ammo}/${magOf(w)}`;
   const dmg = Math.round(d.damage * (w.elite ? ELITE_DAMAGE : 1));
   const parts = [`피해 ${dmg}${bonus}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo].filter(Boolean);
