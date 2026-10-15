@@ -21,7 +21,7 @@ export const INJECTIONS: InjectionDef[] = [
 export const INJECTION_BY_ID = Object.fromEntries(INJECTIONS.map((d) => [d.id, d])) as Record<InjectionId, InjectionDef>;
 
 /** 체력 플라스크: 충전 수 시작값·상한, 회복 비율, 함께 수리하는 장갑 */
-export const FLASK = { start: 2, max: 4, heal: 0.4, repair: 6, upgradePrice: 8 };
+export const FLASK = { start: 3, max: 4, heal: 0.8, repair: 6, upgradePrice: 8 };
 /** 벨트 칸 수 */
 export const BELT_SLOTS = 3;
 /** 기름통 폭발 피해: 8 + 구역 × 3 */

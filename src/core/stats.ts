@@ -1,5 +1,6 @@
 import type { Actor, Color, Element, ByproductInst, OptionId, Slot, WeaponDef, WeaponInst, WeaponTrait } from './types';
 import { ELITE_DAMAGE, FISTS, SIGNATURE, TRAIT_NAME } from '../data/weapons';
+import { INFUSION_TUNING } from '../data/options';
 import { SLOTS } from './types';
 
 /** 장착된 부산물 전부 */
@@ -139,7 +140,7 @@ export function computeStats(a: Actor): Stats {
   } else {
     damage = a.baseDamage + bestDmg + otherDmg * 0.25;
   }
-  if (a.isPlayer) accuracy += weapon.accuracy + (a.colors?.tactics ?? 0);
+  if (a.isPlayer) accuracy += weapon.accuracy + (a.colors?.tactics ?? 0) + (held && allOptions(held).includes('aim') ? INFUSION_TUNING.aimAccuracy : 0);
   const elementKinds = (Object.values(attune) as number[]).filter((n) => n > 0).length;
   // 플레이어 슈트 파손 불이익: 팔 공격 −20%, 다리 이동 비용 +30%, 감각 시야 −2 (몸은 받는 피해 +20%, 감각은 치명타 무효: game.ts)
   let moveCost = Math.max(50, 100 - Math.round(moveBonus) + heavy);
@@ -192,7 +193,7 @@ export function traitsOf(w: WeaponInst): WeaponTrait[] {
   return out;
 }
 
-/** 맞는 짝이면 그 ★ (이름 있는 무기가 되고 치명타 ×3) */
+/** 맞는 짝이면 그 ★ (고유 이름만 바뀌며 치명타 배율은 같다) */
 export function signatureOf(w: WeaponInst): WeaponTrait | null {
   const t = w.infusion?.trait;
   return t && SIGNATURE[t]?.weapon === w.def.id ? t : null;

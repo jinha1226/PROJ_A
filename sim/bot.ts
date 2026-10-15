@@ -3,7 +3,7 @@ import type { ByproductInst, GroundItem, WeaponInst } from '../src/core/types';
 import { heldWeapon, magOf } from '../src/core/stats';
 
 // 시뮬레이터용 단순 봇
-export function botStep(g: Game): boolean {
+export function simpleBotStep(g: Game, config: BotConfig = {}): boolean {
   const p = g.player;
   switch (g.mode) {
     case 'dead':
@@ -22,7 +22,7 @@ export function botStep(g: Game): boolean {
         g.buyFlask();
         for (let i = g.shop.length - 1; i >= 0; i--) if (g.shop[i].price <= g.ash) g.buy(i);
       } else g.reforge(p.activeHand);
-      for (const r of [...g.restItems]) tryTake(g, r) || (r.kind === 'byproduct' && useByproduct(g, r));
+      for (const r of [...g.restItems]) tryTake(g, r, config) || (r.kind === 'byproduct' && useByproduct(g, r, config));
       g.leaveRest();
       return true;
     }
@@ -66,8 +66,8 @@ export function botStep(g: Game): boolean {
   if (held?.def.mag !== undefined && !held.def.recharge && held.ammo < magOf(held)) return g.reload();
   const here = g.groundHere();
   for (const r of here) {
-    if (tryTake(g, r)) return true;
-    if (r.kind === 'byproduct') return useByproduct(g, r);
+    if (tryTake(g, r, config)) return true;
+    if (r.kind === 'byproduct') return useByproduct(g, r, config);
   }
   const dir = g.autoExploreDir();
   if (dir === 'enemy') return g.wait();
@@ -79,9 +79,10 @@ export function botStep(g: Game): boolean {
 }
 
 /** 줍기: 무기는 빈 손이나 더 센 근접 무기와 교체 (부산물은 분해) */
-export function tryTake(g: Game, r: GroundItem): boolean {
+export function tryTake(g: Game, r: GroundItem, config: BotConfig = {}): boolean {
   if (r.kind === 'byproduct') return false;
   if (r.kind === 'consumable') return g.pickConsumable(r);
+  if (config.noPickup) return false;
   const hands = g.player.hands;
   let i = hands.findIndex((w) => !w);
   if (i < 0) i = hands.findIndex((w) => w && w.def.range <= 1 && r.def.range <= 1 && w.def.damage < r.def.damage);
@@ -91,12 +92,18 @@ export function tryTake(g: Game, r: GroundItem): boolean {
 const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 
 /** 부산물: 든 무기에 부여 칸이 비었으면 무기에, 아니면 슈트에, 슈트 부위가 찼으면 분해 */
-function useByproduct(g: Game, r: ByproductInst): boolean {
+function useByproduct(g: Game, r: ByproductInst, config: BotConfig = {}): boolean {
   const p = g.player;
-  if (p.hands[p.activeHand] && !p.hands[p.activeHand]!.infusion) return g.infuseWeapon(r, p.activeHand);
+  if (!config.lockInfusion && p.hands[p.activeHand] && !p.hands[p.activeHand]!.infusion) return g.infuseWeapon(r, p.activeHand);
   // 슈트 칸: 비었거나 지금 것보다 등급이 높으면 끼운다
   const cur = p.slots[r.def.slot][0];
   const rank = { common: 0, holy: 1, forbidden: 2 };
   if (!cur || rank[r.def.grade] > rank[cur.def.grade]) return g.equipSuit(r);
   return g.dismantle(r);
+}
+
+export { smartStep, expectedDpt } from './smart';
+import { smartStep, type BotConfig } from './smart';
+export function botStep(g: Game, bot: 'simple' | 'smart' = 'simple', config: BotConfig = {}): boolean {
+  return bot === 'smart' ? smartStep(g, config) : simpleBotStep(g, config);
 }

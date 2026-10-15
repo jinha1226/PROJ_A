@@ -11,11 +11,11 @@ export interface OptionDef {
 }
 
 export const OPTIONS: OptionDef[] = [
-  { id: 'fire', name: '화염', kind: 'hit', element: 'fire', desc: '화상 부여 (2턴)' },
-  { id: 'cold', name: '냉기', kind: 'hit', element: 'cold', desc: '둔화 부여 (2턴). 이미 둔화면 빙결 (2턴)' },
+  { id: 'fire', name: '화염', kind: 'hit', element: 'fire', desc: '피해 +35%, 화상 부여 (2턴)' },
+  { id: 'cold', name: '냉기', kind: 'hit', element: 'cold', desc: '둔화 부여 (1턴). 이미 둔화면 빙결 (1턴)' },
   { id: 'lightning', name: '번개', kind: 'hit', element: 'lightning', desc: '번개: 옆 적 1명에게 피해 50% 전달' },
-  { id: 'impact', name: '충격', kind: 'hit', element: 'impact', desc: '충격: 1칸 밀침. 막히면 기절 (2턴)' },
-  { id: 'bleed', name: '출혈', kind: 'hit', desc: '출혈 부여 (2턴, 대상이 움직일 때마다 피해)' },
+  { id: 'impact', name: '충격', kind: 'hit', element: 'impact', desc: '충격: 1칸 밀침. 막히면 기절 (1턴)' },
+  { id: 'bleed', name: '출혈', kind: 'hit', desc: '출혈 부여 (2턴, 대상이 움직일 때마다 피해). 출혈 중인 적에게 피해 +10%' },
   { id: 'poison', name: '중독', kind: 'hit', desc: '중독 1중첩 부여 (최대 5중첩)' },
   { id: 'oil', name: '기름', kind: 'hit', desc: '기름 부여 (4턴, 화염에 맞으면 점화)' },
   { id: 'leech', name: '장갑 회수', kind: 'hit', desc: '준 피해의 25%만큼 장갑 수리' },
@@ -30,7 +30,7 @@ export const OPTIONS: OptionDef[] = [
   { id: 'fullHp', name: '무손상', kind: 'cond', desc: '모든 부위 장갑이 가득일 때 피해 +40%' },
   { id: 'despair', name: '궁지', kind: 'cond', desc: '체력 50% 이하일 때 피해 +30%' },
   { id: 'ambush', name: '기습', kind: 'cond', desc: '이동 직후 첫 공격 피해 +40%' },
-  { id: 'aim', name: '정조준', kind: 'cond', desc: '대기·재장전 직후 첫 공격 피해 +60%' },
+  { id: 'aim', name: '정조준', kind: 'cond', desc: '명중 +2, 대기·재장전 직후 첫 공격 피해 +60%' },
   { id: 'riposte', name: '반격', kind: 'cond', desc: '맞은 직후 반격 피해 +50%' },
   { id: 'critDmg', name: '치명 증폭', kind: 'cond', desc: '치명타 피해 +50%' },
   { id: 'pierceShot', name: '관통탄', kind: 'ranged', desc: '관통: 대상 뒤의 적까지 명중' },
@@ -54,3 +54,6 @@ export function optionFits(o: OptionDef, w: WeaponDef): boolean {
 export const CRIT_MULT = 2;
 /** 무기가 거는 상태의 기본 지속 (플레이어 턴) */
 export const STATUS_TURNS = 2;
+
+/** 밸런스 3차: 제어와 일반 부여의 효율 차이 보정 */
+export const INFUSION_TUNING = { coldTurns: 1, impactTurns: 1, fireMult: 1.35, bleedMult: 1.1, aimAccuracy: 2 };

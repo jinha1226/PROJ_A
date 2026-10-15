@@ -9,7 +9,7 @@ import { COLOR_NAME, ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
 import { FISTS, TRAIT_NAME, TRAIT_TEXT, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
-import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS } from '../data/options';
+import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS, INFUSION_TUNING } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
 import { infuseOptions, OPPOSITE, starOf, WEAKNESS_STEP } from '../data/infuse';
 import { ENEMIES, ENEMY_BY_ID, ZONES, ENEMY_DAMAGE_MULT, type EnemyTemplate } from '../data/enemies';
@@ -49,7 +49,7 @@ export const BREAK_PENALTY: Record<Slot, string> = {
 };
 
 /** MODEL 0 슈트: 기본 체력, 부위별 장갑, 회피, 기본 피해 (이동 비용 75는 stats.ts). 정리(6단계) 뒤 임시 수치: 봇 승률 약 8% */
-export const SUIT = { hp: 70, armor: { body: 18, arm: 12, leg: 12, sense: 10 } as Record<Slot, number>, dodge: 8, damage: 9 };
+export const SUIT = { hp: 80, armor: { body: 18, arm: 12, leg: 12, sense: 10 } as Record<Slot, number>, dodge: 8, damage: 9 };
 
 interface Ctx {
   target?: Actor;
@@ -654,7 +654,7 @@ export class Game {
     return true;
   }
 
-  /** 체력 플라스크: 최대 체력 40% 회복 + 가장 깎인 부위 장갑 수리 */
+  /** 체력 플라스크: FLASK.heal 비율로 회복 + 가장 깎인 부위 장갑 수리 */
   useFlask(): boolean {
     if (!this.canAct()) return false;
     const p = this.player;
@@ -1344,6 +1344,8 @@ export class Game {
     const hpFrac = (b: Actor) => b.hp / this.st(b).maxHp;
     const dist = Math.max(Math.abs(t.x - a.x), Math.abs(t.y - a.y));
     // ── 옵션: 상태·상황에 따른 % 피해 ──
+    if (has('fire')) mult *= INFUSION_TUNING.fireMult;
+    if (has('bleed') && st.bleed) mult *= INFUSION_TUNING.bleedMult;
     if (has('burnDmg') && st.burn) mult *= 1.6;
     if (has('bleedDmg') && st.bleed) mult *= 1.5;
     if (has('poisonDmg') && st.poison) mult *= 1 + 0.15 * st.poison;
@@ -1426,8 +1428,9 @@ export class Game {
     // 상태를 거는 것
     if (alive && (has('fire') || is('torch') || is('pyro'))) this.addStatus(t, 'burn', T);
     if (alive && (has('cold') || is('frost'))) {
-      if (wasSlow) this.addStatus(t, 'freeze', T);
-      else this.addStatus(t, 'slow', T);
+      const turns = has('cold') ? INFUSION_TUNING.coldTurns : T;
+      if (wasSlow) this.addStatus(t, 'freeze', turns);
+      else this.addStatus(t, 'slow', turns);
     }
     // 개창: 이미 출혈·중독인 적은 출혈이 1턴 더 길어진다
     const wasBleeding = !!(t.statuses.bleed || t.statuses.poison);
@@ -1475,7 +1478,7 @@ export class Game {
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) this.setTerrain(t.x + dx, t.y + dy, 'flame', 2 + this.zone, 3, a.faction);
     }
     // 밀침: 충격 옵션·작살·강타. 막히면 기절 (작살은 밀치기만)
-    if ((has('impact') || is('smash') || is('harpoon')) && !t.dead && this.knock(a, t, 1) && !t.dead && !is('harpoon')) this.addStatus(t, 'stun', T);
+    if ((has('impact') || is('smash') || is('harpoon')) && !t.dead && this.knock(a, t, 1) && !t.dead && !is('harpoon')) this.addStatus(t, 'stun', has('impact') ? INFUSION_TUNING.impactTurns : T);
   }
 
   /** 액티브 실행. 형태 × 원소 × 수치 */
@@ -1560,7 +1563,7 @@ export class Game {
   }
 
   /** 적 피해 배율: 구역이 깊을수록 강해진다 */
-  private dmgMult(a: Actor) {
+  dmgMult(a: Actor) {
     if (a.faction === 'player') return 1;
     return (a.boss || a.elite ? ENEMY_DAMAGE_MULT.eliteBossBase : ENEMY_DAMAGE_MULT.normalBase) + this.zone * ENEMY_DAMAGE_MULT.perZone + this.floor * ENEMY_DAMAGE_MULT.perFloor;
   }
