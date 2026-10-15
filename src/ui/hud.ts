@@ -22,6 +22,18 @@ export function byproductName(r: ByproductInst) {
 /** 연쇄 기록 줄이 찍히는 속도 (글자당 밀리초) */
 const TYPE_MS = 4;
 
+/** HUD 테마 색 (CSS 변수). 테마가 바뀌면 clearThemeCache */
+const themeCache = new Map<string, string>();
+export function themeColor(name: string): string {
+  let c = themeCache.get(name);
+  if (!c) {
+    c = getComputedStyle(document.body).getPropertyValue(`--${name}`).trim() || '#888';
+    themeCache.set(name, c);
+  }
+  return c;
+}
+export const clearThemeCache = () => themeCache.clear();
+
 const $ = (id: string) => document.getElementById(id)!;
 
 /** 화면 가장자리 HUD (감시 카메라 녹화 화면풍).
@@ -200,17 +212,17 @@ export class Hud {
       for (let x = 0; x < lv.w; x++) {
         const i = lv.idx(x, y);
         if (!lv.explored[i] || !lv.isFloor(x, y)) continue;
-        ctx.fillStyle = lv.visible[i] ? '#4f8a62' : '#1e3627';
+        ctx.fillStyle = lv.visible[i] ? themeColor('map-seen') : themeColor('map-dim');
         ctx.fillRect(ox + x * k, oy + y * k, k, k);
       }
     const dot = (x: number, y: number, color: string, big = 0) => {
       ctx.fillStyle = color;
       ctx.fillRect(ox + x * k - big, oy + y * k - big, k + big * 2, k + big * 2);
     };
-    for (const [i, items] of g.ground) if (items.length && lv.explored[i]) dot(i % lv.w, (i / lv.w) | 0, '#d6ffe0');
-    for (const f of lv.features) if (lv.explored[lv.idx(f.x, f.y)]) dot(f.x, f.y, f.kind === 'exit' ? '#ffb04a' : '#ff8a3a', 1);
-    for (const a of g.actors) if (!a.dead && a.faction === 'enemy' && lv.visible[lv.idx(a.x, a.y)]) dot(a.x, a.y, '#ff5a40');
-    dot(g.player.x, g.player.y, '#b9f5c8', 1);
+    for (const [i, items] of g.ground) if (items.length && lv.explored[i]) dot(i % lv.w, (i / lv.w) | 0, themeColor('map-item'));
+    for (const f of lv.features) if (lv.explored[lv.idx(f.x, f.y)]) dot(f.x, f.y, themeColor('map-exit'), 1);
+    for (const a of g.actors) if (!a.dead && a.faction === 'enemy' && lv.visible[lv.idx(a.x, a.y)]) dot(a.x, a.y, themeColor('danger'));
+    dot(g.player.x, g.player.y, themeColor('map-player'), 1);
   }
 
   showTooltip(html: string | null, x = 0, y = 0) {
@@ -265,9 +277,9 @@ function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) 
     mid = H / 2;
   ctx.clearRect(0, 0, W, H);
   const split = dead ? 0 : Math.max(2, Math.round(W * r));
-  const color = dead ? '#ff5a40' : r > 0.6 ? '#8fd6a2' : r > 0.3 ? '#ffb04a' : '#ff5a40';
+  const color = dead ? themeColor('ecg-bad') : r > 0.6 ? themeColor('ecg-ok') : r > 0.3 ? themeColor('ecg-mid') : themeColor('ecg-bad');
   // 나머지: 어두운 일자선
-  ctx.strokeStyle = dead ? '#ff5a40' : '#24452f';
+  ctx.strokeStyle = dead ? themeColor('ecg-bad') : themeColor('ecg-base');
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(split, mid);

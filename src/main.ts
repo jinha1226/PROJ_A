@@ -6,7 +6,7 @@ import { OPTION_BY_ID, OPTIONS, optionFits } from './data/options';
 import { infuseOptions, SUIT_INFUSE_MAX, suitInfusion } from './data/infuse';
 import { TRAIT_TEXT, WEAPONS } from './data/weapons';
 import { loadAssets, View3D, type Pace } from './render/view3d';
-import { actorTooltip, esc, Hud, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
+import { actorTooltip, clearThemeCache, esc, Hud, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
 import { COLOR_STEP, colorLevel, heldWeapon } from './core/stats';
 
 const view = document.getElementById('view')!;
@@ -62,6 +62,7 @@ function keysHelp() {
     ['m', '기록(메시지) 보기'],
     ['p', 'HD / 도트 전환'],
     ['v', '연출 속도 (보통 · 빠름 · 즉시)'],
+    ['c', 'HUD 색 (원본 · 녹색 · 주황)'],
     ['t', '무기 실험실: 무기·옵션·색 편집, 초기화'],
     ['마우스', '클릭 이동·조준, 휠 확대, 올리면 정보'],
   ];
@@ -613,6 +614,9 @@ window.addEventListener('keydown', (e) => {
     case 'v':
       cyclePace();
       break;
+    case 'c':
+      cycleTheme();
+      break;
     default:
       if (e.code === 'Numpad5') g.wait();
       else return;
@@ -736,6 +740,38 @@ function cyclePace() {
   paceLabel();
 }
 pacebtn.addEventListener('click', cyclePace);
+
+// HUD 테마 (C): 원본 · 녹색 · 주황. 선택은 브라우저에 기억한다
+type Theme = 'original' | 'green' | 'amber';
+const THEMES: Theme[] = ['original', 'green', 'amber'];
+const THEME_NAME: Record<Theme, string> = { original: '원본', green: '녹색', amber: '주황' };
+const themebtn = document.getElementById('themebtn')!;
+function loadTheme(): Theme {
+  try {
+    const t = localStorage.getItem('model0.theme') as Theme | null;
+    if (t && THEMES.includes(t)) return t;
+  } catch {
+    /* 기본값 */
+  }
+  return 'amber';
+}
+function applyTheme(t: Theme) {
+  document.body.dataset.theme = t;
+  clearThemeCache();
+  themebtn.textContent = `HUD ${THEME_NAME[t]} (C)`;
+  try {
+    localStorage.setItem('model0.theme', t);
+  } catch {
+    /* 이번 실행에서만 */
+  }
+}
+function cycleTheme() {
+  const cur = (document.body.dataset.theme as Theme) || 'amber';
+  applyTheme(THEMES[(THEMES.indexOf(cur) + 1) % THEMES.length]!);
+  if (game) refresh();
+}
+themebtn.addEventListener('click', cycleTheme);
+applyTheme(loadTheme());
 
 // 심전도·최근 메시지 애니메이션
 function hudLoop() {
