@@ -1,4 +1,5 @@
 import { Game, REST_NAME } from './core/game';
+import { josa } from './core/josa';
 import { FLASK } from './data/consumables';
 import type { Color, ByproductInst, GroundItem, OptionId, WeaponInst, WeaponTrait } from './core/types';
 import { COLOR_NAME, SLOT_NAME } from './core/types';
@@ -298,10 +299,10 @@ function showPickup() {
     <div class="card" style="cursor:default">${byproductTooltip(r)}</div>
     <h3>무엇에 쓸까 (1턴)</h3>
     <div class="cards">${hands}
-      <div class="card"><span class="key">3</span><div class="nm">슈트 ${SLOT_NAME[r.def.slot]} 칸에 끼우기</div>
+      <div class="card"><span class="key">3</span><div class="nm">슈트 ${SLOT_NAME[r.def.slot]} 칸 ${cur ? '부산물 교체' : '에 끼우기'}</div>
         <div class="ds">${mod.pros.map((x) => `<span class="up">+ ${esc(x)}</span>`).join('<br>')}${mod.cons.length ? '<br>' + mod.cons.map((x) => `<span style="color:var(--warn)">− ${esc(x)}</span>`).join('<br>') : ''}
-        <br>${cur ? `<span style="color:var(--dim)">지금: ${esc(cur.def.name)} (내려놓는다)</span>` : '<span style="color:var(--dim)">지금 비어 있음</span>'}</div>
-        <div class="row"><button data-act="suit">끼우기 (3)</button></div></div>
+        <br>${cur ? `<span style="color:var(--warn)">빼는 것: ${esc(cur.def.name)} (발밑에 내려놓는다)</span>` : '<span style="color:var(--dim)">지금 비어 있음</span>'}</div>
+        <div class="row"><button data-act="suit">${cur ? '교체' : '끼우기'} (3)</button></div></div>
       <div class="card"><span class="key">4</span><div class="nm">분해</div><div class="ds">마석 +${{ common: 2, holy: 4, forbidden: 6 }[r.def.grade]}</div>
         <div class="row"><button class="ghost" data-act="dismantle">분해 (4)</button></div></div>
     </div>
@@ -451,7 +452,7 @@ function startShoot() {
   }
   const foes = sortedFoes();
   if (!foes.length) {
-    g.log('보이는 적이 없다.');
+    g.log('근처에 보이는 대상이 없다.');
     return refresh();
   }
   targeting = { x: foes[0].x, y: foes[0].y };
@@ -594,7 +595,7 @@ window.addEventListener('keydown', (e) => {
       break;
     case 'g':
       if (g.groundHere().length) overlay = 'pickup';
-      else g.log('발밑에 주울 것이 없다.');
+      else g.log('여기에는 주울 수 있는 물건이 없다.');
       break;
     case 'f':
       return startShoot();
@@ -678,12 +679,13 @@ setInterval(() => {
   if (auto.kind === 'explore') {
     step = g.autoExploreDir();
     if (step === 'done') {
-      g.log('더 탐험할 곳이 없다. [x] 출구로 이동.');
+      g.log('탐험을 마쳤다.');
     }
   } else {
     step = g.visibleEnemies().length ? 'enemy' : g.stepToward(auto.x, auto.y);
   }
-  if (step === 'enemy') g.log('적이 보인다.', 'warn');
+  // DCSS: "A goblin comes into view."
+  if (step === 'enemy') g.log(`${josa([...new Set(g.visibleEnemies().map((a) => a.name))].join(', '), '이/가')} 시야에 들어왔다.`, 'warn');
   if (step === 'done' || step === 'enemy' || !g.move(step[0], step[1])) auto = null;
   autoHp = Math.min(autoHp, g.player.hp);
   refresh();

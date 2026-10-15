@@ -1,4 +1,5 @@
 import { Rng } from './rng';
+import { josa, hitPunct } from './josa';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
 import { allByproducts, allOptions, heldWeapon, magOf, traitsOf, weaponName, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
@@ -312,7 +313,7 @@ export class Game {
         this.spawnEnemy(ENEMY_BY_ID.cinder_zealot, 20, 8);
         this.spawnEnemy(ENEMY_BY_ID.storm_choir, 20, 16);
       }
-      this.log(`${boss.name}이(가) 투기장에서 기다린다.`, 'warn');
+      this.log(`${josa(boss.name, '이/가')} 투기장에서 기다린다.`, 'warn');
     } else {
       const pool = ENEMIES.filter((e) => e.zone.includes(this.zone + 1));
       const n = 6 + this.floor + this.zone * 2;
@@ -511,7 +512,7 @@ export class Game {
       for (const k of Object.keys(p.injections!) as InjectionId[]) {
         if (--p.injections![k]! <= 0) {
           delete p.injections![k];
-          this.log(`${INJECTION_BY_ID[k].name} 효과가 끝났다.`);
+          this.log(`${INJECTION_BY_ID[k].name} 효과가 사라졌다.`);
         }
       }
     }
@@ -519,9 +520,11 @@ export class Game {
     // 주사제는 벨트에 빈칸이 있으면 밟을 때 자동으로 줍는다
     for (const it of [...this.groundHere()]) if (it.kind === 'consumable') this.pickConsumable(it);
     const items = this.groundHere();
-    if (items.length) this.log(`발밑에: ${items.map((r) => r.def.name).join(', ')} — [G] 줍기`, 'item');
+    // DCSS: "You see here X." / "There are several objects here."
+    if (items.length === 1) this.log(`여기에 ${josa(items[0]!.def.name, '이/가')} 있다.`, 'item');
+    else if (items.length > 1) this.log('여기에 물건이 여러 개 있다.', 'item');
     const f = lv.featureAt(p.x, p.y);
-    if (f?.kind === 'exit') this.log('출구다. [>] 보급 지점으로 이동한다.', 'item');
+    if (f?.kind === 'exit') this.log('여기에 아래로 내려가는 출구가 있다.', 'item');
   }
 
   wait(): boolean {
@@ -547,7 +550,7 @@ export class Game {
     const t = this.actorAt(tx, ty);
     const barrel = this.level.barrels.has(this.level.idx(tx, ty)) && !!this.level.visible[this.level.idx(tx, ty)];
     if (!barrel && (!t || !this.hostile(p, t) || !this.level.visible[this.level.idx(tx, ty)])) {
-      this.log('쏠 대상이 없다.');
+      this.log('근처에 보이는 대상이 없다.');
       return false;
     }
     if (Math.max(Math.abs(tx - p.x), Math.abs(ty - p.y)) > s.range || !hasLos(this.level, p.x, p.y, tx, ty)) {
@@ -576,7 +579,7 @@ export class Game {
       return false;
     }
     if (w.def.recharge) {
-      this.log(`${w.def.name}은(는) 충전식이라 재장전하지 않는다 (${w.def.recharge}턴마다 1회).`);
+      this.log(`${josa(w.def.name, '은/는')} 충전식이라 재장전하지 않는다 (${w.def.recharge}턴마다 1회).`);
       return false;
     }
     if (w.ammo >= magOf(w)) {
@@ -584,7 +587,7 @@ export class Game {
       return false;
     }
     w.ammo = magOf(w);
-    this.log(`${w.def.name} 재장전 (${w.ammo}/${magOf(w)})`, 'skill');
+    this.log(`${josa(w.def.name, '을/를')} 재장전했다. (${w.ammo}/${magOf(w)})`, 'skill');
     this.emit({ type: 'reload', actor: this.player.id });
     this.endPlayerAction(100, 'wait');
     return true;
@@ -595,7 +598,7 @@ export class Game {
     if (!this.canAct()) return false;
     const p = this.player;
     p.activeHand = p.activeHand === 0 ? 1 : 0;
-    this.log(`무기 교체: ${heldWeapon(p)?.def.name ?? FISTS.name}`);
+    this.log(`${josa(heldWeapon(p)?.def.name ?? FISTS.name, '을/를')} 들었다.`);
     this.emit({ type: 'loadout', actor: p.id });
     this.endPlayerAction(100, p.prevAct ?? 'other');
     return true;
@@ -613,7 +616,7 @@ export class Game {
     if (old) ground.push(old);
     p.hands[hand] = w;
     p.activeHand = hand;
-    this.log(`손${hand + 1}: ${w.def.name}${old ? ` (${old.def.name}은(는) 바닥에)` : ''}`, 'good');
+    this.log(`${josa(w.def.name, '을/를')} 손${hand + 1}에 들었다.${old ? ` ${josa(old.def.name, '을/를')} 내려놓았다.` : ''}`, 'good');
     this.emit({ type: 'loadout', actor: p.id });
     if (this.mode === 'play') this.endPlayerAction(100);
     return true;
@@ -624,7 +627,7 @@ export class Game {
     if (!this.canAct()) return false;
     const p = this.player;
     if (this.flask <= 0) {
-      this.log('플라스크가 비었다. 보급 지점에서 다시 찬다.');
+      this.log('플라스크가 비어 있다. 보급 지점에서 다시 찬다.');
       return false;
     }
     this.flask--;
@@ -632,7 +635,7 @@ export class Game {
     this.heal(p, Math.round(this.st(p).maxHp * FLASK.heal));
     this.repairArmor(p, FLASK.repair);
     this.emit({ type: 'heal', actor: p.id, amount: p.hp - before });
-    this.log(`체력 플라스크: 체력 +${p.hp - before}, 장갑 수리 (${this.flask}/${this.flaskMax})`, 'good');
+    this.log(`체력 플라스크를 마셨다. 훨씬 나아졌다. (${this.flask}/${this.flaskMax})`, 'good');
     this.endPlayerAction(100);
     return true;
   }
@@ -642,7 +645,7 @@ export class Game {
     const p = this.player;
     const i = p.belt!.indexOf(null);
     if (i < 0) {
-      this.log(`벨트가 가득 찼다: ${c.def.name}은(는) 바닥에 둔다.`);
+      this.log(`벨트가 가득 찼다: ${josa(c.def.name, '은/는')} 바닥에 둔다.`);
       return false;
     }
     const g = this.groundHere();
@@ -709,7 +712,7 @@ export class Game {
     p.partArmor[slot] = Math.max(0, Math.min(after, p.partArmor[slot] + Math.max(0, after - before)));
     const hpMax = this.st(p).maxHp;
     if (p.hp > hpMax) p.hp = hpMax;
-    this.log(`슈트 ${SLOT_NAME[slot]}에 ${r.def.name}을(를) 끼웠다.${old ? ` (${old.def.name}은(는) 내려놓았다)` : ''}`, 'good');
+    this.log(`슈트 ${SLOT_NAME[slot]}에 ${josa(r.def.name, '을/를')} 끼웠다.${old ? ` (${josa(old.def.name, '은/는')} 내려놓았다)` : ''}`, 'good');
     this.emit({ type: 'loadout', actor: p.id });
     if (this.mode === 'play') this.endPlayerAction(100);
     return true;
@@ -734,7 +737,7 @@ export class Game {
     }
     const f = this.level.featureAt(this.player.x, this.player.y);
     if (f?.kind !== 'exit') {
-      this.log('출구 위에서만 내려갈 수 있다.');
+      this.log('여기서는 내려갈 수 없다!');
       return false;
     }
     if (this.isBossFloor && this.actors.some((a) => a.boss && !a.dead)) {
@@ -769,7 +772,7 @@ export class Game {
       });
       this.shop.push({ item: this.rollInjection(), price: 4 });
     }
-    this.log(`보급 지점: 슈트 수리 완료. ${REST_NAME[this.restService]}이(가) 열려 있다.`, 'floor');
+    this.log(`보급 지점: 슈트 수리 완료. ${josa(REST_NAME[this.restService], '이/가')} 열려 있다.`, 'floor');
   }
 
   buy(i: number): boolean {
@@ -778,7 +781,7 @@ export class Game {
     this.ash -= s.price;
     this.shop.splice(i, 1);
     this.restItems.push(s.item);
-    this.log(`${s.item.def.name}을(를) 샀다. 보급 포드 바닥에 놓였다.`, 'good');
+    this.log(`${josa(s.item.def.name, '을/를')} 샀다. 보급 포드 바닥에 놓였다.`, 'good');
     return true;
   }
 
@@ -799,7 +802,7 @@ export class Game {
     if (!w || w.elite) return false;
     w.elite = true;
     this.restUsed = true;
-    this.log(`${w.def.name}을(를) 정예로 재련했다. (피해 ×1.25)`, 'good');
+    this.log(`${josa(w.def.name, '을/를')} 정예로 재련했다. (피해 ×1.25)`, 'good');
     return true;
   }
 
@@ -825,7 +828,7 @@ export class Game {
       p.baseHp += 4;
       this.heal(p, Math.round(this.st(p).maxHp * 0.25));
       this.emit({ type: 'levelup' });
-      this.log(`레벨 ${this.plevel}! 근력 · 연산 · 외피 회로 중 하나를 강화할 수 있다.`, 'good');
+      this.log(`레벨 ${this.plevel}에 도달했다!`, 'good');
     }
     this.checkLevelUp();
   }
@@ -1114,7 +1117,7 @@ export class Game {
     if (!e.awake) {
       if (cheb <= 8 && target && hasLos(lv, e.x, e.y, target.x, target.y)) {
         e.awake = true;
-        if (e.boss) this.log(`${e.name}이(가) 깨어났다!`, 'warn');
+        if (e.boss) this.log(`${josa(e.name, '이/가')} 깨어났다!`, 'warn');
       } else return 100;
     }
     if (!target) return 100;
@@ -1126,7 +1129,7 @@ export class Game {
         const pos = this.freeNear(e.x, e.y, 3);
         if (pos) this.spawnEnemy(this.rng.pick(ENEMIES.filter((t) => t.zone.includes(this.zone + 1))), pos[0], pos[1]).awake = true;
       }
-      this.log(`${e.name}이(가) 종을 울려 시종들을 부른다!`, 'warn');
+      this.log(`${josa(e.name, '이/가')} 종을 울려 시종들을 부른다!`, 'warn');
     }
     // 액티브
     for (const r of this.equippedActives(e)) {
@@ -1278,7 +1281,8 @@ export class Game {
     this.lastKill = null;
     const dmg = Math.max(1, Math.round(base * m.mult * m.critMult * this.dmgMult(a)));
     const dealt = this.dealDamage(a, t, dmg, el, { dodgeable: true, label: bash ? '개머리판' : m.crit ? `치명타 · ${m.crit}` : undefined, crit: !!m.crit });
-    if (m.crit && dealt > 0 && a.isPlayer) this.log(`치명타! ${m.crit} → ${t.name} ${dealt}`, 'skill');
+    // DCSS: "You hit the goblin!" (처치하면 처치 문구만)
+    if (a.isPlayer && dealt > 0 && !t.dead) this.log(`${m.crit ? '치명타! ' : ''}${josa(t.name, '을/를')} 맞혔다${hitPunct(dealt)}`, m.crit ? 'skill' : '');
     if (dealt > 0 && w) this.weaponAfterHit(a, t, w, base, dealt, el, before.slow, !!m.crit);
   }
 
@@ -1544,14 +1548,16 @@ export class Game {
       if (so.includes('fireShield')) this.addStatus(src, 'burn', STATUS_TURNS);
       if (so.includes('iceShield')) this.addStatus(src, 'freeze', STATUS_TURNS);
       this.emit({ type: 'parry', target: t.id, actor: src.id, x: t.x, y: t.y, text: 'block' });
-      if (t.isPlayer) this.log(`방패로 막았다. 다음 공격 치명타.`, 'skill');
+      if (t.isPlayer) this.log(`${src.name}의 공격을 방패로 막았다.`, 'skill');
       return 0;
     }
     if (opts.dodgeable) {
       const blindMiss = src?.statuses.blind ? 0.35 : 0;
       if (this.rng.next() < ts.dodge / 100 + blindMiss) {
         this.emit({ type: 'dodge', target: t.id, x: t.x, y: t.y });
-        if (t.isPlayer) this.log(`${src?.name ?? '공격'}을(를) 피했다.`);
+        // DCSS: "The goblin misses you." / "You miss the goblin."
+        if (t.isPlayer) this.log(`${src ? `${src.name}의 공격이` : '공격이'} 빗나갔다.`);
+        else if (src?.isPlayer) this.log(`${josa(t.name, '을/를')} 빗맞혔다.`);
         return 0;
       }
     }
@@ -1639,7 +1645,7 @@ export class Game {
     this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label, crit: opts.crit });
     if (t.isPlayer && src && dmg > 0) t.wasHit = true;
     if (t.isPlayer && dmg > 0) t.hurtAt = this.stats.turns;
-    if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}: ${dmg}${el ? ` ${ELEMENT_NAME[el]}` : ''} 피해`, 'bad');
+    if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}에 맞았다${hitPunct(dmg)}`, 'bad');
 
     // 원소 공격은 그 원소의 효과를 남긴다 (반응이 일어났으면 남기지 않는다): 화염 → 화상, 냉기 → 둔화, 번개 → 감전
     if (!comboAura && !t.dead) {
@@ -1707,12 +1713,12 @@ export class Game {
     this.emit({ type: 'death', actor: t.id, x: t.x, y: t.y });
     if (t.isPlayer) {
       this.mode = 'dead';
-      this.log('클론의 생체 신호가 끊겼다. 복제 포드가 다음 클론을 준비한다.', 'bad');
+      this.log('죽었다...', 'bad');
       return;
     }
     if (t.faction === 'enemy') {
       this.stats.kills++;
-      this.log(`${t.name}을(를) 쓰러뜨렸다.`);
+      this.log(`${josa(t.name, '을/를')} 죽였다!`);
       // 실제로 쓰던 부산물 중 하나를 떨어뜨림
       const droppable = allByproducts(t).filter((r) => !r.def.enemyOnly);
       if (droppable.length && this.rng.chance(t.dropChance)) {
@@ -1720,7 +1726,7 @@ export class Game {
         r.dormant = false;
         r.cd = 0;
         this.dropItem(t.x, t.y, r);
-        this.log(`잔해에서 ${r.def.name}이(가) 떨어졌다.`, 'item');
+        this.log(`${josa(t.name, '이/가')} ${josa(r.def.name, '을/를')} 떨어뜨렸다.`, 'item');
       }
       if (this.rng.chance(0.1)) this.dropItem(t.x, t.y, this.rollInjection());
       // ★ 부산물: 보스는 반드시 금지 부산물, 정예는 절반 확률로 정예 부산물 (무기에 넣으면 ★ 고유 효과)
@@ -1728,7 +1734,7 @@ export class Game {
         const grade = t.boss ? 'forbidden' : 'holy';
         const r = this.makeByproduct(this.rng.pick(DROP_POOL.filter((d) => d.grade === grade)));
         this.dropItem(t.x, t.y, r);
-        this.log(`${t.name}에게서 ${r.def.name}을(를) 회수했다. (★ 재료)`, 'item');
+        this.log(`${josa(t.name, '이/가')} ${josa(r.def.name, '을/를')} 떨어뜨렸다.`, 'item');
       }
       if (t.boss) {
         const loot = ZONES[this.zone].bossLoot;

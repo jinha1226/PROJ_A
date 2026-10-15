@@ -61,7 +61,8 @@ export class GridTerrain {
     const loose = (i: number) => ((i * 2246822519) >>> 0) % 100 < 14;
     const tile = (name: DungeonPiece) => (i: number, p: THREE.Vector3) => {
       const pc = kit.piece(name) ?? kit.piece('Floor_Modular')!;
-      q.setFromAxisAngle(up, ((i * 7) % 4) * (Math.PI / 2));
+      // (MODEL 0) 블록 결이 한 방향으로 이어지게: 바닥은 돌리지 않고, 위에 얹는 깨진 벽돌만 180°로 뒤집어 변화를 준다
+      q.setFromAxisAngle(up, name === 'Floor_Modular' ? 0 : ((i * 7) % 2) * Math.PI);
       return new THREE.Matrix4().compose(p.setY(-0.1), q, new THREE.Vector3(CELL / pc.size.x, 0.1 / pc.size.y, CELL / pc.size.z));
     };
     // (MODEL 0) 바닥 테두리: 벽에 닿은 변에 테두리가 있는 조각을 깐다 (돌려 놓지 않는다)

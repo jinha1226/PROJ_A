@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 /** Rough pixel look: the scene is drawn to a small linear-colour target (one pixel per `px` screen pixels) and blown up with hard edges; a dark one-pixel outline where depth jumps keeps figures and walls apart; tone mapping and sRGB happen on the way out, then colours are slightly posterised. */
 export class PixelPass {
-  private readonly target = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, type: THREE.HalfFloatType });
+  private readonly target = new THREE.WebGLRenderTarget(1, 1, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, type: THREE.HalfFloatType, stencilBuffer: true });
   private readonly quad: THREE.Mesh;
   private readonly scene = new THREE.Scene();
   private readonly cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -10,7 +10,9 @@ export class PixelPass {
 
   constructor(private readonly renderer: THREE.WebGLRenderer, private readonly px = 3) {
     this.target.texture.generateMipmaps = false;
-    this.target.depthTexture = new THREE.DepthTexture(1, 1);
+    // 깊이 + 스텐실 (스텐실은 마우스를 올린 몬스터의 외곽선이 쓴다)
+    this.target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedInt248Type);
+    this.target.depthTexture.format = THREE.DepthStencilFormat;
     const mat = new THREE.ShaderMaterial({
       uniforms: { tex: { value: this.target.texture }, depth: { value: this.target.depthTexture }, texel: { value: new THREE.Vector2(1, 1) }, levels: { value: 28 } },
       vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',

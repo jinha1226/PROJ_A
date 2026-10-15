@@ -398,7 +398,7 @@ export function weaponTooltip(w: WeaponInst): string {
 }
 
 export function itemTooltip(r: GroundItem): string {
-  if (r.kind === 'consumable') return `<div class="t">✚ ${esc(r.def.name)}</div><div class="r">${esc(r.def.desc)} · ${r.def.rooms}방 동안</div><div class="r" style="color:var(--dim)">밟으면 벨트에 들어간다 (3 · 4 · 5)</div>`;
+  if (r.kind === 'consumable') return `<div class="t">✚ ${esc(r.def.name)}</div><div class="r">${esc(r.def.desc)} · ${r.def.rooms}방 동안</div>`;
   return r.kind === 'weapon' ? weaponTooltip(r) : byproductTooltip(r);
 }
 

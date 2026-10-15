@@ -93,6 +93,7 @@ export class UalActor {
   private readonly hunched = new THREE.Quaternion(0, 0, 0, 0);
   /** (MODEL 0) 마우스를 올렸을 때의 빨간 외곽선: 같은 뼈대를 쓰는 뒷면 메시를 화면 기준으로 살짝 부풀린다 */
   private outlines: THREE.Mesh[] | null = null;
+  private outlined: THREE.Material[] = [];
 
   constructor(private readonly lib: UalLibrary, private readonly look: UalLook) {
     this.idleClip = look.idle;
@@ -273,35 +274,52 @@ export class UalActor {
   /** (MODEL 0) 외곽선 켜기/끄기 (처음 켤 때 만든다) */
   setOutline(on: boolean): void {
     if (on && !this.outlines) {
-      // 뒷면만 그리는 부푼 껍질: 몸 바깥으로 삐져나온 테두리만 보인다 (깊이를 남겨야 바닥이 덮어쓰지 않는다)
-      const mat = new THREE.MeshBasicMaterial({ color: '#ff3a2a', side: THREE.BackSide });
+      // 실루엣 바깥만: 몸 부품들이 스텐실 1을 찍고, 화면에서 부푼 껍질은 스텐실이 1이 아닌 곳(몸 바깥)에만 그린다
+      const mat = new THREE.MeshBasicMaterial({
+        color: '#ff2a1e', side: THREE.BackSide, depthTest: false, depthWrite: false,
+        stencilWrite: true, stencilRef: 1, stencilFunc: THREE.NotEqualStencilFunc,
+        stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp,
+      });
       mat.onBeforeCompile = (sh) => {
-        sh.vertexShader = sh.vertexShader.replace(
-          '#include <project_vertex>',
-          `#include <project_vertex>
-          #ifdef USE_SKINNING
-            vec3 olN = objectNormal;
-          #else
-            vec3 olN = normal;
-          #endif
-          vec4 olC = projectionMatrix * vec4( normalMatrix * olN, 0.0 );
-          gl_Position.xy += normalize( olC.xy + 1e-5 ) * 0.011 * gl_Position.w;`,
-        );
+        sh.vertexShader = sh.vertexShader
+          .replace('#include <common>', '#include <common>\nattribute vec3 olNormal;')
+          .replace(
+            '#include <project_vertex>',
+            `#include <project_vertex>
+            vec3 olN = olNormal;
+            #ifdef USE_SKINNING
+              olN = ( skinMatrix * vec4( olN, 0.0 ) ).xyz;
+            #endif
+            vec4 olC = projectionMatrix * vec4( normalMatrix * olN, 0.0 );
+            gl_Position.xy += normalize( olC.xy + 1e-5 ) * 0.006 * gl_Position.w;`,
+          );
       };
       this.outlines = [];
+      this.outlined = [];
       const targets: THREE.Mesh[] = [];
       this.root.traverse((o) => { if ((o as THREE.Mesh).isMesh && !o.userData.outline) targets.push(o as THREE.Mesh); });
       for (const m of targets) {
+        this.outlined.push(...(Array.isArray(m.material) ? m.material : [m.material]));
         const sk = m as THREE.SkinnedMesh;
-        const o = sk.isSkinnedMesh ? new THREE.SkinnedMesh(sk.geometry, mat) : new THREE.Mesh(m.geometry, mat);
+        const geo = smoothedOutlineGeometry(m.geometry);
+        const o = sk.isSkinnedMesh ? new THREE.SkinnedMesh(geo, mat) : new THREE.Mesh(geo, mat);
         if (sk.isSkinnedMesh) (o as unknown as THREE.SkinnedMesh).bind(sk.skeleton, sk.bindMatrix);
         o.userData.outline = true;
         o.position.copy(m.position);
         o.quaternion.copy(m.quaternion);
         o.scale.copy(m.scale);
+        o.renderOrder = 10; // 몸이 스텐실을 찍은 뒤에 그린다
+        o.frustumCulled = false;
         m.parent?.add(o);
         this.outlines.push(o);
       }
+    }
+    for (const mt of this.outlined) {
+      mt.stencilWrite = on;
+      mt.stencilRef = 1;
+      mt.stencilFunc = THREE.AlwaysStencilFunc;
+      mt.stencilZPass = THREE.ReplaceStencilOp;
+      mt.stencilZFail = THREE.ReplaceStencilOp;
     }
     for (const o of this.outlines ?? []) o.visible = on;
   }
@@ -340,4 +358,30 @@ export class UalActor {
     this.mixer.stopAllAction();
     for (const m of this.mats) m.dispose();
   }
+}
+
+/** 외곽선용 법선: 같은 위치의 정점끼리 법선을 평균내어 각진 모서리에서 껍질이 갈라지지 않게 한다 */
+function smoothedOutlineGeometry(src: THREE.BufferGeometry): THREE.BufferGeometry {
+  const geo = src.clone();
+  const pos = geo.getAttribute('position');
+  const nrm = geo.getAttribute('normal');
+  const out = new Float32Array(pos.count * 3);
+  const sum = new Map<string, THREE.Vector3>();
+  const key = (i: number) => `${pos.getX(i).toFixed(4)},${pos.getY(i).toFixed(4)},${pos.getZ(i).toFixed(4)}`;
+  const n = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    if (nrm) n.fromBufferAttribute(nrm, i); else n.set(0, 1, 0);
+    const k = key(i);
+    const acc = sum.get(k);
+    if (acc) acc.add(n); else sum.set(k, n.clone());
+  }
+  for (let i = 0; i < pos.count; i++) {
+    const v = sum.get(key(i))!;
+    if (v.lengthSq() < 1e-8) v.set(0, 1, 0);
+    v.normalize();
+    out[i * 3] = v.x; out[i * 3 + 1] = v.y; out[i * 3 + 2] = v.z;
+  }
+  geo.setAttribute('olNormal', new THREE.BufferAttribute(out, 3));
+  if (!nrm) geo.setAttribute('normal', new THREE.BufferAttribute(out.slice(), 3));
+  return geo;
 }
