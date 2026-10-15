@@ -17,6 +17,7 @@ export function infuseOptions(d: ByproductDef): OptionId[] {
 }
 
 /** 원소의 반대 원소 (슈트 부위 칸의 약점) */
+/** 원소 → 반대 원소 (슈트 칸의 약점) */
 export const OPPOSITE: Record<Element, Element> = { fire: 'cold', cold: 'fire', lightning: 'impact', impact: 'lightning' };
 /** 슈트 부위 칸: 원소 저항(능력치 계산의 attune), 반대 원소 약점, 무게 → 이동 비용 */
 export const WEAKNESS_STEP = 0.25;

@@ -1,5 +1,5 @@
 import { ALERT_THRESHOLDS, BREAK_PENALTY, type Game } from '../core/game';
-import { infuseOptions, starOf, suitModule } from '../data/infuse';
+import { infuseOptions, OPPOSITE, starOf, suitModule } from '../data/infuse';
 import type { Actor, GameEvent, ByproductInst, GroundItem, InjectionId, Slot, WeaponInst } from '../core/types';
 import { INJECTION_BY_ID } from '../data/consumables';
 import { badgeHtml, OPTION_ICON, statusBadges } from '../data/statusIcons';
@@ -51,6 +51,7 @@ export class Hud {
   private alertBar = $('alertbar');
   private warn = $('warn');
   private br = $('br');
+  private loadout = $('loadout');
   private logEl = $('log');
   private hint = $('hint');
   private tooltip = $('tooltip');
@@ -163,6 +164,20 @@ export class Hud {
         ? `<span class="ammo ${w.ammo ? '' : 'bad'}">${w.ammo}</span><span class="mag">/ ${magOf(w)}${w.def.recharge ? ' 충전' : ''}</span>`
         : `<span class="mag">${w && w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}</span>`;
     const keys = !w || w.def.range <= 1 ? '' : w.def.mag !== undefined && !w.def.recharge ? ' · [R] 재장전 · [F] 사격' : ' · [F] 사격';
+    // 오른쪽 가운데: 장비 띠 (손 2칸 + 슈트 4칸, 마우스를 올리면 툴팁)
+    const EL: Record<string, string> = { fire: '화염', cold: '냉기', lightning: '번개', impact: '충격' };
+    const handRow = (h: number) => {
+      const hw = p.hands[h];
+      const ammoTxt = hw?.def.mag !== undefined ? ` <span class="dim">${hw.ammo}/${magOf(hw)}</span>` : '';
+      return `<div class="lo-row ${h === p.activeHand ? 'act' : ''}" ${hw ? `data-byproduct="${hw.uid}"` : ''}><span class="lo-k">손${h + 1}</span><span class="lo-n">${hw ? `${esc(weaponName(hw))}${hw.infusion?.trait ? ' <span class="star">★</span>' : ''}${ammoTxt}` : '<span class="dim">맨주먹</span>'}</span></div>`;
+    };
+    const slotRow = (k: Slot) => {
+      const r = p.slots[k][0];
+      const broken = isBroken(p, k);
+      const el = r ? r.def.elements.map((e) => `<span class="up">${EL[e]}↑</span> <span class="down">${EL[OPPOSITE[e]]}↓</span>`).join(' ') : '';
+      return `<div class="lo-row ${broken ? 'broken' : ''}" ${r ? `data-byproduct="${r.uid}"` : ''}><span class="lo-k">${SLOT_NAME[k]}</span><span class="lo-n">${r ? `${elDots(r)} ${esc(r.def.name)}${el ? `<br><span class="lo-el">${el}</span>` : ''}` : '<span class="dim">—</span>'}${broken ? ' <span class="bad">파손</span>' : ''}</span></div>`;
+    };
+    this.loadout.innerHTML = `<div class="lo-h">장비</div>${handRow(0)}${handRow(1)}<div class="lo-sep"></div>${(['body', 'arm', 'leg', 'sense'] as Slot[]).map(slotRow).join('')}`;
     this.br.innerHTML = `<div class="wrow"><span class="wname" ${w ? `data-byproduct="${w.uid}"` : ''}>${w ? esc(weaponName(w)) : '맨주먹'}</span>${ammo}</div>
       <div class="sub2">[E] 예비: ${spare ? esc(weaponName(spare)) : '맨주먹'}${keys}</div>
       ${w && (w.options.length || w.infusion) ? `<div class="sub2 opts">${w.infusion?.trait ? `<span class="star" title="${esc(TRAIT_TEXT[w.infusion.trait])}">★</span> ` : ''}${[...w.options, ...(w.infusion?.options ?? [])].map((o) => badgeHtml(OPTION_ICON[o], OPTION_BY_ID[o].desc)).join(' ')}</div>` : ''}

@@ -870,7 +870,8 @@ document.getElementById('hud')!.addEventListener('mousemove', (e) => {
   const el = (e.target as HTMLElement).closest<HTMLElement>('[data-byproduct]');
   if (!el || !game) return hud.showTooltip(null);
   const uid = Number(el.dataset.byproduct);
-  const r = [...game.player.hands, ...game.groundHere()].find((x) => x?.uid === uid);
+  const pl = game.player;
+  const r = [...pl.hands, ...game.groundHere(), ...(['body', 'arm', 'leg', 'sense'] as const).map((k) => pl.slots[k][0])].find((x) => x?.uid === uid);
   if (r) hud.showTooltip(itemTooltip(r), e.clientX, e.clientY);
 });
 
