@@ -200,17 +200,17 @@ export class Hud {
       for (let x = 0; x < lv.w; x++) {
         const i = lv.idx(x, y);
         if (!lv.explored[i] || !lv.isFloor(x, y)) continue;
-        ctx.fillStyle = lv.visible[i] ? '#6f8a8a' : '#33403f';
+        ctx.fillStyle = lv.visible[i] ? '#4f8a62' : '#1e3627';
         ctx.fillRect(ox + x * k, oy + y * k, k, k);
       }
     const dot = (x: number, y: number, color: string, big = 0) => {
       ctx.fillStyle = color;
       ctx.fillRect(ox + x * k - big, oy + y * k - big, k + big * 2, k + big * 2);
     };
-    for (const [i, items] of g.ground) if (items.length && lv.explored[i]) dot(i % lv.w, (i / lv.w) | 0, '#c77dff');
-    for (const f of lv.features) if (lv.explored[lv.idx(f.x, f.y)]) dot(f.x, f.y, f.kind === 'exit' ? '#ffd76a' : '#ff8a3a', 1);
-    for (const a of g.actors) if (!a.dead && a.faction === 'enemy' && lv.visible[lv.idx(a.x, a.y)]) dot(a.x, a.y, '#ff4a3a');
-    dot(g.player.x, g.player.y, '#5dfff0', 1);
+    for (const [i, items] of g.ground) if (items.length && lv.explored[i]) dot(i % lv.w, (i / lv.w) | 0, '#d6ffe0');
+    for (const f of lv.features) if (lv.explored[lv.idx(f.x, f.y)]) dot(f.x, f.y, f.kind === 'exit' ? '#ffb04a' : '#ff8a3a', 1);
+    for (const a of g.actors) if (!a.dead && a.faction === 'enemy' && lv.visible[lv.idx(a.x, a.y)]) dot(a.x, a.y, '#ff5a40');
+    dot(g.player.x, g.player.y, '#b9f5c8', 1);
   }
 
   showTooltip(html: string | null, x = 0, y = 0) {
@@ -265,9 +265,9 @@ function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) 
     mid = H / 2;
   ctx.clearRect(0, 0, W, H);
   const split = dead ? 0 : Math.max(2, Math.round(W * r));
-  const color = dead ? '#ff4a3a' : r > 0.6 ? '#5dff8a' : r > 0.3 ? '#ffd04a' : '#ff4a3a';
+  const color = dead ? '#ff5a40' : r > 0.6 ? '#8fd6a2' : r > 0.3 ? '#ffb04a' : '#ff5a40';
   // 나머지: 어두운 일자선
-  ctx.strokeStyle = dead ? '#ff4a3a' : '#3a4a44';
+  ctx.strokeStyle = dead ? '#ff5a40' : '#24452f';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(split, mid);
@@ -320,7 +320,7 @@ export function actorTooltip(g: Game, a: Actor): string {
   if (a.marked) st.push('표식');
   return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
     <div class="r">체력 ${a.hp}/${s.maxHp} · 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${speed(s.moveCost)}칸/턴</div>
-    ${st.length ? `<div style="color:#e0a050">${st.join(' · ')}</div>` : ''}
+    ${st.length ? `<div style="color:var(--warn)">${st.join(' · ')}</div>` : ''}
     ${byproducts.map((r) => `<div>${byproductName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
     ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;
 }

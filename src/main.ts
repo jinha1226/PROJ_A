@@ -127,7 +127,7 @@ function renderModal() {
     const lv = g.level;
     const k = Math.max(4, Math.floor(Math.min((window.innerWidth * 0.8) / lv.w, (window.innerHeight * 0.7) / lv.h)));
     modal.innerHTML = `<div class="box mapbox"><h2>구역 지도 — ${esc(g.depthLabel)}</h2><canvas id="bigmap" width="${lv.w * k}" height="${lv.h * k}"></canvas>
-      <p class="lead">청록 = 나 · 금색 = 출구 · 보라 = 바닥의 물건 · 빨강 = 보이는 적</p><div class="row"><button class="ghost" data-act="close">닫기 (Tab / Esc)</button></div></div>`;
+      <p class="lead">밝은 녹색 점 = 나 · 주황 = 출구 · 흰 점 = 바닥의 물건 · 빨강 = 보이는 적</p><div class="row"><button class="ghost" data-act="close">닫기 (Tab / Esc)</button></div></div>`;
     hud.drawMap(document.getElementById('bigmap') as HTMLCanvasElement, g, k);
     bind(modal, { close: closeOverlay });
     return;
@@ -271,7 +271,7 @@ function showPickup() {
       const w = p.hands[h];
       if (!w) return `<div class="card disabled"><div class="nm">손${h + 1} — 비어 있음</div></div>`;
       return `<div class="card"><span class="key">${h + 1}</span><div class="nm">손${h + 1} ${esc(w.def.name)}에 부여</div>
-        <div class="ds">+ ${opts}${w.infusion ? `<br><span style="color:#e08070">덮어씀: ${esc(w.infusion.from)} (${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')})</span>` : ''}</div>
+        <div class="ds">+ ${opts}${w.infusion ? `<br><span style="color:var(--warn)">덮어씀: ${esc(w.infusion.from)} (${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')})</span>` : ''}</div>
         <div class="row"><button data-inf="${h}">부여 (${h + 1})</button></div></div>`;
     })
     .join('');
@@ -694,7 +694,7 @@ canvas.addEventListener('mousemove', (e) => {
     renderer.setPath(targeting ? null : g.pathTo(t[0], t[1]));
   }
   if (foe) return hud.showTooltip(actorTooltip(g, a), e.clientX, e.clientY);
-  if (items?.length && lv.explored[i]) return hud.showTooltip(items.map(itemTooltip).join('<hr style="border-color:#4a3a28">'), e.clientX, e.clientY);
+  if (items?.length && lv.explored[i]) return hud.showTooltip(items.map(itemTooltip).join('<hr style="border-color:var(--g-line)">'), e.clientX, e.clientY);
   if (lv.barrels.has(i) && lv.explored[i]) return hud.showTooltip('<div class="t">기름통</div><div class="r">치거나 쏘거나 불이 닿으면 터진다 (주변 1칸 화염, 나도 맞는다)</div>', e.clientX, e.clientY);
   if (f?.kind === 'exit' && lv.explored[i]) return hud.showTooltip('<div class="t">출구</div><div class="r">보급 지점으로 이어진다</div>', e.clientX, e.clientY);
   hud.showTooltip(null);
