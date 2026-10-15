@@ -2,9 +2,9 @@ import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
 import { allByproducts, heldWeapon, magOf, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
-  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, EngravingDef, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, Trigger, OptionId,
+  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, EngravingDef, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, Trigger, OptionId, Color,
 } from './types';
-import { ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
+import { COLOR_NAME, ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { ENGRAVING_BY_ID, ENGRAVING_POOL, ENGRAVINGS } from '../data/engravings';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
@@ -161,6 +161,7 @@ export class Game {
     const p = this.newActor(ORIGINS.find((o) => o.id === this.originId)!.name, 'player', body.baseHp, 3, body.slots);
     p.isPlayer = true;
     p.awake = true;
+    p.colors = { power: 0, tactics: 0, survival: 0 };
     p.burdenCap = body.burdenCap;
     p.partArmorBase = { ...body.armor };
     const fixed = this.makeByproduct(body.fixed.byproduct);
@@ -886,19 +887,47 @@ export class Game {
       this.plevel++;
       this.pendingLevelUps++;
       const p = this.player;
-      p.baseHp += 3;
+      p.baseHp += 4;
       this.heal(p, Math.round(this.st(p).maxHp * 0.25));
       this.emit({ type: 'levelup' });
-      this.log(`레벨 ${this.plevel}! 새 각인을 고를 수 있다.`, 'good');
+      this.log(`레벨 ${this.plevel}! 화력 · 기술 · 생존 중 하나를 키울 수 있다.`, 'good');
     }
     this.checkLevelUp();
   }
 
   private checkLevelUp() {
-    if (this.mode === 'play' && this.pendingLevelUps > 0 && !this.player.dead) {
-      this.levelChoices = this.rollEngravings(3);
-      this.mode = 'levelup';
+    if (this.mode === 'play' && this.pendingLevelUps > 0 && !this.player.dead) this.mode = 'levelup';
+  }
+
+  /** 레벨업: 색 하나를 +1. 생존은 추가로 체력 +4, 모든 부위 장갑 +1 */
+  chooseColor(c: Color) {
+    if (this.mode !== 'levelup') return false;
+    const p = this.player;
+    this.raiseColor(c);
+    this.log(`${COLOR_NAME[c]} ${p.colors![c]}`, 'good');
+    this.pendingLevelUps--;
+    this.mode = 'play';
+    this.checkLevelUp();
+    return true;
+  }
+
+  private raiseColor(c: Color, n = 1) {
+    const p = this.player;
+    p.colors![c] += n;
+    if (c === 'survival') {
+      p.baseHp += 4 * n;
+      p.hp += 4 * n;
+      for (const k of SLOTS) {
+        p.partArmorBase[k] += n;
+        p.partArmor[k] += n;
+      }
     }
+  }
+
+  /** 실험실: 색 레벨을 정한다 */
+  labSetColor(c: Color, n: number) {
+    if (!this.lab) return;
+    this.raiseColor(c, Math.max(0, n) - this.player.colors![c]);
   }
 
   // ───────────────────────── 오토탐험 ─────────────────────────
@@ -1302,7 +1331,7 @@ export class Game {
     const el = a.imbue ?? optEl ?? w?.def.element;
     a.imbue = undefined;
     if (!shot) this.emit({ type: 'attack', actor: a.id, target: t.id });
-    const base = bash ? s.damage - s.weapon.damage + FISTS.damage : s.damage;
+    const base = bash ? a.baseDamage + FISTS.damage : s.damage;
     // 같은 대상 연속 공격 수 (장검·균형 잡힌 검): 다른 대상을 치거나, 무기를 바꾸거나, 공격 사이에 다른 행동을 하면 끊긴다
     if (w) {
       const c = a.combo;

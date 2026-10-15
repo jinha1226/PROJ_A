@@ -181,3 +181,7 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 .col.power { color: #ff7a6a; } .col.tactics { color: #c49aff; } .col.survival { color: #7fd99a; }
 .r.trait { color: #ffe08a; } .r.opt b { color: #ffcf7a; } .r.opt.cond b { color: #9fd8ff; }
 #br .opts { color: #ffcf7a; }
+#vname .colors { font-size: 11px; margin-left: 8px; letter-spacing: 0; }
+.card.colorpick .gain { font-size: 11px; color: var(--dim); margin-top: 4px; } .card.colorpick .gain.up { color: #9fe8b0; }
+.labcol { margin-right: 18px; } .labcol button { padding: 0 8px; }
+.r .up { color: #9fe8b0; }

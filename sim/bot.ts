@@ -10,8 +10,11 @@ export function botStep(g: Game): boolean {
     case 'won':
       return false;
     case 'levelup': {
-      const c = g.levelChoices[0];
-      g.chooseEngraving(c ? c.id : null, 0);
+      // 지금 든 무기들의 색 중 가장 많이 겹치는 색을 키운다
+      const count = { power: 0, tactics: 0, survival: 0 };
+      for (const w of p.hands) for (const c of w?.def.colors ?? []) count[c]++;
+      const best = (Object.keys(count) as (keyof typeof count)[]).sort((a, b) => count[b] - count[a] || p.colors![a] - p.colors![b])[0]!;
+      g.chooseColor(best);
       return true;
     }
     case 'altar':

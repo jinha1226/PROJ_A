@@ -1,4 +1,4 @@
-import type { Actor, Element, ByproductInst, Slot, WeaponDef, WeaponInst } from './types';
+import type { Actor, Color, Element, ByproductInst, Slot, WeaponDef, WeaponInst } from './types';
 import { FISTS } from '../data/weapons';
 import { SLOTS } from './types';
 
@@ -33,6 +33,20 @@ export function byproductFactor(r: ByproductInst, broken = false): number {
   if (r.dormant) return 0;
   const base = 1 + r.upgrade * 0.15;
   return broken ? base * 0.5 : base;
+}
+
+/** 색 레벨당 그 색 무기의 피해 증가 */
+export const COLOR_STEP = 0.12;
+
+/** 무기의 색 레벨: 색이 둘이면 높은 쪽 */
+export function colorLevel(a: Actor, w: WeaponDef): number {
+  if (!a.colors) return 0;
+  return Math.max(0, ...w.colors.map((c: Color) => a.colors![c]));
+}
+
+/** 색 레벨 배율 (무기 피해) */
+export function colorMult(a: Actor, w: WeaponDef): number {
+  return 1 + COLOR_STEP * colorLevel(a, w);
 }
 
 export interface Stats {
@@ -97,7 +111,8 @@ export function computeStats(a: Actor, fullWhenDamaged = false): Stats {
   let weapon: WeaponDef = FISTS;
   if (held || a.isPlayer) {
     weapon = held?.def ?? FISTS;
-    damage = a.baseDamage + weapon.damage + (bestDmg + otherDmg) * 0.3;
+    // 무기 피해에 그 색의 레벨 배율 (맨주먹은 화력)
+    damage = (a.baseDamage + weapon.damage + (bestDmg + otherDmg) * 0.3) * colorMult(a, weapon);
     attackCost = weapon.attackCost;
     burden += weapon.burden;
   } else {

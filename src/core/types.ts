@@ -224,6 +224,8 @@ export interface Actor {
   haste: number; // 다음 행동 비용 감소 %
   marked: boolean;
   dead: boolean;
+  /** 색 레벨 (플레이어): 레벨업마다 하나를 +1. 무기는 자기 색 레벨만큼 강해진다 */
+  colors?: Record<Color, number>;
   /** 직전에 끝낸 행동 (조건 효과 '기습'·'정조준'용) */
   prevAct?: 'move' | 'wait' | 'attack' | 'other';
   /** 내 직전 행동 뒤로 적에게 맞았다 (조건 효과 '반격'용) */

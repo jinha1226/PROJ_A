@@ -1,14 +1,14 @@
 import { Game, OVERLOAD_NAME, REST_NAME, MAX_KITS, type OverloadMode } from './core/game';
 import { describeEffect, describeEngraving } from './core/describe';
-import type { Element, ByproductInst, GroundItem, OptionId, WeaponInst } from './core/types';
-import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_NAME, TRIGGER_SHORT, TRIGGERS } from './core/types';
+import type { Color, Element, ByproductInst, GroundItem, OptionId, WeaponInst } from './core/types';
+import { COLOR_NAME, ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_NAME, TRIGGER_SHORT, TRIGGERS } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
 import { OPTIONS, optionFits } from './data/options';
 import { TRAIT_TEXT, WEAPONS } from './data/weapons';
 import { loadAssets, View3D, type Pace } from './render/view3d';
 import { actorTooltip, esc, Hud, byproductName, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
-import { heldWeapon } from './core/stats';
+import { COLOR_STEP, colorLevel, heldWeapon } from './core/stats';
 
 const view = document.getElementById('view')!;
 const modal = document.getElementById('modal')!;
@@ -91,7 +91,7 @@ function startGame(lab = false) {
   hud.clearLog();
   renderer.setGame(game);
   // 개발 모드에서만: 브라우저 테스트가 게임 상태를 볼 수 있게
-  if (import.meta.env.DEV) Object.assign(window, { __game: game, __view: renderer });
+  if (import.meta.env.DEV) Object.assign(window, { __game: game, __view: renderer, __refresh: () => refresh() });
   hudEl.hidden = false;
   modal.hidden = true;
   overlay = null;
@@ -126,7 +126,7 @@ setInterval(() => {
 function renderModal() {
   const g = game!;
   if (g.mode === 'dead' || g.mode === 'won') return showEnd();
-  if (g.mode === 'levelup') return showEngravePick('레벨 업 — 새 각인', '몸에 새길 문장을 하나 고른다. 각인은 런이 끝날 때까지 잃지 않는다.');
+  if (g.mode === 'levelup') return showColorPick();
   if (g.mode === 'altar') return showAltar();
   if (overlay === 'install') return showInstall();
   if (overlay === 'overload') return showOverload();
@@ -185,8 +185,12 @@ function showLab() {
         ${w?.def.trait ? `<p class="lead">★ ${esc(TRAIT_TEXT[w.def.trait])}</p>` : ''}<div class="cards">${opts}</div>`;
     })
     .join('');
+  const colorRow = COLORS.map(
+    (c) => `<span class="labcol"><span class="col ${c}">${COLOR_NAME[c]}</span> <button class="ghost" data-col="${c}:-1">−</button> <b>${g.player.colors![c]}</b> <button class="ghost" data-col="${c}:1">+</button></span>`,
+  ).join(' ');
   const la = g.lastAction;
   modal.innerHTML = `<div class="box lab"><h2>무기 실험실</h2>
+    <h3>색 레벨 (무기 피해 +${Math.round(COLOR_STEP * 100)}%/레벨)</h3><div class="row">${colorRow}</div>
     <p class="lead">손마다 무기를 고르고 옵션을 켜고 끈다(개수 제한 없음). ★ 무기 고유 효과가 치명타(×2) 조건을 정하고, ◆ 옵션은 상태를 만들고, ◇ 옵션은 상태·상황에 따라 피해를 키운다. 상태는 내 턴 기준 2턴.<br>
     직전 행동: 준 피해 <b>${la.damage}</b></p>
     ${hands}
@@ -206,6 +210,14 @@ function showLab() {
       (el.onclick = () => {
         const [h, o] = el.dataset.opt!.split(':');
         g.labToggleOption(Number(h), o as OptionId);
+        refresh();
+      }),
+  );
+  modal.querySelectorAll<HTMLElement>('[data-col]').forEach(
+    (el) =>
+      (el.onclick = () => {
+        const [c, d] = el.dataset.col!.split(':');
+        g.labSetColor(c as Color, g.player.colors![c as Color] + Number(d));
         refresh();
       }),
   );
@@ -248,6 +260,38 @@ function showEngravePick(title: string, lead: string) {
     <div class="row"><span style="color:var(--dim)">각인 ${g.player.engravings.length}/${g.engravingCap()}</span><span style="flex:1"></span><button class="ghost" data-act="skip">건너뛰기</button></div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-id]').forEach((el) => (el.onclick = () => pickEngraving(el.dataset.id!)));
   bind(modal, { skip: () => pickEngraving(null) });
+}
+
+const COLORS: Color[] = ['power', 'tactics', 'survival'];
+const COLOR_DESC: Record<Color, string> = {
+  power: '근접 공격, 순간 화력, 폭발',
+  tactics: '원거리, 원소, 설치',
+  survival: '방어, 반격, 회복 · 체력 +4, 모든 부위 장갑 +1',
+};
+
+/** 레벨업: 화력 · 기술 · 생존 중 하나를 +1. 지금 든 무기들이 얼마나 강해지는지 보여준다 */
+function showColorPick() {
+  const g = game!;
+  const p = g.player;
+  modal.hidden = false;
+  const cards = COLORS.map((c, i) => {
+    const lv = p.colors![c];
+    const gains = p.hands
+      .filter((w): w is WeaponInst => !!w)
+      .map((w) => {
+        const now = colorLevel(p, w.def);
+        const after = w.def.colors.includes(c) ? Math.max(now, lv + 1) : now;
+        return after > now
+          ? `<div class="gain up">${esc(w.def.name)} 피해 +${Math.round(COLOR_STEP * 100 * (after - now))}% (${Math.round(COLOR_STEP * 100 * now)}% → ${Math.round(COLOR_STEP * 100 * after)}%)</div>`
+          : `<div class="gain">${esc(w.def.name)} 변화 없음</div>`;
+      })
+      .join('');
+    return `<div class="card colorpick ${c}" data-color="${c}"><span class="key">${i + 1}</span><div class="nm"><span class="col ${c}">${COLOR_NAME[c]}</span> ${lv} → ${lv + 1}</div><div class="ds">${COLOR_DESC[c]}</div>${gains}</div>`;
+  }).join('');
+  modal.innerHTML = `<div class="box"><h2>레벨 ${g.plevel} — 무엇을 키울까</h2>
+    <p class="lead">무기는 자기 색의 레벨당 피해 +${Math.round(COLOR_STEP * 100)}%. 색이 둘인 무기는 높은 쪽을 따른다. 레벨업마다 체력 +4.</p>
+    <div class="cards">${cards}</div></div>`;
+  modal.querySelectorAll<HTMLElement>('[data-color]').forEach((el) => (el.onclick = () => (g.chooseColor(el.dataset.color as Color), refresh())));
 }
 
 function pickEngraving(id: string | null, replace?: number) {
@@ -579,10 +623,8 @@ window.addEventListener('keydown', (e) => {
     return refresh();
   }
   if (g.mode === 'levelup') {
-    const i = Number(e.key) - 1;
-    if (engraveSel && i >= 0 && i < g.player.engravings.length) pickEngraving(engraveSel, i);
-    else if (!engraveSel && g.levelChoices[i]) pickEngraving(g.levelChoices[i].id);
-    if (e.key === 'Escape' && engraveSel) ((engraveSel = null), refresh());
+    const c = COLORS[Number(e.key) - 1];
+    if (c) (g.chooseColor(c), refresh());
     return;
   }
   if (overlay) {

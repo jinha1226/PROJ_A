@@ -2,7 +2,7 @@ import { ALERT_THRESHOLDS, type Game } from '../core/game';
 import { describeEffect, describeByproduct } from '../core/describe';
 import type { Actor, GameEvent, ByproductInst, GroundItem, Slot, WeaponInst } from '../core/types';
 import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
-import { isBroken, magOf, partArmorMax } from '../core/stats';
+import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
 import { GODS } from '../data/start';
 import { OPTION_BY_ID } from '../data/options';
@@ -93,6 +93,7 @@ export class Hud {
 
   render(g: Game) {
     this.game = g;
+    viewer = g.player;
     const p = g.player;
     const s = g.st(p);
     // 왼쪽 위: 임무
@@ -118,7 +119,8 @@ export class Hud {
         .join('');
     // 왼쪽 아래: 이름 · 생체 · 장갑 · 상태
     const origin = p.name;
-    this.vname.textContent = origin;
+    const cl = p.colors;
+    this.vname.innerHTML = `${esc(origin)}${cl ? ` <span class="colors">${(['power', 'tactics', 'survival'] as const).map((c) => `<span class="col ${c}">${COLOR_NAME[c]} ${cl[c]}</span>`).join(' ')}</span>` : ''}`;
     this.hpnum.innerHTML = `${Math.max(0, p.hp)}<small>/${s.maxHp}</small>${p.shield ? ` <span class="shield">+${p.shield}</span>` : ''}`;
     this.armor.innerHTML = (['body', 'arm', 'leg', 'sense'] as Slot[])
       .map((k) => {
@@ -361,10 +363,15 @@ export function actorTooltip(g: Game, a: Actor): string {
     ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;
 }
 
+/** 툴팁 수치에 색 레벨을 반영할 플레이어 (render마다 갱신) */
+let viewer: Actor | null = null;
+
 export function weaponTooltip(w: WeaponInst): string {
   const d = w.def;
+  const lv = viewer ? colorLevel(viewer, d) : 0;
+  const bonus = lv ? ` <span class="up">(색 ${lv}: +${Math.round(COLOR_STEP * 100 * lv)}%)</span>` : '';
   const ammo = d.mag === undefined ? '' : d.recharge ? `충전 ${w.ammo}/${magOf(w)} (${d.recharge}턴마다 1)` : `탄창 ${w.ammo}/${magOf(w)}`;
-  const parts = [`피해 ${d.damage}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo, `부담 ${d.burden}`].filter(Boolean);
+  const parts = [`피해 ${d.damage}${bonus}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo, `부담 ${d.burden}`].filter(Boolean);
   const colors = d.colors.map((c) => `<span class="col ${c}">${COLOR_NAME[c]}</span>`).join(' ');
   const trait = d.trait ? `<div class="r trait">★ ${esc(TRAIT_TEXT[d.trait])}</div>` : '';
   const opts = w.options
