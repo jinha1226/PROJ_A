@@ -23,8 +23,8 @@ export class GridTerrain {
   /** props shown only where the hero has seen (keyed by the cell that reveals them) */
   private props: [number, THREE.Object3D][] = [];
   private readonly seals = new Map<number, THREE.Object3D>();
-  private readonly facesOf = new Map<number, number[]>();
-  private faceMesh: THREE.InstancedMesh | null = null;
+  /** 벽 칸 → 그 칸의 벽면들 (어느 메시의 몇 번째인지) */
+  private readonly facesOf = new Map<number, { mesh: THREE.InstancedMesh; at: number }[]>();
   private readonly built: string[];
   private readonly doors = new Map<number, THREE.Object3D>();
   private readonly chests = new Map<number, THREE.Object3D>();
@@ -101,23 +101,30 @@ export class GridTerrain {
 
   /** Wall panels on every wall side facing a walkable cell, inside the wall cell, front at the boundary. */
   private instanceFaces(faces: WallFace[]): void {
-    const pc = this.kit.piece('Wall_Modular');
-    if (!pc) return;
-    const mesh = new THREE.InstancedMesh(pc.geometry, pc.material, faces.length);
-    mesh.receiveShadow = true;
-    mesh.castShadow = true;
-    const scale = new THREE.Vector3(CELL / pc.size.x, WALL_H / pc.size.y, PANEL_DEPTH / pc.size.z);
-    const q = new THREE.Quaternion();
-    faces.forEach((f, k) => {
-      const p = toWorld(f.wall.x + f.dir.x * (0.5 - PANEL_DEPTH / 2), f.wall.y + f.dir.y * (0.5 - PANEL_DEPTH / 2));
-      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawFor(f.dir));
-      mesh.setMatrixAt(k, new THREE.Matrix4().compose(p, q, scale));
-      mesh.setColorAt(k, new THREE.Color(0, 0, 0));
-    });
-    this.root.add(mesh);
-    this.instanced.push({ mesh, cells: faces.map((f) => idx(this.m, f.floor)) });
-    this.faceMesh = mesh;
-    faces.forEach((f, k) => { const w = idx(this.m, f.wall); this.facesOf.set(w, [...(this.facesOf.get(w) ?? []), k]); });
+    // (MODEL 0) 벽면마다 벽 조각 두 종류를 섞는다 (칸 위치로 정해 매번 같은 모양)
+    const kinds = (['Wall_Modular', 'Wall_Modular2'] as DungeonPiece[]).filter((n) => this.kit.piece(n));
+    if (!kinds.length) return;
+    const pick = (f: WallFace) => kinds[((idx(this.m, f.wall) * 2654435761 + f.dir.x * 7 + f.dir.y * 13) >>> 0) % kinds.length]!;
+    for (const name of kinds) {
+      const mine = faces.filter((f) => pick(f) === name);
+      if (!mine.length) continue;
+      const pc = this.kit.piece(name)!;
+      const mesh = new THREE.InstancedMesh(pc.geometry, pc.material, mine.length);
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      const scale = new THREE.Vector3(CELL / pc.size.x, WALL_H / pc.size.y, PANEL_DEPTH / pc.size.z);
+      const q = new THREE.Quaternion();
+      mine.forEach((f, k) => {
+        const p = toWorld(f.wall.x + f.dir.x * (0.5 - PANEL_DEPTH / 2), f.wall.y + f.dir.y * (0.5 - PANEL_DEPTH / 2));
+        q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawFor(f.dir));
+        mesh.setMatrixAt(k, new THREE.Matrix4().compose(p, q, scale));
+        mesh.setColorAt(k, new THREE.Color(0, 0, 0));
+        const w = idx(this.m, f.wall);
+        this.facesOf.set(w, [...(this.facesOf.get(w) ?? []), { mesh, at: k }]);
+      });
+      this.root.add(mesh);
+      this.instanced.push({ mesh, cells: mine.map((f) => idx(this.m, f.floor)) });
+    }
   }
 
   /** Tiles the sim changed since the floor was built: a cut seal or a scanned wall becomes a doorway. */
@@ -127,8 +134,10 @@ export class GridTerrain {
       if (this.built[i] === t) return;
       this.built[i] = t;
       if (t !== 'door') return;
-      for (const k of this.facesOf.get(i) ?? []) this.faceMesh?.setMatrixAt(k, new THREE.Matrix4().makeScale(0, 0, 0));
-      if (this.faceMesh) this.faceMesh.instanceMatrix.needsUpdate = true;
+      for (const f of this.facesOf.get(i) ?? []) {
+        f.mesh.setMatrixAt(f.at, new THREE.Matrix4().makeScale(0, 0, 0));
+        f.mesh.instanceMatrix.needsUpdate = true;
+      }
       const seal = this.seals.get(i);
       if (seal) { seal.removeFromParent(); this.props = this.props.filter(([, o]) => o !== seal); }
       this.addDoor(i);

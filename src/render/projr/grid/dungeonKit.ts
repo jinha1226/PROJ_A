@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export type DungeonPiece =
-  | 'Wall_Modular' | 'Floor_Modular' | 'Column' | 'Column2' | 'Arch_Door' | 'Barrel' | 'Chest' | 'Chest_Gold' | 'Torch' | 'Banner_wall'
+  | 'Wall_Modular' | 'Wall_Modular2' | 'Floor_Modular' | 'Column' | 'Column2' | 'Arch_Door' | 'Barrel' | 'Chest' | 'Chest_Gold' | 'Torch' | 'Banner_wall'
   | 'Cobweb' | 'Cobweb2' | 'Skull' | 'Crate' | 'Stairs_Modular' | 'Trapdoor' | 'Trap_spikes' | 'Vase' | 'Bucket' | 'Brick' | 'Bag_Coins' | 'Sword_WallMount' | 'Coin_Pile'
   | 'Barrel2' | 'Floor_BricksSeparate' | 'Floor_BricksSeparate2' | 'Table_Small' | 'Table_Big' | 'Chair' | 'Banner' | 'Woodfire' | 'Bag_Standing' | 'Pedestal' | 'Statue_Horse';
 
@@ -17,6 +17,7 @@ const LIFT = 1.7;
 const SIGILS: Partial<Record<DungeonPiece, string>> = {
   Floor_Modular: 'floor_small_01',
   Wall_Modular: 'wall_small_01',
+  Wall_Modular2: 'wall_small_02',
   Column: 'pillar_01',
   Column2: 'pillar_02',
   Arch_Door: 'door_arched_01_001',
