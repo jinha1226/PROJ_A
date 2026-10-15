@@ -12,7 +12,7 @@ import { setCameraElevation, setCameraTarget, TOP_DOWN_DEG } from './projr/grid/
 import { getPace, setPace, type Pace } from './projr/grid/playback';
 import * as THREE from 'three';
 
-const BASE = '/';
+const BASE = import.meta.env.BASE_URL;
 
 export interface Assets {
   lib: UalLibrary;
