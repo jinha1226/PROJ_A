@@ -1,9 +1,10 @@
-import type { Actor, Element, RelicInst, Slot } from './types';
+import type { Actor, Element, ByproductInst, Slot, WeaponDef, WeaponInst } from './types';
+import { FISTS } from '../data/weapons';
 import { SLOTS } from './types';
 
 /** 장착된 부산물 전부 */
-export function allRelics(a: Actor): RelicInst[] {
-  const out: RelicInst[] = [];
+export function allByproducts(a: Actor): ByproductInst[] {
+  const out: ByproductInst[] = [];
   for (const s of SLOTS) for (const r of a.slots[s]) if (r) out.push(r);
   return out;
 }
@@ -28,7 +29,7 @@ export function isBroken(a: Actor, slot: Slot): boolean {
 }
 
 /** 부산물 효과 배율: 절전 0, 파손된 부위면 절반(녹의 신 2단계는 온전), 강화 단계당 +15% */
-export function relicFactor(r: RelicInst, broken = false): number {
+export function byproductFactor(r: ByproductInst, broken = false): number {
   if (r.dormant) return 0;
   const base = 1 + r.upgrade * 0.15;
   return broken ? base * 0.5 : base;
@@ -43,6 +44,9 @@ export interface Stats {
   sight: number;
   burden: number;
   burdenCap: number;
+  /** 지금 손에 든 무기 (없으면 맨주먹) */
+  weapon: WeaponDef;
+  range: number;
   armor: number; // 현재 슈트 장갑 총합
   armorMax: number;
   attune: Record<Element, number>;
@@ -66,10 +70,10 @@ export function computeStats(a: Actor, fullWhenDamaged = false): Stats {
     armor += Math.max(0, a.partArmor[slot]);
     armorMax += partArmorMax(a, slot);
   }
-  for (const r of allRelics(a)) {
+  for (const r of allByproducts(a)) {
     const st = r.def.stats;
     burden += st.burden + (r.def.curse?.kind === 'heavy' ? 4 : 0);
-    const f = relicFactor(r, !fullWhenDamaged && isBroken(a, r.def.slot));
+    const f = byproductFactor(r, !fullWhenDamaged && isBroken(a, r.def.slot));
     if (f === 0) continue;
     hp += (st.hp ?? 0) * f;
     dodge += (st.dodge ?? 0) * f;
@@ -86,12 +90,27 @@ export function computeStats(a: Actor, fullWhenDamaged = false): Stats {
     }
     for (const e of r.def.elements) attune[e]++;
   }
+  // 무기를 든 액터(플레이어): 무기 피해 + 팔 부산물의 공격 보조(30%).
+  // 무기가 없는 몬스터: 팔 부산물이 곧 타고난 공격 (발톱·주먹 등).
+  const held = heldWeapon(a);
+  let damage: number;
+  let weapon: WeaponDef = FISTS;
+  if (held || a.isPlayer) {
+    weapon = held?.def ?? FISTS;
+    damage = a.baseDamage + weapon.damage + (bestDmg + otherDmg) * 0.3;
+    attackCost = weapon.attackCost;
+    burden += weapon.burden;
+  } else {
+    damage = a.baseDamage + bestDmg + otherDmg * 0.25;
+  }
   const over = Math.max(0, burden - a.burdenCap);
   dodge -= over * 3;
   const elementKinds = (Object.values(attune) as number[]).filter((n) => n > 0).length;
   return {
     maxHp: Math.round(hp),
-    damage: Math.round(a.baseDamage + bestDmg + otherDmg * 0.25),
+    damage: Math.round(damage),
+    weapon,
+    range: weapon.range,
     attackCost,
     moveCost: Math.max(50, 100 - Math.round(moveBonus) + heavy),
     dodge: Math.max(0, Math.min(45, Math.round(dodge))),
@@ -107,4 +126,9 @@ export function computeStats(a: Actor, fullWhenDamaged = false): Stats {
 
 export function slotCount(a: Actor, s: Slot) {
   return a.slots[s].length;
+}
+
+/** 지금 손에 든 무기 */
+export function heldWeapon(a: Actor): WeaponInst | null {
+  return a.hands[a.activeHand] ?? null;
 }

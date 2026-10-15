@@ -193,8 +193,10 @@ export class Renderer {
     for (const [i, items] of g.ground) {
       if (!items.length || !lv.explored[i]) continue;
       const r = items[items.length - 1];
-      const color = ELEMENT_COLOR[r.def.elements[0] ?? 'none'];
-      const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), mat(color, { emissive: r.def.grade === 'common' ? 0x221a10 : color, metal: 0.6 }));
+      // 부산물은 원소 색 결정, 무기는 길쭉한 금속 막대
+      const color = r.kind === 'weapon' ? 0xb8bcc4 : ELEMENT_COLOR[r.def.elements[0] ?? 'none'];
+      const geo = r.kind === 'weapon' ? new THREE.BoxGeometry(0.08, 0.08, 0.5) : new THREE.OctahedronGeometry(0.2, 0);
+      const m = new THREE.Mesh(geo, mat(color, { emissive: r.def.grade === 'common' ? 0x221a10 : color, metal: 0.6 }));
       m.position.set(i % lv.w, 0.35, (i / lv.w) | 0);
       m.userData.dyn = true;
       m.userData.spin = true;
@@ -349,7 +351,7 @@ export class Renderer {
       case 'heal':
         this.ring(e.x!, e.y!, 0x8ab060, 0.7, 0.5);
         break;
-      case 'offer':
+      case 'overload':
         this.pillar(e.x!, e.y!, color);
         break;
       case 'summon':

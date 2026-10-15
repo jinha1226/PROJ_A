@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Actor, Element, RelicInst } from '../core/types';
+import type { Actor, Element, ByproductInst } from '../core/types';
 import { isBroken } from '../core/stats';
 
 // 재질: 슈트는 SF(무광 금속), 부산물은 원래 몬스터의 색을 남긴다.
@@ -31,7 +31,7 @@ export function mat(color: number, opts: { emissive?: number; metal?: number; op
   return m;
 }
 
-function relicMat(r: RelicInst | null, base: number, broken = false) {
+function byproductMat(r: ByproductInst | null, base: number, broken = false) {
   if (!r) return mat(base);
   const el = r.def.elements[0] ?? 'none';
   let c = ELEMENT_COLOR[el];
@@ -82,15 +82,15 @@ export function buildActorModel(a: Actor): THREE.Group {
     const ang = (i / nLeg) * Math.PI * 2 + Math.PI / nLeg;
     const lx = Math.cos(ang) * 0.16,
       lz = Math.sin(ang) * 0.12;
-    g.add(part(G.cyl, r ? relicMat(r, skin, br) : skinMat, 0.13, 0.42, 0.13, lx, 0.21, lz));
-    if (r) g.add(part(G.box, relicMat(r, skin, br), 0.16, 0.08, 0.2, lx, 0.04, lz + 0.03));
+    g.add(part(G.cyl, r ? byproductMat(r, skin, br) : skinMat, 0.13, 0.42, 0.13, lx, 0.21, lz));
+    if (r) g.add(part(G.box, byproductMat(r, skin, br), 0.16, 0.08, 0.2, lx, 0.04, lz + 0.03));
   }
   // 몸통
   g.add(part(G.cyl, skinMat, 0.42, 0.5, 0.32, 0, 0.66, 0));
   const bodies = a.slots.body;
   bodies.forEach((r, i) => {
     if (!r) return;
-    const m = relicMat(r, skin, isBroken(a, 'body'));
+    const m = byproductMat(r, skin, isBroken(a, 'body'));
     if (i === 0) g.add(part(G.box, m, 0.46, 0.34, 0.2, 0, 0.7, 0.1));
     else if (i === 1) g.add(part(G.box, m, 0.5, 0.14, 0.38, 0, 0.92, 0)); // 어깨 판
     else g.add(part(G.cone, m, 0.3, 0.3, 0.3, 0, 0.45, -0.18)); // 등 부산물
@@ -101,7 +101,7 @@ export function buildActorModel(a: Actor): THREE.Group {
   a.slots.sense.forEach((r, i) => {
     if (!r) return;
     const side = i === 0 ? -1 : 1;
-    g.add(part(G.oct, relicMat(r, 0xffffff, isBroken(a, 'sense')), 0.09, 0.09, 0.09, side * 0.08, 1.11, 0.13));
+    g.add(part(G.oct, byproductMat(r, 0xffffff, isBroken(a, 'sense')), 0.09, 0.09, 0.09, side * 0.08, 1.11, 0.13));
   });
   // 팔 + 무기
   const arms = a.slots.arm;
@@ -112,7 +112,7 @@ export function buildActorModel(a: Actor): THREE.Group {
     const tier = Math.floor(i / 2);
     const ax = side * (0.28 + tier * 0.06),
       ay = 0.72 - tier * 0.14;
-    const m = r ? relicMat(r, skin, isBroken(a, 'arm')) : skinMat;
+    const m = r ? byproductMat(r, skin, isBroken(a, 'arm')) : skinMat;
     g.add(part(G.cyl, m, 0.1, 0.42, 0.1, ax, ay, 0.04));
     if (r) {
       const f = r.def.active?.form;

@@ -1,4 +1,4 @@
-import type { EffectSpec, EngravingDef, RelicDef } from './types';
+import type { EffectSpec, EngravingDef, ByproductDef } from './types';
 import { ELEMENT_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGER_NAME } from './types';
 import { FORM_DESC, FORM_NAME } from '../data/forms';
 
@@ -40,7 +40,7 @@ export function describeEngraving(g: EngravingDef): string {
   return `${TRIGGER_NAME[g.trigger]} → ${describeEffect(g.effect)}`;
 }
 
-export function describeRelic(r: RelicDef): string[] {
+export function describeByproduct(r: ByproductDef): string[] {
   const st = r.stats;
   const lines: string[] = [];
   lines.push(`${GRADE_NAME[r.grade]} · ${SLOT_NAME[r.slot]}${r.elements.length ? ' · ' + r.elements.map((e) => ELEMENT_NAME[e]).join('/') : ''}`);

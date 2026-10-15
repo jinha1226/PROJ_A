@@ -1,19 +1,21 @@
 import type { Slot } from '../core/types';
 
 // 시작 조합: MODEL 라인 × 슈트 프레임 (MVP: 라인 3 × 프레임 2)
-// 2단계에서 무기가 분리되면 MODEL 0은 권총, W는 근접 무기, M은 원소 지팡이로 시작한다.
+// MODEL 0은 권총, W는 장검으로 시작한다. M은 원소 지팡이가 들어오는 7단계 전까지 단검.
 export interface OriginDef {
   id: string;
   name: string;
   desc: string;
   engraving: string;
-  relic: string;
+  byproduct: string;
+  /** 시작 무기 (손1) */
+  weapon: string;
 }
 
 export const ORIGINS: OriginDef[] = [
-  { id: 'model0', name: 'MODEL 0', desc: '빈 몸. 대기할 때(재장전 포함) 가장 가까운 적에게 보조 사격.', engraving: 'aux_fire', relic: 'bell_clapper' },
-  { id: 'modelW', name: 'MODEL W', desc: '전사형. 피격될 때 공격자에게 반격한다.', engraving: 'counter_protocol', relic: 'brass_fist' },
-  { id: 'modelM', name: 'MODEL M', desc: '마법사형. 공격할 때마다 주변 적에게 화염 파편이 튄다.', engraving: 'element_vent', relic: 'furnace_arm' },
+  { id: 'model0', name: 'MODEL 0', desc: '빈 몸. 대기할 때(재장전 포함) 가장 가까운 적에게 보조 사격.', engraving: 'aux_fire', byproduct: 'bell_clapper', weapon: 'pistol' },
+  { id: 'modelW', name: 'MODEL W', desc: '전사형. 피격될 때 공격자에게 반격한다.', engraving: 'counter_protocol', byproduct: 'brass_fist', weapon: 'longsword' },
+  { id: 'modelM', name: 'MODEL M', desc: '마법사형. 공격할 때마다 주변 적에게 화염 파편이 튄다.', engraving: 'element_vent', byproduct: 'furnace_arm', weapon: 'dagger' },
 ];
 
 export interface BodyDef {
@@ -21,8 +23,8 @@ export interface BodyDef {
   name: string;
   desc: string;
   slots: Record<Slot, number>;
-  fixed: { slot: Slot; relic: string };
-  relics: string[];
+  fixed: { slot: Slot; byproduct: string };
+  byproducts: string[];
   baseHp: number;
   burdenCap: number;
   /** 부위별 슈트 장갑 기본값 (몸 부산물 장갑은 몸에 더해진다) */
@@ -35,8 +37,8 @@ export const BODIES: BodyDef[] = [
     name: '경량 프레임',
     desc: '다리 3, 팔 1. 빠르고 잘 피하지만 슈트 장갑이 얇다. 고정 슬롯: 다리.',
     slots: { body: 2, arm: 1, leg: 3, sense: 2 },
-    fixed: { slot: 'leg', relic: 'pilgrim_greaves' },
-    relics: ['bone_plates', 'bone_stilts', 'glass_eye'],
+    fixed: { slot: 'leg', byproduct: 'pilgrim_greaves' },
+    byproducts: ['bone_plates', 'bone_stilts', 'glass_eye'],
     baseHp: 34,
     burdenCap: 16,
     armor: { body: 12, arm: 10, leg: 12, sense: 8 },
@@ -46,8 +48,8 @@ export const BODIES: BodyDef[] = [
     name: '중장 프레임',
     desc: '몸 3, 팔 2, 다리 1. 느리지만 슈트 장갑이 두껍다. 고정 슬롯: 몸.',
     slots: { body: 3, arm: 2, leg: 1, sense: 2 },
-    fixed: { slot: 'body', relic: 'rusted_cuirass' },
-    relics: ['bone_sickle', 'bone_plates', 'glass_eye'],
+    fixed: { slot: 'body', byproduct: 'rusted_cuirass' },
+    byproducts: ['bone_sickle', 'bone_plates', 'glass_eye'],
     baseHp: 42,
     burdenCap: 22,
     armor: { body: 18, arm: 12, leg: 8, sense: 8 },

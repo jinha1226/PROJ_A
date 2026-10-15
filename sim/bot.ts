@@ -1,5 +1,6 @@
 import { Game } from '../src/core/game';
-import type { RelicInst } from '../src/core/types';
+import type { ByproductInst, GroundItem, WeaponInst } from '../src/core/types';
+import { heldWeapon } from '../src/core/stats';
 
 // 시뮬레이터용 단순 봇
 export function botStep(g: Game): boolean {
@@ -22,7 +23,7 @@ export function botStep(g: Game): boolean {
         g.buyKit();
         for (let i = g.shop.length - 1; i >= 0; i--) if (g.shop[i].price <= g.ash) g.buy(i);
       }
-      for (const r of [...g.restItems]) tryGraft(g, r) || g.offer(r, 'repair');
+      for (const r of [...g.restItems]) tryTake(g, r) || (r.kind === 'byproduct' && g.overload(r, 'repair'));
       g.leaveRest();
       return true;
     }
@@ -34,8 +35,8 @@ export function botStep(g: Game): boolean {
     const near = enemies.reduce((a, b) => (dist(p, a) <= dist(p, b) ? a : b));
     // 위급하면 과부하로 수리
     if (p.hp < s.maxHp * 0.25) {
-      const fuel = [...p.slots.sense, ...p.slots.leg].find((r): r is RelicInst => !!r && !r.fixed);
-      if (fuel) return g.offer(fuel, 'repair');
+      const fuel = [...p.slots.sense, ...p.slots.leg].find((r): r is ByproductInst => !!r && !r.fixed);
+      if (fuel) return g.overload(fuel, 'repair');
     }
     const actives = g.equippedActives(p);
     for (let i = 0; i < actives.length; i++) {
@@ -46,18 +47,30 @@ export function botStep(g: Game): boolean {
       const ok = sp.form === 'sweep' ? d <= 1 : sp.form === 'nova' ? d <= 2 : d <= (sp.range ?? 1) && (sp.form !== 'dash' || d >= 2);
       if (ok && g.useActive(i, near.x, near.y)) return true;
     }
-    if (dist(p, near) <= 1) {
+    // 무기: 붙으면 근접 무기로, 떨어져 있으면 총으로
+    const d = dist(p, near);
+    const held = heldWeapon(p);
+    const other = p.hands[1 - p.activeHand];
+    const ranged = (w: WeaponInst | null | undefined) => !!w && w.def.range > 1;
+    if (d <= 1 && ranged(held) && other && !ranged(other)) return g.swapWeapon();
+    if (d >= 3 && !ranged(held) && ranged(other) && other!.ammo > 0) return g.swapWeapon();
+    if (ranged(held) && d > 1) {
+      if (held!.def.mag !== undefined && held!.ammo <= 0) return g.reload();
+      if (d <= held!.def.range && g.shoot(near.x, near.y)) return true;
+    }
+    if (d <= 1) {
       if (g.move(Math.sign(near.x - p.x), Math.sign(near.y - p.y))) return true;
     }
     const dir = g.stepToward(near.x, near.y);
     if (dir !== 'done' && g.move(dir[0], dir[1])) return true;
     return g.wait();
   }
+  const held = heldWeapon(p);
+  if (held?.def.mag !== undefined && held.ammo < held.def.mag) return g.reload();
   const here = g.groundHere();
-  if (here.length) {
-    const r = here[0];
-    if (tryGraft(g, r)) return true;
-    return g.offer(r, g.st(p).armor < g.st(p).armorMax * 0.5 ? 'repair' : 'cooldown');
+  for (const r of here) {
+    if (tryTake(g, r)) return true;
+    if (r.kind === 'byproduct') return g.overload(r, g.st(p).armor < g.st(p).armorMax * 0.5 ? 'repair' : 'cooldown');
   }
   const dir = g.autoExploreDir();
   if (dir === 'enemy') return g.wait();
@@ -69,13 +82,22 @@ export function botStep(g: Game): boolean {
   return g.move(st[0], st[1]);
 }
 
-export function tryGraft(g: Game, r: RelicInst): boolean {
+/** 줍기: 부산물은 장착, 무기는 빈 손이나 더 센 근접 무기와 교체 */
+export function tryTake(g: Game, r: GroundItem): boolean {
+  if (r.kind === 'byproduct') return tryInstall(g, r);
+  const hands = g.player.hands;
+  let i = hands.findIndex((w) => !w);
+  if (i < 0) i = hands.findIndex((w) => w && w.def.range <= 1 && r.def.range <= 1 && w.def.damage < r.def.damage);
+  return i >= 0 && g.takeWeapon(r, i);
+}
+
+export function tryInstall(g: Game, r: ByproductInst): boolean {
   const arr = g.player.slots[r.def.slot];
   let idx = arr.findIndex((x) => !x);
   if (idx < 0) idx = arr.findIndex((x) => x && !x.fixed && gradeVal(x) < gradeVal(r));
   if (idx < 0) return false;
-  return g.graft(r, idx, 'offer');
+  return g.install(r, idx, 'overload');
 }
-const gradeVal = (r: RelicInst) => ({ common: 0, holy: 1, forbidden: 2 })[r.def.grade];
+const gradeVal = (r: ByproductInst) => ({ common: 0, holy: 1, forbidden: 2 })[r.def.grade];
 const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 

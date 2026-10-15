@@ -91,7 +91,7 @@ h3 .armor.broken { color: #e08070; }
   background: var(--panel); border: 1px solid var(--line); padding: 6px 10px; height: 150px; overflow-y: auto; font-size: 12.5px; }
 #log div { margin: 1px 0; }
 #log .warn { color: #e0a050; } #log .bad { color: #e08070; } #log .good { color: var(--good); } #log .item { color: #d8c890; }
-#log .trigger { color: var(--brass); font-style: italic; } #log .combo { color: #fff; font-weight: 700; } #log .offer { color: var(--fire); }
+#log .trigger { color: var(--brass); font-style: italic; } #log .combo { color: #fff; font-weight: 700; } #log .overload { color: var(--fire); }
 #log .floor { color: var(--brass); text-align: center; letter-spacing: 2px; } #log .skill { color: var(--cold); }
 #hint { position: absolute; bottom: 168px; left: 50%; transform: translateX(-50%); color: var(--dim); font-size: 11.5px;
   background: rgba(10,8,6,0.7); padding: 2px 10px; white-space: nowrap; }

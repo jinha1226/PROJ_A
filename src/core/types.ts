@@ -94,7 +94,7 @@ export interface ActiveSpec {
   unique?: string;
 }
 
-export interface RelicStats {
+export interface ByproductStats {
   integrity?: number; // 몸: 장갑 내구
   damage?: number; // 팔: 기본 공격 피해
   attackCost?: number; // 팔
@@ -105,27 +105,57 @@ export interface RelicStats {
   burden: number;
 }
 
-export interface RelicDef {
+export interface ByproductDef {
   id: string;
   name: string;
   slot: Slot;
   grade: Grade;
   elements: Element[];
-  stats: RelicStats;
+  stats: ByproductStats;
   active?: ActiveSpec;
   curse?: { text: string; kind: 'hpDrain' | 'burnSelf' | 'heavy' | 'fragile' };
   /** 적 전용 (드롭 풀에서 제외) */
   enemyOnly?: boolean;
 }
 
-export interface RelicInst {
+export interface ByproductInst {
+  kind: 'byproduct';
   uid: number;
-  def: RelicDef;
+  def: ByproductDef;
   dormant: boolean;
   fixed: boolean;
   cd: number; // 남은 쿨다운
   upgrade: number; // 녹의 신 강화 단계
 }
+
+// ───────── 무기: 손에 든다. 기본 공격의 방식·피해·속도를 정한다 ─────────
+export type WeaponFamily = 'melee' | 'gun' | 'bow' | 'magic';
+export const FAMILY_NAME: Record<WeaponFamily, string> = { melee: '근접', gun: '총기', bow: '활', magic: '마법' };
+
+export interface WeaponDef {
+  id: string;
+  name: string;
+  family: WeaponFamily;
+  grade: Grade;
+  damage: number;
+  attackCost: number;
+  /** 사거리 (근접 1) */
+  range: number;
+  /** 총기: 탄창 크기 */
+  mag?: number;
+  burden: number;
+}
+
+export interface WeaponInst {
+  kind: 'weapon';
+  uid: number;
+  def: WeaponDef;
+  /** 총기: 남은 탄 */
+  ammo: number;
+}
+
+/** 바닥에 놓인 것: 부산물 또는 무기 */
+export type GroundItem = ByproductInst | WeaponInst;
 
 export type Faction = 'player' | 'enemy';
 
@@ -139,7 +169,10 @@ export interface Actor {
   hp: number;
   baseHp: number;
   baseDamage: number;
-  slots: Record<Slot, (RelicInst | null)[]>;
+  slots: Record<Slot, (ByproductInst | null)[]>;
+  /** 손 2칸 (들고 있는 것 + 예비). 적은 비어 있을 수 있다 */
+  hands: (WeaponInst | null)[];
+  activeHand: number;
   fixedSlot?: { slot: Slot; index: number };
   burdenCap: number;
   /** 부위별 슈트 장갑 (현재값). 0이 되면 그 부위가 파손되어 부산물 효과가 절반 */
@@ -191,7 +224,7 @@ export interface GameEvent {
   amount?: number;
   element?: Element;
   text?: string;
-  fx?: 'blast' | 'chain' | 'shards' | 'shield' | 'heal' | 'blink' | 'combo' | 'offer' | 'line' | 'summon';
+  fx?: 'blast' | 'chain' | 'shards' | 'shield' | 'heal' | 'blink' | 'combo' | 'overload' | 'line' | 'summon';
   radius?: number;
   cls?: string;
 }

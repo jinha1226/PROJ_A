@@ -1,8 +1,8 @@
-import type { RelicDef } from '../core/types';
+import type { ByproductDef } from '../core/types';
 
 // 부산물: 몬스터에게서 얻어 슈트 부위에 장착한다. 기본 역할(수치) + 원소 태그 0~2개 + 팔 부산물은 쿨다운 기술 1개.
 // (무기는 2단계에서 별도 데이터로 분리한다.)
-export const RELICS: RelicDef[] = [
+export const BYPRODUCTS: ByproductDef[] = [
   // ── 몸 (장갑) ──
   { id: 'rusted_cuirass', name: '해골 흉곽', slot: 'body', grade: 'common', elements: [], stats: { integrity: 14, burden: 3 } },
   { id: 'bone_plates', name: '고블린 두꺼운 가죽', slot: 'body', grade: 'common', elements: [], stats: { integrity: 10, dodge: 3, burden: 2 } },
@@ -58,5 +58,5 @@ export const RELICS: RelicDef[] = [
   { id: 'archbishop_censer', name: '리치의 홀', slot: 'arm', grade: 'holy', elements: ['fire'], stats: { damage: 11, burden: 0 }, active: { form: 'throw', element: 'fire', power: 12, cooldown: 4, range: 7 }, enemyOnly: true },
 ];
 
-export const RELIC_BY_ID: Record<string, RelicDef> = Object.fromEntries(RELICS.map((r) => [r.id, r]));
-export const DROP_POOL = RELICS.filter((r) => !r.enemyOnly);
+export const BYPRODUCT_BY_ID: Record<string, ByproductDef> = Object.fromEntries(BYPRODUCTS.map((r) => [r.id, r]));
+export const DROP_POOL = BYPRODUCTS.filter((r) => !r.enemyOnly);

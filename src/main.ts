@@ -1,11 +1,12 @@
-import { Game, OFFER_NAME, REST_NAME, MAX_KITS, type OfferMode } from './core/game';
+import { Game, OVERLOAD_NAME, REST_NAME, MAX_KITS, type OverloadMode } from './core/game';
 import { describeEngraving } from './core/describe';
-import type { Element, RelicInst } from './core/types';
+import type { Element, ByproductInst, GroundItem, WeaponInst } from './core/types';
 import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_SHORT } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
 import { Renderer } from './render/renderer';
-import { actorTooltip, esc, Hud, relicName, relicTooltip } from './ui/hud';
+import { actorTooltip, esc, Hud, byproductName, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
+import { heldWeapon } from './core/stats';
 
 const view = document.getElementById('view')!;
 const modal = document.getElementById('modal')!;
@@ -14,10 +15,11 @@ const renderer = new Renderer(view, document.getElementById('fx')!);
 const hud = new Hud();
 
 let game: Game | null = null;
+/** arm = -1 이면 무기 사격 조준 */
 let targeting: { arm: number; x: number; y: number } | null = null;
-let overlay: null | 'graft' | 'offer' | 'help' = null;
-let graftItem: RelicInst | null = null;
-let offerSel: RelicInst | null = null;
+let overlay: null | 'install' | 'overload' | 'help' = null;
+let installItem: GroundItem | null = null;
+let overloadSel: ByproductInst | null = null;
 let engraveSel: string | null = null;
 let auto: null | { kind: 'explore' } | { kind: 'travel'; x: number; y: number } = null;
 let autoHp = 0;
@@ -59,9 +61,12 @@ function keysHelp() {
     ['x', '출구로 자동 이동'],
     ['>', '출구에서 보급 지점으로'],
     ['1 2 3', '팔 부산물 액티브 (Tab 대상 변경)'],
-    ['g', '발밑 부산물 장착'],
-    ['f', '과부하 (부산물을 태움)'],
-    ['r', '응급 키트'],
+    ['g', '발밑 부산물 장착 · 무기 줍기'],
+    ['f', '사격 (원거리 무기, Tab 대상 변경)'],
+    ['r', '재장전 (대기로 침)'],
+    ['e', '무기 교체 (손 1 ↔ 2)'],
+    ['c', '과부하 (부산물을 태움)'],
+    ['q', '응급 키트'],
     ['마우스', '클릭 이동·조준, 휠 확대, 올리면 정보'],
   ];
   return `<div class="keys">${rows.map(([k, d]) => `<div><b>${esc(k)}</b> ${d}</div>`).join('')}</div>`;
@@ -97,7 +102,7 @@ function refresh() {
   if (targeting) hud.setHint('조준 중 — Tab: 다음 대상 · 클릭: 지점 선택 · Enter/같은 키: 발사 · Esc: 취소', true);
   else {
     const f = game.level.featureAt(game.player.x, game.player.y);
-    hud.setHint(f?.kind === 'exit' ? '[&gt;] 보급 지점으로 이동' : auto ? '자동 이동 중… (아무 키나 눌러 중단)' : 'o 오토탐험 · 1~3 액티브 · g 장착 · f 과부하 · r 응급 키트 · ? 도움말');
+    hud.setHint(f?.kind === 'exit' ? '[&gt;] 보급 지점으로 이동' : auto ? '자동 이동 중… (아무 키나 눌러 중단)' : 'o 오토탐험 · f 사격 · r 재장전 · e 무기 교체 · 1~3 액티브 · g 장착 · c 과부하 · q 응급 키트 · ? 도움말');
   }
   renderModal();
 }
@@ -113,8 +118,8 @@ function renderModal() {
   if (g.mode === 'dead' || g.mode === 'won') return showEnd();
   if (g.mode === 'levelup') return showEngravePick('레벨 업 — 새 각인', '몸에 새길 문장을 하나 고른다. 각인은 런이 끝날 때까지 잃지 않는다.');
   if (g.mode === 'altar') return showAltar();
-  if (overlay === 'graft') return showGraft();
-  if (overlay === 'offer') return showOffer();
+  if (overlay === 'install') return showInstall();
+  if (overlay === 'overload') return showOverload();
   if (overlay === 'help') {
     modal.hidden = false;
     modal.innerHTML = `<div class="box"><h2>도움말</h2>${keysHelp()}
@@ -131,8 +136,8 @@ function renderModal() {
 
 function closeOverlay() {
   overlay = null;
-  graftItem = null;
-  offerSel = null;
+  installItem = null;
+  overloadSel = null;
   refresh();
 }
 
@@ -181,84 +186,109 @@ function showAltar() {
   bind(modal, { yes: () => (g.acceptGod(true), refresh()), no: () => (g.acceptGod(false), refresh()) });
 }
 
-function showGraft() {
+function showInstall() {
   const g = game!;
   const items = g.groundHere();
   modal.hidden = false;
-  if (!graftItem || !items.includes(graftItem)) {
-    if (items.length === 1) graftItem = items[0];
+  if (!installItem || !items.includes(installItem)) {
+    if (items.length === 1) installItem = items[0];
     else {
-      modal.innerHTML = `<div class="box"><h2>장착 — 부산물 고르기</h2><div class="cards">${items.map((r, i) => `<div class="card" data-i="${i}"><span class="key">${i + 1}</span>${relicTooltip(r)}</div>`).join('')}</div>
+      modal.innerHTML = `<div class="box"><h2>장착 — 고르기</h2><div class="cards">${items.map((r, i) => `<div class="card" data-i="${i}"><span class="key">${i + 1}</span>${itemTooltip(r)}</div>`).join('')}</div>
         <div class="row"><button class="ghost" data-act="close">취소 (Esc)</button></div></div>`;
-      modal.querySelectorAll<HTMLElement>('[data-i]').forEach((el) => (el.onclick = () => ((graftItem = items[Number(el.dataset.i)]), refresh())));
+      modal.querySelectorAll<HTMLElement>('[data-i]').forEach((el) => (el.onclick = () => ((installItem = items[Number(el.dataset.i)]), refresh())));
       bind(modal, { close: closeOverlay });
       return;
     }
   }
-  const r = graftItem!;
+  if (installItem!.kind === 'weapon') return showTakeWeapon(installItem as WeaponInst);
+  const r = installItem as ByproductInst;
   const slots = g.player.slots[r.def.slot];
   modal.innerHTML = `<div class="box"><h2>장착 — ${esc(r.def.name)}</h2>
-    <div class="card" style="cursor:default">${relicTooltip(r)}</div>
+    <div class="card" style="cursor:default">${byproductTooltip(r)}</div>
     <p class="lead" style="margin-top:12px">${SLOT_NAME[r.def.slot]} 부위 어느 슬롯에 장착할까? 기존 부산물은 버리거나(바닥에 남음) 과부하(태워서 쿨다운 초기화)할 수 있다.</p>
     <div class="cards">${slots
       .map((cur, i) => {
-        if (!cur) return `<div class="card"><div class="nm">${SLOT_NAME[r.def.slot]}${i + 1} — 비어 있음</div><div class="row"><button data-graft="${i}" data-d="drop">장착 (${i + 1})</button></div></div>`;
-        if (cur.fixed) return `<div class="card disabled"><div class="nm">${SLOT_NAME[r.def.slot]}${i + 1} — 고정 슬롯</div>${relicTooltip(cur)}</div>`;
-        return `<div class="card"><div class="nm">${SLOT_NAME[r.def.slot]}${i + 1}</div>${relicTooltip(cur)}
-          <div class="row"><button data-graft="${i}" data-d="offer">과부하하고 교체</button><button class="ghost" data-graft="${i}" data-d="drop">버리고 교체</button></div></div>`;
+        if (!cur) return `<div class="card"><div class="nm">${SLOT_NAME[r.def.slot]}${i + 1} — 비어 있음</div><div class="row"><button data-install="${i}" data-d="drop">장착 (${i + 1})</button></div></div>`;
+        if (cur.fixed) return `<div class="card disabled"><div class="nm">${SLOT_NAME[r.def.slot]}${i + 1} — 고정 슬롯</div>${byproductTooltip(cur)}</div>`;
+        return `<div class="card"><div class="nm">${SLOT_NAME[r.def.slot]}${i + 1}</div>${byproductTooltip(cur)}
+          <div class="row"><button data-install="${i}" data-d="overload">과부하하고 교체</button><button class="ghost" data-install="${i}" data-d="drop">버리고 교체</button></div></div>`;
       })
       .join('')}</div>
     <div class="row"><button class="ghost" data-act="close">취소 (Esc)</button></div></div>`;
-  modal.querySelectorAll<HTMLElement>('[data-graft]').forEach(
+  modal.querySelectorAll<HTMLElement>('[data-install]').forEach(
     (el) =>
       (el.onclick = () => {
-        g.graft(r, Number(el.dataset.graft), el.dataset.d as 'drop' | 'offer');
+        g.install(r, Number(el.dataset.install), el.dataset.d as 'drop' | 'overload');
         closeOverlay();
       }),
   );
   bind(modal, { close: closeOverlay });
 }
 
-function offerCandidates(): RelicInst[] {
+function showTakeWeapon(w: WeaponInst) {
   const g = game!;
-  const eq = SLOTS.flatMap((s) => g.player.slots[s]).filter((r): r is RelicInst => !!r && !r.fixed);
-  return [...g.groundHere(), ...eq];
+  const p = g.player;
+  modal.innerHTML = `<div class="box"><h2>무기 — ${esc(w.def.name)}</h2>
+    <div class="card" style="cursor:default">${weaponTooltip(w)}</div>
+    <p class="lead" style="margin-top:12px">어느 손에 들까? 원래 든 무기는 바닥에 내려놓는다. 무기는 과부하하지 않는다.</p>
+    <div class="cards">${[0, 1]
+      .map((i) => {
+        const cur = p.hands[i];
+        return `<div class="card"><div class="nm">손${i + 1}${p.activeHand === i ? ' (들고 있음)' : ''}</div>${cur ? weaponTooltip(cur) : '<div class="ds">비어 있음</div>'}
+          <div class="row"><button data-hand="${i}">손${i + 1}에 들기 (${i + 1})</button></div></div>`;
+      })
+      .join('')}</div>
+    <div class="row"><button class="ghost" data-act="close">취소 (Esc)</button></div></div>`;
+  modal.querySelectorAll<HTMLElement>('[data-hand]').forEach(
+    (el) =>
+      (el.onclick = () => {
+        g.takeWeapon(w, Number(el.dataset.hand));
+        closeOverlay();
+      }),
+  );
+  bind(modal, { close: closeOverlay });
 }
 
-function showOffer() {
+function overloadCandidates(): ByproductInst[] {
+  const g = game!;
+  const eq = SLOTS.flatMap((s) => g.player.slots[s]).filter((r): r is ByproductInst => !!r && !r.fixed);
+  return [...g.groundHere().filter((r): r is ByproductInst => r.kind === 'byproduct'), ...eq];
+}
+
+function showOverload() {
   const g = game!;
   modal.hidden = false;
-  const cands = offerCandidates();
-  if (!offerSel || !cands.includes(offerSel)) {
-    offerSel = null;
-    const ground = new Set(g.groundHere());
+  const cands = overloadCandidates();
+  if (!overloadSel || !cands.includes(overloadSel)) {
+    overloadSel = null;
+    const ground = new Set<GroundItem>(g.groundHere());
     modal.innerHTML = `<div class="box"><h2>과부하 — 무엇을 태울까</h2><p class="lead">부산물을 과부하시켜 태운다. 되돌릴 수 없다. 등급이 높을수록 일격이 강하다.</p>
-      <div class="cards">${cands.map((r, i) => `<div class="card" data-i="${i}"><span class="key">${i < 9 ? i + 1 : ''} ${ground.has(r) ? '· 발밑' : '· 장착됨'}</span>${relicTooltip(r)}</div>`).join('')}</div>
+      <div class="cards">${cands.map((r, i) => `<div class="card" data-i="${i}"><span class="key">${i < 9 ? i + 1 : ''} ${ground.has(r) ? '· 발밑' : '· 장착됨'}</span>${byproductTooltip(r)}</div>`).join('')}</div>
       <div class="row"><button class="ghost" data-act="close">취소 (Esc)</button></div></div>`;
-    modal.querySelectorAll<HTMLElement>('[data-i]').forEach((el) => (el.onclick = () => ((offerSel = cands[Number(el.dataset.i)]), refresh())));
+    modal.querySelectorAll<HTMLElement>('[data-i]').forEach((el) => (el.onclick = () => ((overloadSel = cands[Number(el.dataset.i)]), refresh())));
     bind(modal, { close: closeOverlay });
     return;
   }
-  const r = offerSel;
-  const modes: [OfferMode, string][] = [
+  const r = overloadSel;
+  const modes: [OverloadMode, string][] = [
     ['strike', '가장 가까운 적에게 장갑을 꿰뚫는 큰 일격'],
     ['retrigger', '모든 각인을 이 부산물의 원소로 즉시 한 번씩 발동'],
     ['cooldown', '모든 액티브 쿨다운 초기화'],
     ['repair', '모든 부산물 수리 + 체력 회복'],
   ];
-  modal.innerHTML = `<div class="box"><h2>과부하 — ${relicName(r)}</h2>
-    <div class="cards">${modes.map(([m, d], i) => `<div class="card" data-m="${m}"><span class="key">${i + 1}</span><div class="nm">${OFFER_NAME[m]}</div><div class="ds">${d}</div></div>`).join('')}</div>
+  modal.innerHTML = `<div class="box"><h2>과부하 — ${byproductName(r)}</h2>
+    <div class="cards">${modes.map(([m, d], i) => `<div class="card" data-m="${m}"><span class="key">${i + 1}</span><div class="nm">${OVERLOAD_NAME[m]}</div><div class="ds">${d}</div></div>`).join('')}</div>
     <div class="row"><button class="ghost" data-act="back">다른 부산물</button><button class="ghost" data-act="close">취소 (Esc)</button></div></div>`;
-  modal.querySelectorAll<HTMLElement>('[data-m]').forEach((el) => (el.onclick = () => doOffer(el.dataset.m as OfferMode)));
-  bind(modal, { back: () => ((offerSel = null), refresh()), close: closeOverlay });
+  modal.querySelectorAll<HTMLElement>('[data-m]').forEach((el) => (el.onclick = () => doOverload(el.dataset.m as OverloadMode)));
+  bind(modal, { back: () => ((overloadSel = null), refresh()), close: closeOverlay });
 }
 
-function doOffer(m: OfferMode) {
-  if (offerSel) game!.offer(offerSel, m);
+function doOverload(m: OverloadMode) {
+  if (overloadSel) game!.overload(overloadSel, m);
   closeOverlay();
 }
 
-let reforgeSel: RelicInst | null = null;
+let reforgeSel: ByproductInst | null = null;
 function showRest() {
   const g = game!;
   modal.hidden = false;
@@ -266,15 +296,15 @@ function showRest() {
   switch (g.restService) {
     case 'shop':
       body = `<p class="lead">마석 <b>${g.ash}</b>. 산 부산물은 보급 포드 바닥에 놓인다.</p>
-        <div class="cards">${g.shop.map((s, i) => `<div class="card">${relicTooltip(s.relic)}<div class="row"><button data-buy="${i}" ${g.ash < s.price ? 'disabled' : ''}>구매 (${s.price})</button></div></div>`).join('')}
+        <div class="cards">${g.shop.map((s, i) => `<div class="card">${itemTooltip(s.item)}<div class="row"><button data-buy="${i}" ${g.ash < s.price ? 'disabled' : ''}>구매 (${s.price})</button></div></div>`).join('')}
         <div class="card"><div class="nm">응급 키트</div><div class="ds">소지 ${g.kits}/${MAX_KITS}</div><div class="row"><button data-act="kit" ${g.ash < 4 || g.kits >= MAX_KITS ? 'disabled' : ''}>구매 (4)</button></div></div></div>`;
       break;
     case 'reforge': {
-      const eq = SLOTS.flatMap((s) => g.player.slots[s]).filter((r): r is RelicInst => !!r);
+      const eq = SLOTS.flatMap((s) => g.player.slots[s]).filter((r): r is ByproductInst => !!r);
       body = g.restUsed
         ? '<p class="lead">개조를 마쳤다.</p>'
         : `<p class="lead">부산물 하나의 첫 원소를 바꾼다 (액티브 원소도 바뀐다).</p>
-        <div class="cards">${eq.map((r, i) => `<div class="card ${reforgeSel === r ? 'sel' : ''}" data-rf="${i}">${relicTooltip(r)}</div>`).join('')}</div>
+        <div class="cards">${eq.map((r, i) => `<div class="card ${reforgeSel === r ? 'sel' : ''}" data-rf="${i}">${byproductTooltip(r)}</div>`).join('')}</div>
         ${reforgeSel ? `<div class="row">${ELEMENTS.map((e) => `<button data-el="${e}"><i class="el ${e}"></i> ${ELEMENT_NAME[e]}</button>`).join('')}</div>` : ''}`;
       setTimeout(() => {
         modal.querySelectorAll<HTMLElement>('[data-rf]').forEach((el) => (el.onclick = () => ((reforgeSel = eq[Number(el.dataset.rf)]), refresh())));
@@ -301,12 +331,12 @@ function showRest() {
   modal.innerHTML = `<div class="box"><h2>보급 지점 — ${REST_NAME[g.restService]}</h2>
     <p class="lead">${esc(g.depthLabel)}을(를) 지났다. 보급 포드가 부산물을 모두 수리했다. (체력 ${g.player.hp}/${g.st(g.player).maxHp})</p>
     ${body}
-    ${items.length ? `<h3>보급 포드 바닥</h3><div class="cards">${items.map((r, i) => `<div class="card">${relicTooltip(r)}<div class="row"><button data-gr="${i}">장착</button><button class="ghost" data-of="${i}">과부하 (쿨다운 초기화)</button></div></div>`).join('')}</div>` : ''}
+    ${items.length ? `<h3>보급 포드 바닥</h3><div class="cards">${items.map((r, i) => `<div class="card">${itemTooltip(r)}<div class="row">${r.kind === 'weapon' ? `<button data-gr="${i}">손에 들기</button>` : `<button data-gr="${i}">장착</button><button class="ghost" data-of="${i}">과부하 (쿨다운 초기화)</button>`}</div></div>`).join('')}</div>` : ''}
     <div class="row"><span style="flex:1"></span><button data-act="leave">다음 층으로 (Enter)</button></div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-buy]').forEach((el) => (el.onclick = () => (g.buy(Number(el.dataset.buy)), refresh())));
   modal.querySelectorAll<HTMLElement>('[data-id]').forEach((el) => (el.onclick = () => pickEngraving(el.dataset.id!)));
-  modal.querySelectorAll<HTMLElement>('[data-gr]').forEach((el) => (el.onclick = () => ((graftItem = items[Number(el.dataset.gr)]), (overlay = 'graft'), refresh())));
-  modal.querySelectorAll<HTMLElement>('[data-of]').forEach((el) => (el.onclick = () => (g.offer(items[Number(el.dataset.of)], 'cooldown'), refresh())));
+  modal.querySelectorAll<HTMLElement>('[data-gr]').forEach((el) => (el.onclick = () => ((installItem = items[Number(el.dataset.gr)]), (overlay = 'install'), refresh())));
+  modal.querySelectorAll<HTMLElement>('[data-of]').forEach((el) => (el.onclick = () => (g.overload(items[Number(el.dataset.of)] as ByproductInst, 'cooldown'), refresh())));
   bind(modal, {
     kit: () => (g.buyKit(), refresh()),
     leave: () => {
@@ -330,7 +360,7 @@ function showEnd() {
       <tr><td>처치</td><td>${s.kills}</td></tr>
       <tr><td>각인 발동</td><td>${s.triggers} (최대 연쇄 깊이 ${s.maxDepth})</td></tr>
       <tr><td>복합 반응</td><td>${s.combos}</td></tr>
-      <tr><td>과부하 / 장착</td><td>${s.offers} / ${s.grafts}</td></tr>
+      <tr><td>과부하 / 장착</td><td>${s.overloads} / ${s.installs}</td></tr>
       <tr><td>각인</td><td>${g.player.engravings.map((e) => esc(e.name)).join(', ')}</td></tr>
     </table>
     <div class="row"><button data-act="again">같은 시드로 다시</button><button data-act="title">새 클론 출격 (Enter)</button></div></div>`;
@@ -386,6 +416,27 @@ function startTargeting(arm: number) {
   refresh();
 }
 
+function startShoot() {
+  const g = game!;
+  const s = g.st(g.player);
+  const w = heldWeapon(g.player);
+  if (s.range <= 1) {
+    g.log('원거리 무기를 들고 있지 않다. [E] 무기 교체');
+    return refresh();
+  }
+  if (w?.def.mag !== undefined && w.ammo <= 0) {
+    g.reload();
+    return refresh();
+  }
+  const foes = sortedFoes();
+  if (!foes.length) {
+    g.log('보이는 적이 없다.');
+    return refresh();
+  }
+  targeting = { arm: -1, x: foes[0].x, y: foes[0].y };
+  refresh();
+}
+
 function sortedFoes() {
   const g = game!;
   const p = g.player;
@@ -407,7 +458,8 @@ function fireTarget() {
   if (!targeting) return;
   const t = targeting;
   targeting = null;
-  game!.useActive(t.arm, t.x, t.y);
+  if (t.arm < 0) game!.shoot(t.x, t.y);
+  else game!.useActive(t.arm, t.x, t.y);
   refresh();
 }
 
@@ -445,25 +497,30 @@ window.addEventListener('keydown', (e) => {
   if (overlay) {
     if (e.key === 'Escape') return closeOverlay();
     const i = Number(e.key) - 1;
-    if (overlay === 'offer' && i >= 0) {
-      if (offerSel) {
-        const modes: OfferMode[] = ['strike', 'retrigger', 'cooldown', 'repair'];
-        if (modes[i]) doOffer(modes[i]);
+    if (overlay === 'overload' && i >= 0) {
+      if (overloadSel) {
+        const modes: OverloadMode[] = ['strike', 'retrigger', 'cooldown', 'repair'];
+        if (modes[i]) doOverload(modes[i]);
       } else {
-        const c = offerCandidates();
-        if (c[i]) ((offerSel = c[i]), refresh());
+        const c = overloadCandidates();
+        if (c[i]) ((overloadSel = c[i]), refresh());
       }
     }
-    if (overlay === 'graft' && i >= 0) {
-      if (graftItem) {
-        const cur = g.player.slots[graftItem.def.slot][i];
-        if (i < g.player.slots[graftItem.def.slot].length && !cur?.fixed) {
-          g.graft(graftItem, i, 'offer');
+    if (overlay === 'install' && i >= 0) {
+      if (installItem?.kind === 'weapon') {
+        if (i <= 1) {
+          g.takeWeapon(installItem, i);
+          closeOverlay();
+        }
+      } else if (installItem) {
+        const cur = g.player.slots[installItem.def.slot][i];
+        if (i < g.player.slots[installItem.def.slot].length && !cur?.fixed) {
+          g.install(installItem, i, 'overload');
           closeOverlay();
         }
       } else {
         const items = g.groundHere();
-        if (items[i]) ((graftItem = items[i]), refresh());
+        if (items[i]) ((installItem = items[i]), refresh());
       }
     }
     return;
@@ -523,13 +580,21 @@ window.addEventListener('keydown', (e) => {
     case '3':
       return startTargeting(Number(e.key) - 1);
     case 'g':
-      if (g.groundHere().length) overlay = 'graft';
-      else g.log('발밑에 부산물이 없다.');
+      if (g.groundHere().length) overlay = 'install';
+      else g.log('발밑에 주울 것이 없다.');
       break;
     case 'f':
-      overlay = 'offer';
-      break;
+      return startShoot();
     case 'r':
+      g.reload();
+      break;
+    case 'e':
+      g.swapWeapon();
+      break;
+    case 'c':
+      overlay = 'overload';
+      break;
+    case 'q':
       g.useKit();
       break;
     case '?':
@@ -584,7 +649,7 @@ canvas.addEventListener('mousemove', (e) => {
   const a = g.actorAt(t[0], t[1]);
   if (a && !a.isPlayer && lv.visible[i]) return hud.showTooltip(actorTooltip(g, a), e.clientX, e.clientY);
   const items = g.ground.get(i);
-  if (items?.length && lv.explored[i]) return hud.showTooltip(items.map(relicTooltip).join('<hr style="border-color:#4a3a28">'), e.clientX, e.clientY);
+  if (items?.length && lv.explored[i]) return hud.showTooltip(items.map(itemTooltip).join('<hr style="border-color:#4a3a28">'), e.clientX, e.clientY);
   const f = lv.featureAt(t[0], t[1]);
   if (f && lv.explored[i]) return hud.showTooltip(f.kind === 'exit' ? '<div class="t">출구</div><div class="r">보급 지점으로 이어진다</div>' : `<div class="t">제단</div><div class="r">${esc(GODS.find((x) => x.id === f.godId)!.name)}</div>`, e.clientX, e.clientY);
   hud.showTooltip(null);
@@ -603,6 +668,11 @@ canvas.addEventListener('click', (e) => {
   const p = g.player;
   const dx = t[0] - p.x,
     dy = t[1] - p.y;
+  const foe = g.actorAt(t[0], t[1]);
+  if (foe && foe.faction === 'enemy' && g.st(p).range > 1 && Math.max(Math.abs(dx), Math.abs(dy)) > 1) {
+    g.shoot(t[0], t[1]);
+    return refresh();
+  }
   if (Math.max(Math.abs(dx), Math.abs(dy)) === 1) {
     g.move(dx, dy);
     return refresh();
@@ -615,11 +685,11 @@ canvas.addEventListener('click', (e) => {
 
 // 패널의 부산물 위에 마우스를 올리면 정보
 document.getElementById('hud')!.addEventListener('mousemove', (e) => {
-  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-relic]');
+  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-byproduct]');
   if (!el || !game) return hud.showTooltip(null);
-  const uid = Number(el.dataset.relic);
-  const r = [...SLOTS.flatMap((s) => game!.player.slots[s]), ...game.groundHere()].find((x) => x?.uid === uid);
-  if (r) hud.showTooltip(relicTooltip(r), e.clientX, e.clientY);
+  const uid = Number(el.dataset.byproduct);
+  const r = [...SLOTS.flatMap((s) => game!.player.slots[s]), ...game.player.hands, ...game.groundHere()].find((x) => x?.uid === uid);
+  if (r) hud.showTooltip(itemTooltip(r), e.clientX, e.clientY);
 });
 
 showTitle();

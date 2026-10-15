@@ -1,18 +1,18 @@
 import type { Game } from '../core/game';
-import { describeEffect, describeRelic } from '../core/describe';
-import type { Actor, GameEvent, RelicInst, Slot } from '../core/types';
-import { ELEMENT_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
+import { describeEffect, describeByproduct } from '../core/describe';
+import type { Actor, GameEvent, ByproductInst, GroundItem, Slot, WeaponInst } from '../core/types';
+import { ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
 import { isBroken, partArmorMax } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
 import { GODS } from '../data/start';
 
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-export function elDots(r: RelicInst | { def: { elements: string[] } }) {
+export function elDots(r: ByproductInst | { def: { elements: string[] } }) {
   return r.def.elements.map((e) => `<i class="el ${e}" title="${ELEMENT_NAME[e as keyof typeof ELEMENT_NAME]}"></i>`).join('');
 }
 
-export function relicName(r: RelicInst) {
+export function byproductName(r: ByproductInst) {
   return `<span class="g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</span>`;
 }
 
@@ -68,6 +68,9 @@ export class Hud {
     let html = `<h3>체력</h3>
       <div class="bar"><i style="width:${hpPct}%"></i>${p.shield ? `<b style="width:${shPct}%"></b>` : ''}<span>${p.hp} / ${s.maxHp}${p.shield ? ` (+${p.shield} 보호막)` : ''}</span></div>
       <div class="bar xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></div>
+      <h3>손</h3>${p.hands
+        .map((w, i) => `<div class="slot ${i === p.activeHand ? '' : 'dormant'}" ${w ? `data-byproduct="${w.uid}"` : ''}><span class="k">손${i + 1}</span><span class="n">${w ? `⚔ ${esc(w.def.name)}` : '맨주먹'}<div class="sub">${w ? `피해 ${w.def.damage} · ${w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}` : ''}</div></span>${w?.def.mag !== undefined ? `<span class="badge ${w.ammo ? 'ready' : 'bad'}">${w.ammo}/${w.def.mag}</span>` : ''}${i === p.activeHand ? '<span class="badge fixed">사용 중</span>' : ''}</div>`)
+        .join('')}
       <div class="stats">
         <span>레벨 <b>${g.plevel}</b></span><span>마석 <b>${g.ash}</b></span>
         <span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span><span>회피 <b>${s.dodge}%</b></span>
@@ -105,9 +108,9 @@ export class Hud {
           sub = `${a.element ? ELEMENT_NAME[a.element] + ' ' : ''}${FORM_NAME[a.form]} ${a.power}`;
         }
         if (slot === 'body' && r.def.stats.integrity) sub = `몸 장갑 +${r.def.stats.integrity}`;
-        html += `<div class="slot ${broken ? 'damaged' : ''} ${r.dormant ? 'dormant' : ''}" data-relic="${r.uid}">
+        html += `<div class="slot ${broken ? 'damaged' : ''} ${r.dormant ? 'dormant' : ''}" data-byproduct="${r.uid}">
           <span class="k">${SLOT_NAME[slot]}${i + 1}</span>
-          <span class="n">${relicName(r)}${sub ? `<div class="sub">${sub}</div>` : ''}</span><span>${badges.join('')}</span></div>`;
+          <span class="n">${byproductName(r)}${sub ? `<div class="sub">${sub}</div>` : ''}</span><span>${badges.join('')}</span></div>`;
       });
     }
     this.left.innerHTML = html;
@@ -136,8 +139,11 @@ export class Hud {
     const here = g.mode === 'play' ? g.groundHere() : [];
     if (here.length) {
       rh += `<h3>발밑</h3>`;
-      for (const r of here) rh += `<div class="slot" data-relic="${r.uid}"><span class="n">${relicName(r)}<div class="sub">${esc(describeRelic(r.def)[1])}</div></span></div>`;
-      rh += `<div style="color:var(--dim);font-size:11.5px">[G] 장착 · [F] 과부하</div>`;
+      for (const r of here)
+        rh += r.kind === 'weapon'
+          ? `<div class="slot" data-byproduct="${r.uid}"><span class="n">⚔ ${esc(r.def.name)}<div class="sub">피해 ${r.def.damage} · ${r.def.range > 1 ? `사거리 ${r.def.range}` : '근접'}</div></span></div>`
+          : `<div class="slot" data-byproduct="${r.uid}"><span class="n">${byproductName(r)}<div class="sub">${esc(describeByproduct(r.def)[1])}</div></span></div>`;
+      rh += `<div style="color:var(--dim);font-size:11.5px">[G] 장착·줍기 · [C] 과부하</div>`;
     }
     this.right.innerHTML = rh;
   }
@@ -156,21 +162,31 @@ export class Hud {
   }
 }
 
-export function relicTooltip(r: RelicInst): string {
-  const lines = describeRelic(r.def);
+export function byproductTooltip(r: ByproductInst): string {
+  const lines = describeByproduct(r.def);
   return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}${r.dormant ? ' (절전)' : ''}</div>${lines.map((l) => `<div class="r">${esc(l)}</div>`).join('')}`;
 }
 
 export function actorTooltip(g: Game, a: Actor): string {
   const s = g.st(a);
-  const relics = (['arm', 'body', 'leg', 'sense'] as Slot[]).flatMap((k) => a.slots[k]).filter((r): r is RelicInst => !!r);
+  const byproducts = (['arm', 'body', 'leg', 'sense'] as Slot[]).flatMap((k) => a.slots[k]).filter((r): r is ByproductInst => !!r);
   const st = Object.entries(a.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
   if (a.aura) st.push(`${ELEMENT_NAME[a.aura.element]} 잔류`);
   if (a.marked) st.push('표식');
   return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
     <div class="r">체력 ${a.hp}/${s.maxHp} · 슈트 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${s.moveCost}</div>
     ${st.length ? `<div style="color:#e0a050">${st.join(' · ')}</div>` : ''}
-    ${relics.map((r) => `<div>${relicName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
+    ${byproducts.map((r) => `<div>${byproductName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
     ${a.engravings.length ? `<div class="r">각인: ${a.engravings.map((e) => esc(e.name)).join(', ')}</div>` : ''}
     ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;
+}
+
+export function weaponTooltip(w: WeaponInst): string {
+  const d = w.def;
+  const parts = [`피해 ${d.damage}`, `공격 비용 ${d.attackCost}`, d.range > 1 ? `사거리 ${d.range}` : '근접', d.mag !== undefined ? `탄창 ${w.ammo}/${d.mag}` : '', `부담 ${d.burden}`].filter(Boolean);
+  return `<div class="t g-${d.grade}">⚔ ${esc(d.name)}</div><div class="r">${GRADE_NAME[d.grade]} · 무기 · ${FAMILY_NAME[d.family]}</div><div class="r">${parts.join(' · ')}</div>`;
+}
+
+export function itemTooltip(r: GroundItem): string {
+  return r.kind === 'weapon' ? weaponTooltip(r) : byproductTooltip(r);
 }

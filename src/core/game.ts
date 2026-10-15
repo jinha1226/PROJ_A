@@ -1,21 +1,22 @@
 import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLevel, hasLos, Level, linePoints } from './dungeon';
-import { allRelics, computeStats, HIT_WEIGHT, isBroken, partArmorMax, relicFactor, type Stats } from './stats';
+import { allByproducts, heldWeapon, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
-  Actor, EffectSpec, Element, EngravingDef, Faction, GameEvent, RelicDef, RelicInst, Slot, StatusKind, Trigger,
+  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, EngravingDef, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, Trigger,
 } from './types';
 import { ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
-import { DROP_POOL, RELIC_BY_ID } from '../data/relics';
+import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { ENGRAVING_BY_ID, ENGRAVING_POOL } from '../data/engravings';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
 import { BODIES, GODS, ORIGINS } from '../data/start';
+import { FISTS, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
 import { ENEMIES, ENEMY_BY_ID, ZONES, type EnemyTemplate } from '../data/enemies';
 
 export type Mode = 'play' | 'levelup' | 'rest' | 'altar' | 'dead' | 'won';
-export type OfferMode = 'strike' | 'retrigger' | 'cooldown' | 'repair';
+export type OverloadMode = 'strike' | 'retrigger' | 'cooldown' | 'repair';
 export type RestService = 'shop' | 'reforge' | 'engrave';
 
-export const OFFER_NAME: Record<OfferMode, string> = {
+export const OVERLOAD_NAME: Record<OverloadMode, string> = {
   strike: '큰 일격',
   retrigger: '각인 재발동',
   cooldown: '쿨다운 초기화',
@@ -53,8 +54,8 @@ export interface RunStats {
   kills: number;
   triggers: number;
   combos: number;
-  offers: number;
-  grafts: number;
+  overloads: number;
+  installs: number;
   maxDepth: number;
   floorTurns: number[];
   damageDealt: number;
@@ -65,7 +66,9 @@ export class Game {
   level!: Level;
   actors: Actor[] = [];
   player!: Actor;
-  ground = new Map<number, RelicInst[]>();
+  ground = new Map<number, GroundItem[]>();
+  /** 플레이어가 이미 밟아본 물건 칸 (오토탐험이 다시 가지 않음) */
+  private itemSeen = new Set<number>();
   events: GameEvent[] = [];
   mode: Mode = 'play';
 
@@ -79,13 +82,13 @@ export class Game {
   pendingLevelUps = 0;
   ash = 0;
   kits = 1;
-  god?: { id: string; piety: number; grafted: boolean };
+  god?: { id: string; piety: number; installed: boolean };
   levelChoices: EngravingDef[] = [];
   restService: RestService = 'shop';
-  shop: { relic: RelicInst; price: number }[] = [];
-  restItems: RelicInst[] = [];
+  shop: { item: GroundItem; price: number }[] = [];
+  restItems: GroundItem[] = [];
   restUsed = false;
-  stats: RunStats = { turns: 0, kills: 0, triggers: 0, combos: 0, offers: 0, grafts: 0, maxDepth: 0, floorTurns: [], damageDealt: 0 };
+  stats: RunStats = { turns: 0, kills: 0, triggers: 0, combos: 0, overloads: 0, installs: 0, maxDepth: 0, floorTurns: [], damageDealt: 0 };
 
   private nextId = 1;
   private nextUid = 1;
@@ -100,16 +103,21 @@ export class Game {
 
   // ───────────────────────── 생성 ─────────────────────────
 
-  makeRelic(def: RelicDef | string): RelicInst {
-    const d = typeof def === 'string' ? RELIC_BY_ID[def] : def;
-    return { uid: this.nextUid++, def: d, dormant: false, fixed: false, cd: 0, upgrade: 0 };
+  makeByproduct(def: ByproductDef | string): ByproductInst {
+    const d = typeof def === 'string' ? BYPRODUCT_BY_ID[def] : def;
+    return { kind: 'byproduct', uid: this.nextUid++, def: d, dormant: false, fixed: false, cd: 0, upgrade: 0 };
+  }
+
+  makeWeapon(def: WeaponDef | string): WeaponInst {
+    const d = typeof def === 'string' ? WEAPON_BY_ID[def] : def;
+    return { kind: 'weapon', uid: this.nextUid++, def: d, ammo: d.mag ?? 0 };
   }
 
   private newActor(name: string, faction: Faction, hp: number, dmg: number, slots: Record<Slot, number>): Actor {
     const s = {} as Actor['slots'];
     for (const k of SLOTS) s[k] = new Array(slots[k]).fill(null);
     return {
-      id: this.nextId++, name, faction, isPlayer: false, x: 0, y: 0, hp, baseHp: hp, baseDamage: dmg, slots: s,
+      id: this.nextId++, name, faction, isPlayer: false, x: 0, y: 0, hp, baseHp: hp, baseDamage: dmg, slots: s, hands: [], activeHand: 0,
       burdenCap: 99, partArmor: { body: 0, arm: 0, leg: 0, sense: 0 }, partArmorBase: { body: 0, arm: 0, leg: 0, sense: 0 }, engravings: [], engravingFires: new Map(), time: 0, shield: 0, statuses: {}, haste: 0,
       marked: false, dead: false, awake: false, dropChance: 0,
     };
@@ -123,11 +131,12 @@ export class Game {
     p.awake = true;
     p.burdenCap = body.burdenCap;
     p.partArmorBase = { ...body.armor };
-    const fixed = this.makeRelic(body.fixed.relic);
+    const fixed = this.makeByproduct(body.fixed.byproduct);
     fixed.fixed = true;
     p.slots[body.fixed.slot][0] = fixed;
     p.fixedSlot = { slot: body.fixed.slot, index: 0 };
-    for (const id of [origin.relic, ...body.relics]) this.equipFree(p, this.makeRelic(id));
+    for (const id of [origin.byproduct, ...body.byproducts]) this.equipFree(p, this.makeByproduct(id));
+    p.hands = [this.makeWeapon(origin.weapon), null];
     p.engravings.push(ENGRAVING_BY_ID[origin.engraving]);
     this.player = p;
     this.recomputeBurden(p);
@@ -135,7 +144,7 @@ export class Game {
     p.hp = this.st(p).maxHp;
   }
 
-  private equipFree(a: Actor, r: RelicInst): boolean {
+  private equipFree(a: Actor, r: ByproductInst): boolean {
     const arr = a.slots[r.def.slot];
     const i = arr.indexOf(null);
     if (i < 0) return false;
@@ -145,10 +154,10 @@ export class Game {
 
   private spawnEnemy(t: EnemyTemplate, x: number, y: number): Actor {
     const counts: Record<Slot, number> = { body: 0, arm: 0, leg: 0, sense: 0 };
-    for (const id of t.relics) counts[RELIC_BY_ID[id].slot]++;
+    for (const id of t.byproducts) counts[BYPRODUCT_BY_ID[id].slot]++;
     const scale = 1 + this.floor * 0.08;
     const e = this.newActor(t.name, 'enemy', Math.round(t.hp * scale), t.baseDamage, counts);
-    for (const id of t.relics) this.equipFree(e, this.makeRelic(id));
+    for (const id of t.byproducts) this.equipFree(e, this.makeByproduct(id));
     if (t.engraving) e.engravings.push(ENGRAVING_BY_ID[t.engraving]);
     e.ai = t.ai;
     e.boss = t.boss;
@@ -175,6 +184,7 @@ export class Game {
   private enterFloor() {
     const p = this.player;
     this.ground.clear();
+    this.itemSeen.clear();
     this.actors = [p];
     this.floorTurns = 0;
     this.alert = 0;
@@ -218,7 +228,13 @@ export class Game {
       for (let i = 0; i < 2; i++) {
         const room = this.rng.pick(rooms);
         const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
-        if (pos) this.dropItem(pos[0], pos[1], this.makeRelic(this.rollRelic()));
+        if (pos) this.dropItem(pos[0], pos[1], this.makeByproduct(this.rollByproduct()));
+      }
+      // 무기 하나 (60%)
+      if (this.rng.chance(0.6)) {
+        const room = this.rng.pick(rooms);
+        const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
+        if (pos) this.dropItem(pos[0], pos[1], this.makeWeapon(this.rollWeapon()));
       }
     }
     this.worldTime = p.time;
@@ -237,7 +253,7 @@ export class Game {
   }
 
   /** 드롭: 보유 각인의 원소 쪽으로 약 40% 기울임 */
-  rollRelic(): RelicDef {
+  rollByproduct(): ByproductDef {
     const gradeW = this.zone === 0 ? { common: 72, holy: 24, forbidden: 4 } : { common: 50, holy: 40, forbidden: 10 };
     const grade = this.rng.weighted(['common', 'holy', 'forbidden'] as const, (g) => gradeW[g]);
     let pool = DROP_POOL.filter((r) => r.grade === grade);
@@ -252,16 +268,23 @@ export class Game {
     return this.rng.pick(pool);
   }
 
-  dropItem(x: number, y: number, r: RelicInst) {
+  dropItem(x: number, y: number, r: GroundItem) {
     const i = this.level.idx(x, y);
     const arr = this.ground.get(i) ?? [];
-    r.dormant = false;
+    if (r.kind === 'byproduct') r.dormant = false;
+    this.itemSeen.delete(i);
     arr.push(r);
     this.ground.set(i, arr);
   }
 
-  /** 발밑의 부산물 (보급 지점에서는 보급 포드 바닥) */
-  groundHere(): RelicInst[] {
+  /** 무기 드롭: 등급은 구역이 깊을수록 좋아진다 */
+  rollWeapon(): WeaponDef {
+    const pool = WEAPONS.filter((w) => w.id !== 'pistol');
+    return this.rng.weighted(pool, (w) => (w.grade === 'common' ? 10 : this.zone === 0 ? 2 : 6));
+  }
+
+  /** 발밑의 부산물·무기 (보급 지점에서는 보급 포드 바닥) */
+  groundHere(): GroundItem[] {
     if (this.mode === 'rest') return this.restItems;
     return this.ground.get(this.level.idx(this.player.x, this.player.y)) ?? [];
   }
@@ -294,8 +317,8 @@ export class Game {
     return this.actors.filter((a) => !a.dead && a.faction === 'enemy' && lv.visible[lv.idx(a.x, a.y)]);
   }
 
-  equippedActives(a: Actor): RelicInst[] {
-    return a.slots.arm.filter((r): r is RelicInst => !!r && !!r.def.active);
+  equippedActives(a: Actor): ByproductInst[] {
+    return a.slots.arm.filter((r): r is ByproductInst => !!r && !!r.def.active);
   }
 
   engravingCap() {
@@ -360,8 +383,10 @@ export class Game {
     if (dx && dy && (!lv.isFloor(p.x + dx, p.y) || !lv.isFloor(p.x, p.y + dy))) return false;
     const other = this.actorAt(nx, ny);
     if (other && this.hostile(p, other)) {
-      this.basicAttack(p, other);
-      this.endPlayerAction(this.st(p).attackCost);
+      // 원거리 무기를 든 채 부딪히면 개머리판 타격 (약함)
+      const ranged = this.st(p).range > 1;
+      this.basicAttack(p, other, ranged);
+      this.endPlayerAction(ranged ? 100 : this.st(p).attackCost);
       return true;
     }
     if (other) {
@@ -384,8 +409,9 @@ export class Game {
       this.gainXp(10);
     }
     this.fire(p, 'move', {});
+    this.itemSeen.add(lv.idx(p.x, p.y));
     const items = this.groundHere();
-    if (items.length) this.log(`발밑에 부산물: ${items.map((r) => r.def.name).join(', ')} — [G] 장착 / [F] 과부하`, 'item');
+    if (items.length) this.log(`발밑에: ${items.map((r) => r.def.name).join(', ')} — [G] 장착`, 'item');
     const f = lv.featureAt(p.x, p.y);
     if (f?.kind === 'exit') this.log('출구다. [>] 보급 지점으로 이동한다.', 'item');
     if (f?.kind === 'altar' && !f.used && !this.god) this.mode = 'altar';
@@ -395,6 +421,86 @@ export class Game {
     if (!this.canAct()) return false;
     this.fire(this.player, 'wait', {});
     this.endPlayerAction(100);
+    return true;
+  }
+
+  /** 사격: 원거리 무기로 (tx,ty)의 적을 쏜다 */
+  shoot(tx: number, ty: number): boolean {
+    if (!this.canAct()) return false;
+    const p = this.player;
+    const w = heldWeapon(p);
+    const s = this.st(p);
+    if (!w || s.range <= 1) {
+      this.log('원거리 무기를 들고 있지 않다.');
+      return false;
+    }
+    if (w.def.mag !== undefined && w.ammo <= 0) {
+      this.log(`${w.def.name}: 탄창이 비었다. [R] 재장전`, 'warn');
+      return false;
+    }
+    const t = this.actorAt(tx, ty);
+    if (!t || !this.hostile(p, t) || !this.level.visible[this.level.idx(tx, ty)]) {
+      this.log('쏠 대상이 없다.');
+      return false;
+    }
+    if (Math.max(Math.abs(tx - p.x), Math.abs(ty - p.y)) > s.range || !hasLos(this.level, p.x, p.y, tx, ty)) {
+      this.log('사거리 밖이다.');
+      return false;
+    }
+    if (w.def.mag !== undefined) w.ammo--;
+    this.emit({ type: 'fx', fx: 'line', x: p.x, y: p.y, tx, ty, element: p.imbue });
+    this.basicAttack(p, t);
+    this.endPlayerAction(s.attackCost);
+    return true;
+  }
+
+  /** 재장전: 대기 행동으로 친다 (대기 각인 발동) */
+  reload(): boolean {
+    if (!this.canAct()) return false;
+    const w = heldWeapon(this.player);
+    if (!w || w.def.mag === undefined) {
+      this.log('재장전할 총이 없다.');
+      return false;
+    }
+    if (w.ammo >= w.def.mag) {
+      this.log('탄창이 가득 차 있다.');
+      return false;
+    }
+    w.ammo = w.def.mag;
+    this.log(`${w.def.name} 재장전 (${w.ammo}/${w.def.mag})`, 'skill');
+    this.fire(this.player, 'wait', {});
+    this.endPlayerAction(100);
+    return true;
+  }
+
+  /** 손 2칸 사이에서 무기 교체 (1턴) */
+  swapWeapon(): boolean {
+    if (!this.canAct()) return false;
+    const p = this.player;
+    p.activeHand = p.activeHand === 0 ? 1 : 0;
+    this.recomputeBurden(p);
+    this.log(`무기 교체: ${heldWeapon(p)?.def.name ?? FISTS.name}`);
+    this.emit({ type: 'loadout', actor: p.id });
+    this.endPlayerAction(100);
+    return true;
+  }
+
+  /** 바닥의 무기를 손 hand에 든다. 원래 든 무기는 그 자리에 버린다 (무기는 과부하하지 않는다) */
+  takeWeapon(w: WeaponInst, hand: number): boolean {
+    if (this.mode !== 'play' && this.mode !== 'rest') return false;
+    const p = this.player;
+    const ground = this.groundHere();
+    const gi = ground.indexOf(w);
+    if (gi < 0 || hand < 0 || hand > 1) return false;
+    ground.splice(gi, 1);
+    const old = p.hands[hand];
+    if (old) ground.push(old);
+    p.hands[hand] = w;
+    p.activeHand = hand;
+    this.recomputeBurden(p);
+    this.log(`손${hand + 1}: ${w.def.name}${old ? ` (${old.def.name}은(는) 바닥에)` : ''}`, 'good');
+    this.emit({ type: 'loadout', actor: p.id });
+    if (this.mode === 'play') this.endPlayerAction(100);
     return true;
   }
 
@@ -431,22 +537,22 @@ export class Game {
   }
 
   /** 과부하: 부산물을 태워 효과를 얻는다. 완전 파괴는 오직 여기서만. */
-  offer(r: RelicInst, mode: OfferMode): boolean {
+  overload(r: ByproductInst, mode: OverloadMode): boolean {
     if (this.mode !== 'play' && this.mode !== 'rest') return false;
     if (r.fixed) {
       this.log('고정 슬롯의 부산물은 과부하할 수 없다.');
       return false;
     }
-    if (!this.detachRelic(r)) return false;
+    if (!this.detachByproduct(r)) return false;
     const p = this.player;
     const furnace = this.god?.id === 'furnace';
     const mult = furnace && this.godTier() >= 1 ? 1.3 : 1;
     const el = r.def.elements[0];
     const gradeBonus = { common: 0, holy: 6, forbidden: 12 }[r.def.grade];
-    this.stats.offers++;
+    this.stats.overloads++;
     this.ash += { common: 2, holy: 4, forbidden: 6 }[r.def.grade];
-    this.emit({ type: 'fx', fx: 'offer', x: p.x, y: p.y, element: el });
-    this.log(`${r.def.name} 과부하 → ${OFFER_NAME[mode]}`, 'offer');
+    this.emit({ type: 'fx', fx: 'overload', x: p.x, y: p.y, element: el });
+    this.log(`${r.def.name} 과부하 → ${OVERLOAD_NAME[mode]}`, 'overload');
     const near = this.nearestHostile(p, 9);
     switch (mode) {
       case 'strike':
@@ -474,7 +580,7 @@ export class Game {
   /**
    * 장착: 바닥의 부산물을 slot[index]에 끼운다. 기존 부산물은 버리거나(drop) 과부하(태워서 쿨다운 초기화)한다.
    */
-  graft(r: RelicInst, index: number, disposal: 'drop' | 'offer' = 'drop'): boolean {
+  install(r: ByproductInst, index: number, disposal: 'drop' | 'overload' = 'drop'): boolean {
     if (this.mode !== 'play' && this.mode !== 'rest') return false;
     const p = this.player;
     const arr = p.slots[r.def.slot];
@@ -500,19 +606,19 @@ export class Game {
         }
       } else {
         this.ash += 2;
-        this.stats.offers++;
+        this.stats.overloads++;
         for (const a of this.equippedActives(p)) a.cd = 0;
-        this.log(`${old.def.name} 과부하 → 쿨다운 초기화`, 'offer');
+        this.log(`${old.def.name} 과부하 → 쿨다운 초기화`, 'overload');
         if (this.god?.id === 'furnace') this.god.piety++;
       }
       old.dormant = false;
     }
     arr[index] = r;
     r.cd = 0;
-    this.stats.grafts++;
+    this.stats.installs++;
     if (this.god?.id === 'rust') {
       this.god.piety = Math.max(0, this.god.piety - 3);
-      this.god.grafted = true;
+      this.god.installed = true;
       this.log('녹의 신이 새 부산물을 싫어한다. (신앙 -3)', 'bad');
     }
     this.recomputeBurden(p);
@@ -556,15 +662,17 @@ export class Game {
     this.restService = this.rng.pick(['shop', 'reforge', 'engrave'] as const);
     if (this.restService === 'shop') {
       this.shop = [0, 1, 2].map(() => {
-        const r = this.makeRelic(this.rollRelic());
-        return { relic: r, price: { common: 5, holy: 10, forbidden: 14 }[r.def.grade] };
+        const r = this.makeByproduct(this.rollByproduct());
+        return { item: r as GroundItem, price: { common: 5, holy: 10, forbidden: 14 }[r.def.grade] };
       });
+      const w = this.makeWeapon(this.rollWeapon());
+      this.shop.push({ item: w, price: w.def.grade === 'common' ? 5 : 11 });
     }
     if (this.restService === 'engrave') this.levelChoices = this.rollEngravings(3);
     if (this.god?.id === 'rust') {
       this.god.piety += 2;
       if (this.godTier() >= 1) {
-        for (const r of allRelics(p)) r.upgrade = Math.min(3, r.upgrade + 1);
+        for (const r of allByproducts(p)) r.upgrade = Math.min(3, r.upgrade + 1);
         this.log('녹의 신의 은총: 장착된 부산물이 단단해졌다.', 'good');
       }
     }
@@ -576,8 +684,8 @@ export class Game {
     if (!s || this.mode !== 'rest' || this.ash < s.price) return false;
     this.ash -= s.price;
     this.shop.splice(i, 1);
-    this.restItems.push(s.relic);
-    this.log(`${s.relic.def.name}을(를) 샀다. 바닥에 놓였다.`, 'good');
+    this.restItems.push(s.item);
+    this.log(`${s.item.def.name}을(를) 샀다. 바닥에 놓였다.`, 'good');
     return true;
   }
 
@@ -588,7 +696,7 @@ export class Game {
     return true;
   }
 
-  reforge(r: RelicInst, el: Element): boolean {
+  reforge(r: ByproductInst, el: Element): boolean {
     if (this.mode !== 'rest' || this.restService !== 'reforge' || this.restUsed) return false;
     const els = r.def.elements.length ? [el, ...r.def.elements.slice(1)] : [el];
     r.def = { ...r.def, elements: [...new Set(els)] };
@@ -619,7 +727,7 @@ export class Game {
     f.used = true;
     this.mode = 'play';
     if (accept) {
-      this.god = { id: f.godId!, piety: 0, grafted: false };
+      this.god = { id: f.godId!, piety: 0, installed: false };
       const g = GODS.find((x) => x.id === f.godId)!;
       this.log(`${g.name}을(를) 섬기기로 했다. ${g.law}`, 'good');
     }
@@ -698,7 +806,7 @@ export class Game {
           ny = y + dy;
         if (lv.inBounds(nx, ny) && !lv.explored[lv.idx(nx, ny)]) frontier = true;
       }
-      const hasItem = (this.ground.get(i)?.length ?? 0) > 0;
+      const hasItem = (this.ground.get(i)?.length ?? 0) > 0 && !this.itemSeen.has(i);
       if (frontier || hasItem) {
         best = i;
         bestD = d;
@@ -792,7 +900,7 @@ export class Game {
     }
     // 저주: 체력 흡수
     const p = this.player;
-    if (allRelics(p).some((r) => r.def.curse?.kind === 'hpDrain' && !r.dormant)) {
+    if (allByproducts(p).some((r) => r.def.curse?.kind === 'hpDrain' && !r.dormant)) {
       p.hp -= Math.max(1, Math.round(this.st(p).maxHp * 0.01));
       if (p.hp <= 0) this.kill(p, null);
     }
@@ -1008,17 +1116,18 @@ export class Game {
 
   // ───────────────────────── 전투 ─────────────────────────
 
-  private basicAttack(a: Actor, t: Actor) {
+  private basicAttack(a: Actor, t: Actor, bash = false) {
     const s = this.st(a);
     const el = a.imbue;
     a.imbue = undefined;
     this.emit({ type: 'attack', actor: a.id, target: t.id });
-    this.dealDamage(a, t, Math.max(1, Math.round(s.damage * this.dmgMult(a))), el, { dodgeable: true });
+    const dmg = bash ? s.damage - s.weapon.damage + FISTS.damage : s.damage;
+    this.dealDamage(a, t, Math.max(1, Math.round(dmg * this.dmgMult(a))), el, { dodgeable: true, label: bash ? '개머리판' : undefined });
     this.fire(a, 'attack', { target: t.dead ? undefined : t, element: el, x: t.x, y: t.y });
   }
 
   /** 액티브 실행. 형태 × 원소 × 수치 */
-  performActive(a: Actor, r: RelicInst, tgt?: { x: number; y: number }): boolean {
+  performActive(a: Actor, r: ByproductInst, tgt?: { x: number; y: number }): boolean {
     const sp = r.def.active!;
     const el = sp.element;
     const power = Math.round(sp.power * this.factorOf(a, r) * this.dmgMult(a));
@@ -1201,7 +1310,7 @@ export class Game {
   private breakPart(a: Actor, part: Slot) {
     this.emit({ type: 'loadout', actor: a.id });
     if (a.isPlayer) {
-      const names = a.slots[part].filter((r): r is RelicInst => !!r).map((r) => r.def.name);
+      const names = a.slots[part].filter((r): r is ByproductInst => !!r).map((r) => r.def.name);
       this.log(`${SLOT_NAME[part]} 슈트 파손: ${names.length ? names.join(', ') + ' 효과 절반' : '부착된 부산물 없음'}.`, 'bad');
     }
     const maxHp = this.st(a).maxHp;
@@ -1209,8 +1318,8 @@ export class Game {
   }
 
   /** 부산물 효과 배율 (부위 파손 반영) */
-  factorOf(a: Actor, r: RelicInst) {
-    return relicFactor(r, !this.fullWhenDamaged(a) && isBroken(a, r.def.slot));
+  factorOf(a: Actor, r: ByproductInst) {
+    return byproductFactor(r, !this.fullWhenDamaged(a) && isBroken(a, r.def.slot));
   }
 
   /** 모든 부위 장갑을 가득 채운다 */
@@ -1263,7 +1372,7 @@ export class Game {
       this.stats.kills++;
       this.log(`${t.name}을(를) 쓰러뜨렸다.`);
       // 실제로 쓰던 부산물 중 하나를 떨어뜨림
-      const droppable = allRelics(t).filter((r) => !r.def.enemyOnly);
+      const droppable = allByproducts(t).filter((r) => !r.def.enemyOnly);
       if (droppable.length && this.rng.chance(t.dropChance)) {
         const r = this.rng.pick(droppable);
         r.dormant = false;
@@ -1273,8 +1382,8 @@ export class Game {
       }
       if (t.boss) {
         const loot = ZONES[this.zone].bossLoot;
-        if (loot.length) this.dropItem(t.x, t.y, this.makeRelic(this.rng.pick(loot)));
-        this.dropItem(t.x, t.y, this.makeRelic(this.rollRelic()));
+        if (loot.length) this.dropItem(t.x, t.y, this.makeByproduct(this.rng.pick(loot)));
+        this.dropItem(t.x, t.y, this.makeByproduct(this.rollByproduct()));
         this.kits = Math.min(MAX_KITS, this.kits + 1);
         this.log('연료 결정을 회수했다. 출구가 열렸다.', 'good');
       }
@@ -1302,7 +1411,7 @@ export class Game {
 
   /** 부담이 넘치면 무작위 부산물이 절전된다 */
   recomputeBurden(a: Actor) {
-    const rs = allRelics(a);
+    const rs = allByproducts(a);
     for (const r of rs) r.dormant = false;
     const s = this.st(a);
     const over = s.burden - s.burdenCap;
@@ -1316,7 +1425,7 @@ export class Game {
     if (a.hp > max) a.hp = max;
   }
 
-  private detachRelic(r: RelicInst): boolean {
+  private detachByproduct(r: ByproductInst): boolean {
     const p = this.player;
     for (const s of SLOTS) {
       const i = p.slots[s].indexOf(r);
