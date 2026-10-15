@@ -5,6 +5,7 @@ import { wallFaces, type WallFace } from './gridLayout';
 import { addDecor, cornerColumns, runColumns } from './gridDecor';
 import { chasmMesh, sealMesh } from './toolGates';
 import { applyXray } from './xray';
+import { applyFog, updateFog } from './fog';
 
 /** Metres per grid cell. */
 export const CELL = 1.0;
@@ -38,7 +39,8 @@ export const yawFor = (dir: { x: number; y: number }): number => Math.atan2(dir.
 /** Floor, wall panels and columns from the Quaternius modular dungeon pack, dark wall tops, pillars, doors, chests and exits — all shaded by what the hero has seen. */
 export class GridTerrain {
   readonly root = new THREE.Group();
-  private readonly instanced: { mesh: THREE.InstancedMesh; cells: number[]; tint?: THREE.Color }[] = [];
+  /** fog: 시야 텍스처로 밝기를 받는 것 (인스턴스 색은 고정) */
+  private readonly instanced: { mesh: THREE.InstancedMesh; cells: number[]; tint?: THREE.Color; fog?: boolean }[] = [];
   /** props shown only where the hero has seen (keyed by the cell that reveals them) */
   private props: [number, THREE.Object3D][] = [];
   private readonly seals = new Map<number, THREE.Object3D>();
@@ -54,6 +56,8 @@ export class GridTerrain {
     this.built = [...m.tiles];
     // (MODEL 0) 벽·기둥·문은 주인공을 가리면 비쳐 보이게
     for (const n of ['Wall_Modular', 'Wall_Modular2', 'Column', 'Column2', 'Arch_Door'] as DungeonPiece[]) for (const mt of [kit.piece(n)?.material ?? []].flat()) applyXray(mt);
+    // (MODEL 0) 던전 조각은 모두 부드러운 시야 텍스처로 밝기를 받는다
+    for (const mt of kit.materials()) applyFog(mt);
     const faces = wallFaces(m);
     const floors = m.tiles.map((t, i) => [t, i] as const).filter(([t]) => t !== 'wall' && t !== 'chasm').map(([, i]) => i);
     const q = new THREE.Quaternion();
@@ -89,6 +93,7 @@ export class GridTerrain {
     // a thin stone cap on top of each wall panel only, so walls read as walls and not as solid blocks
     const capMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1 });
     applyXray(capMat);
+    applyFog(capMat);
     const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(CELL + 0.02, 0.08, PANEL_DEPTH + 0.04), capMat, faces.length);
     const capQ = new THREE.Quaternion();
     faces.forEach((f, k) => {
@@ -98,7 +103,7 @@ export class GridTerrain {
       caps.setColorAt(k, new THREE.Color(0, 0, 0));
     });
     this.root.add(caps);
-    this.instanced.push({ mesh: caps, cells: faces.map((f) => idx(m, f.floor)), tint: CAP });
+    this.instanced.push({ mesh: caps, cells: faces.map((f) => idx(m, f.floor)), tint: CAP, fog: true });
     for (const c of [...cornerColumns(m, faces), ...runColumns(m, faces)]) {
       const col = kit.clone('Column', { height: WALL_H * 1.08, maxWidth: CELL * 0.3 });
       col.position.set(c.at.x * CELL, 0, c.at.y * CELL);
@@ -154,7 +159,8 @@ export class GridTerrain {
       mesh.setColorAt(k, new THREE.Color(0, 0, 0));
     });
     this.root.add(mesh);
-    this.instanced.push({ mesh, cells, tint: new THREE.Color(color) });
+    applyFog(mesh.material as THREE.Material);
+    this.instanced.push({ mesh, cells, tint: new THREE.Color(color), fog: true });
   }
 
   /** One instanced mesh of a pack piece over many cells; matrices come from `place`. */
@@ -168,7 +174,7 @@ export class GridTerrain {
       mesh.setColorAt(k, new THREE.Color(0, 0, 0));
     });
     this.root.add(mesh);
-    this.instanced.push({ mesh, cells });
+    this.instanced.push({ mesh, cells, fog: true });
   }
 
   /** Wall panels on every wall side facing a walkable cell, inside the wall cell, front at the boundary. */
@@ -195,7 +201,7 @@ export class GridTerrain {
         this.facesOf.set(w, [...(this.facesOf.get(w) ?? []), { mesh, at: k }]);
       });
       this.root.add(mesh);
-      this.instanced.push({ mesh, cells: mine.map((f) => idx(this.m, f.floor)) });
+      this.instanced.push({ mesh, cells: mine.map((f) => idx(this.m, f.floor)), fog: true });
     }
   }
 
@@ -268,7 +274,14 @@ export class GridTerrain {
   /** Visible tiles in full light, remembered ones dim, unknown ones black; props follow. */
   shade(s: GridState): void {
     const level = (i: number) => (s.visible.has(i) ? 1 : s.seen[i] ? SEEN : 0);
+    updateFog(this.m.w, this.m.h, level, (i) => this.m.tiles[i] === 'wall');
     for (const it of this.instanced) {
+      if (it.fog) {
+        // 밝기는 셰이더가 시야 텍스처에서 읽는다: 색은 고정, 모르는 칸은 0 (텍스처 흐림이 번져도 안 보이게)
+        it.cells.forEach((cell, k) => it.mesh.setColorAt(k, level(cell) > 0 ? (it.tint ? this.tmp.copy(it.tint) : this.tmp.setScalar(1)) : this.tmp.setScalar(0)));
+        it.mesh.instanceColor!.needsUpdate = true;
+        continue;
+      }
       it.cells.forEach((cell, k) => { const l = level(cell); it.mesh.setColorAt(k, it.tint ? this.tmp.copy(it.tint).multiplyScalar(l > 0 ? Math.max(0.6, l) : 0) : this.tmp.setScalar(l)); });
       it.mesh.instanceColor!.needsUpdate = true;
     }

@@ -119,6 +119,10 @@ export class DungeonKit {
     }
   }
 
+  /** (MODEL 0) 모든 조각의 재질 (시야 감쇠를 걸 때) */
+  materials(): THREE.Material[] {
+    return [...this.pieces.values()].flatMap((p) => [p.material].flat());
+  }
   piece(name: DungeonPiece): Piece | undefined {
     return this.pieces.get(name);
   }
