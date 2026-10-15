@@ -17,7 +17,7 @@ const hud = new Hud();
 let game: Game | null = null;
 /** arm = -1 이면 무기 사격 조준 */
 let targeting: { arm: number; x: number; y: number } | null = null;
-let overlay: null | 'install' | 'overload' | 'help' = null;
+let overlay: null | 'install' | 'overload' | 'help' | 'suit' | 'map' = null;
 let installItem: GroundItem | null = null;
 let overloadSel: ByproductInst | null = null;
 let engraveSel: string | null = null;
@@ -67,6 +67,10 @@ function keysHelp() {
     ['e', '무기 교체 (손 1 ↔ 2)'],
     ['c', '과부하 (부산물을 태움)'],
     ['q', '응급 키트'],
+    ['i', '슈트 화면 (부산물·각인)'],
+    ['Tab', '구역 지도'],
+    ['l', '기록(로그) 보기'],
+    ['p', 'HD / 도트 전환'],
     ['마우스', '클릭 이동·조준, 휠 확대, 올리면 정보'],
   ];
   return `<div class="keys">${rows.map(([k, d]) => `<div><b>${esc(k)}</b> ${d}</div>`).join('')}</div>`;
@@ -82,7 +86,7 @@ function startGame() {
   hud.clearLog();
   renderer.setGame(game);
   // 개발 모드에서만: 브라우저 테스트가 게임 상태를 볼 수 있게
-  if (import.meta.env.DEV) (window as unknown as { __game: Game }).__game = game;
+  if (import.meta.env.DEV) Object.assign(window, { __game: game, __view: renderer });
   hudEl.hidden = false;
   modal.hidden = true;
   overlay = null;
@@ -103,7 +107,7 @@ function refresh() {
   if (targeting) hud.setHint('조준 중 — Tab: 다음 대상 · 클릭: 지점 선택 · Enter/같은 키: 발사 · Esc: 취소', true);
   else {
     const f = game.level.featureAt(game.player.x, game.player.y);
-    hud.setHint(f?.kind === 'exit' ? '[&gt;] 보급 지점으로 이동' : auto ? '자동 이동 중… (아무 키나 눌러 중단)' : 'o 오토탐험 · f 사격 · r 재장전 · e 무기 교체 · 1~3 액티브 · g 장착 · c 과부하 · q 응급 키트 · ? 도움말');
+    hud.setHint(f?.kind === 'exit' ? '[&gt;] 보급 지점으로 이동' : auto ? '자동 이동 중… (아무 키나 눌러 중단)' : 'o 오토탐험 · 클릭 이동 · ? 도움말');
   }
   renderModal();
 }
@@ -121,6 +125,22 @@ function renderModal() {
   if (g.mode === 'altar') return showAltar();
   if (overlay === 'install') return showInstall();
   if (overlay === 'overload') return showOverload();
+  if (overlay === 'suit') {
+    modal.hidden = false;
+    modal.innerHTML = hud.suitScreen(g);
+    bind(modal, { close: closeOverlay });
+    return;
+  }
+  if (overlay === 'map') {
+    modal.hidden = false;
+    const lv = g.level;
+    const k = Math.max(4, Math.floor(Math.min((window.innerWidth * 0.8) / lv.w, (window.innerHeight * 0.7) / lv.h)));
+    modal.innerHTML = `<div class="box mapbox"><h2>구역 지도 — ${esc(g.depthLabel)}</h2><canvas id="bigmap" width="${lv.w * k}" height="${lv.h * k}"></canvas>
+      <p class="lead">청록 = 나 · 금색 = 출구 · 주황 = 제단 · 보라 = 바닥의 물건 · 빨강 = 보이는 적</p><div class="row"><button class="ghost" data-act="close">닫기 (Tab / Esc)</button></div></div>`;
+    hud.drawMap(document.getElementById('bigmap') as HTMLCanvasElement, g, k);
+    bind(modal, { close: closeOverlay });
+    return;
+  }
   if (overlay === 'help') {
     modal.hidden = false;
     modal.innerHTML = `<div class="box"><h2>도움말</h2>${keysHelp()}
@@ -496,7 +516,10 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (overlay) {
-    if (e.key === 'Escape') return closeOverlay();
+    if (e.key === 'Escape' || (overlay === 'suit' && e.key === 'i') || (overlay === 'map' && e.key === 'Tab')) {
+      e.preventDefault();
+      return closeOverlay();
+    }
     const i = Number(e.key) - 1;
     if (overlay === 'overload' && i >= 0) {
       if (overloadSel) {
@@ -603,6 +626,16 @@ window.addEventListener('keydown', (e) => {
       break;
     case 'Tab':
       e.preventDefault();
+      overlay = 'map';
+      break;
+    case 'i':
+      overlay = 'suit';
+      break;
+    case 'l':
+      hud.toggleLog();
+      break;
+    case 'p':
+      togglePixel();
       break;
     default:
       if (e.code === 'Numpad5') g.wait();
@@ -640,21 +673,53 @@ canvas.addEventListener('mousemove', (e) => {
   if (!game || !modal.hidden) return hud.showTooltip(null);
   const t = renderer.pick(e.clientX, e.clientY);
   if (!t) {
-    renderer.setHover(null);
+    renderer.setPath(null);
+    renderer.setMark(null);
     return hud.showTooltip(null);
   }
-  renderer.setHover(t[0], t[1]);
   const g = game;
   const lv = g.level;
   const i = lv.idx(t[0], t[1]);
   const a = g.actorAt(t[0], t[1]);
-  if (a && !a.isPlayer && lv.visible[i]) return hud.showTooltip(actorTooltip(g, a), e.clientX, e.clientY);
   const items = g.ground.get(i);
-  if (items?.length && lv.explored[i]) return hud.showTooltip(items.map(itemTooltip).join('<hr style="border-color:#4a3a28">'), e.clientX, e.clientY);
   const f = lv.featureAt(t[0], t[1]);
+  // 몬스터·물건·시설 위: 빨간 테두리 / 빈 칸: 이동 경로
+  const foe = a && !a.isPlayer && lv.visible[i];
+  const thing = (items?.length || f) && lv.explored[i];
+  if (foe || thing) {
+    renderer.setMark(t[0], t[1]);
+    renderer.setPath(null);
+  } else {
+    renderer.setMark(null);
+    renderer.setPath(targeting ? null : g.pathTo(t[0], t[1]));
+  }
+  if (foe) return hud.showTooltip(actorTooltip(g, a), e.clientX, e.clientY);
+  if (items?.length && lv.explored[i]) return hud.showTooltip(items.map(itemTooltip).join('<hr style="border-color:#4a3a28">'), e.clientX, e.clientY);
   if (f && lv.explored[i]) return hud.showTooltip(f.kind === 'exit' ? '<div class="t">출구</div><div class="r">보급 지점으로 이어진다</div>' : `<div class="t">제단</div><div class="r">${esc(GODS.find((x) => x.id === f.godId)!.name)}</div>`, e.clientX, e.clientY);
   hud.showTooltip(null);
 });
+canvas.addEventListener('mouseleave', () => {
+  renderer?.setPath(null);
+  renderer?.setMark(null);
+});
+
+// HD / 도트 전환 (P)
+const pxbtn = document.getElementById('pxbtn')!;
+function pixelLabel() {
+  pxbtn.textContent = renderer?.pixelated ? '도트 ▸ HD (P)' : 'HD ▸ 도트 (P)';
+}
+function togglePixel() {
+  renderer.pixelated = !renderer.pixelated;
+  pixelLabel();
+}
+pxbtn.addEventListener('click', togglePixel);
+
+// 심전도·최근 메시지 애니메이션
+function hudLoop() {
+  hud.tick();
+  requestAnimationFrame(hudLoop);
+}
+requestAnimationFrame(hudLoop);
 
 canvas.addEventListener('click', (e) => {
   if (!game || game.mode !== 'play' || overlay) return;
@@ -699,6 +764,7 @@ modal.innerHTML = '<div class="box title"><h1>MODEL 0</h1><div class="sub">복�
 loadAssets()
   .then((a) => {
     renderer = new View3D(view, a);
+    pixelLabel();
     showTitle();
   })
   .catch((err) => {

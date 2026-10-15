@@ -9,15 +9,22 @@
   <body>
     <div id="view"></div>
     <div id="hud" hidden>
-      <div id="top">
-        <div id="depth"></div>
-        <div id="order"></div>
-        <div id="alert"></div>
+      <div id="tl" class="corner"></div>
+      <div id="tr" class="corner">
+        <div id="trinfo"></div>
+        <canvas id="minimap" width="200" height="150"></canvas>
+        <button id="pxbtn" class="hudbtn"></button>
       </div>
-      <div id="left" class="panel"></div>
-      <div id="right" class="panel"></div>
-      <div id="log"></div>
-      <div id="hint"></div>
+      <div id="tc"><div id="order" hidden></div><div id="ticker"></div></div>
+      <div id="bl" class="corner">
+        <div id="vname"></div>
+        <div class="vrow"><span class="vl">생체</span><canvas id="ecg" width="170" height="26"></canvas><span id="hpnum"></span></div>
+        <div id="armor"></div>
+        <div id="statusrow" class="vrow"></div>
+      </div>
+      <div id="bc"><div id="hint"></div><div id="alertbar"></div><div id="warn"></div></div>
+      <div id="br" class="corner"></div>
+      <div id="log" hidden></div>
     </div>
     <div id="tooltip" hidden></div>
     <div id="modal" hidden></div>

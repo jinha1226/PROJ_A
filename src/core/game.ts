@@ -821,6 +821,38 @@ export class Game {
     return this.stepToward(best % lv.w, (best / lv.w) | 0);
   }
 
+  /** 플레이어에서 (x,y)까지 이동 경로 (탐험된 칸만, 출발 칸 제외). 갈 수 없으면 빈 배열 */
+  pathTo(tx: number, ty: number): { x: number; y: number }[] {
+    const lv = this.level;
+    const p = this.player;
+    if (!lv.isFloor(tx, ty) || !lv.explored[lv.idx(tx, ty)]) return [];
+    const dist = bfs(lv, tx, ty, (x, y) => !!lv.explored[lv.idx(x, y)] || (x === p.x && y === p.y));
+    let d = dist[lv.idx(p.x, p.y)];
+    if (d < 0) return [];
+    const out: { x: number; y: number }[] = [];
+    let x = p.x,
+      y = p.y;
+    while (d > 0) {
+      let moved = false;
+      for (const [dx, dy] of DIRS8) {
+        const nx = x + dx,
+          ny = y + dy;
+        if (!lv.isFloor(nx, ny) || (dx && dy && (!lv.isFloor(x + dx, y) || !lv.isFloor(x, y + dy)))) continue;
+        const nd = dist[lv.idx(nx, ny)];
+        if (nd >= 0 && nd < d) {
+          x = nx;
+          y = ny;
+          d = nd;
+          out.push({ x, y });
+          moved = true;
+          break;
+        }
+      }
+      if (!moved) break;
+    }
+    return out;
+  }
+
   /** (x,y)를 향한 첫 걸음 (탐험된 칸만 통과) */
   stepToward(tx: number, ty: number): [number, number] | 'done' {
     const lv = this.level;

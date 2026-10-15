@@ -22,6 +22,8 @@ export class GridElements {
   private readonly aim = new THREE.Group();
   /** the hovered walk: a dotted trail and a framed end cell */
   private readonly path = new THREE.Group();
+  /** (MODEL 0 추가) 마우스를 올린 몬스터·물건 칸의 빨간 테두리 */
+  private readonly mark = new THREE.Mesh(new THREE.RingGeometry(CELL * 0.4, CELL * 0.48, 4, 1, Math.PI / 4).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ff3a2a', transparent: true, opacity: 0.95, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
   private readonly pathDot = new THREE.MeshBasicMaterial({ color: '#c8ffd8', transparent: true, opacity: 0.75, depthWrite: false });
   private readonly pathEnd = new THREE.MeshBasicMaterial({ color: '#5dff8a', transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide });
   private pathKey = '';
@@ -34,7 +36,9 @@ export class GridElements {
   private t = 0;
 
   constructor(private readonly kit: DungeonKit, s: GridState) {
-    this.root.add(this.tiles, this.marks, this.aim, this.traps, this.path);
+    this.root.add(this.tiles, this.marks, this.aim, this.traps, this.path, this.mark);
+    this.mark.visible = false;
+    this.mark.renderOrder = 20;
     for (const b of s.barrels) {
       const o = kit.clone('Barrel', { width: CELL * 0.6 });
       o.position.copy(toWorld(b.x, b.y));
@@ -124,6 +128,12 @@ export class GridElements {
       m.position.copy(toWorld(c.x, c.y)).setY(0.05);
       this.aim.add(m);
     }
+  }
+
+  /** (MODEL 0 추가) 칸 하나에 빨간 테두리 (null이면 숨김) */
+  setMark(c: { x: number; y: number } | null): void {
+    this.mark.visible = !!c;
+    if (c) this.mark.position.copy(toWorld(c.x, c.y)).setY(0.07);
   }
 
   /** Shows where a click would walk: a dot on every step and a frame on the last cell (null hides it). */

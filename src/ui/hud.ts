@@ -1,4 +1,4 @@
-import type { Game } from '../core/game';
+import { ALERT_THRESHOLDS, type Game } from '../core/game';
 import { describeEffect, describeByproduct } from '../core/describe';
 import type { Actor, GameEvent, ByproductInst, GroundItem, Slot, WeaponInst } from '../core/types';
 import { ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS, TRIGGER_NAME } from '../core/types';
@@ -16,34 +16,55 @@ export function byproductName(r: ByproductInst) {
   return `<span class="g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</span>`;
 }
 
-/** HTML/CSS 오버레이: 행동 순서 바, 부산물 슬롯, 각인 목록, 로그 */
+const $ = (id: string) => document.getElementById(id)!;
+
+/** 화면 가장자리 HUD (감시 카메라 녹화 화면풍).
+ *  왼쪽 위 임무 · 오른쪽 위 체류·미니맵 · 위 가운데 행동 순서·최근 메시지
+ *  왼쪽 아래 MODEL 이름·생체 신호·부위별 슈트 장갑·상태이상 · 가운데 아래 안내·경보 · 오른쪽 아래 무기·탄약·퀵슬롯 */
 export class Hud {
-  private logEl = document.getElementById('log')!;
-  private left = document.getElementById('left')!;
-  private right = document.getElementById('right')!;
-  private order = document.getElementById('order')!;
-  private depth = document.getElementById('depth')!;
-  private alert = document.getElementById('alert')!;
-  private hint = document.getElementById('hint')!;
-  private tooltip = document.getElementById('tooltip')!;
+  private tl = $('tl');
+  private trinfo = $('trinfo');
+  private order = $('order');
+  private tickerEl = $('ticker');
+  private vname = $('vname');
+  private hpnum = $('hpnum');
+  private armor = $('armor');
+  private statusRow = $('statusrow');
+  private alertBar = $('alertbar');
+  private warn = $('warn');
+  private br = $('br');
+  private logEl = $('log');
+  private hint = $('hint');
+  private tooltip = $('tooltip');
+  private ecg = $('ecg') as HTMLCanvasElement;
+  private minimap = $('minimap') as HTMLCanvasElement;
   private lit = new Map<string, number>();
+  private ticker: { text: string; cls: string; at: number }[] = [];
+  private game: Game | null = null;
+  private phase = 0;
+  private lastTick = performance.now();
 
   clearLog() {
     this.logEl.innerHTML = '';
+    this.ticker = [];
   }
 
   handleEvents(events: GameEvent[]) {
+    const now = performance.now();
     for (const e of events) {
-      if (e.type === 'log') {
+      if (e.type === 'log' && e.text) {
         const d = document.createElement('div');
         d.className = e.cls ?? '';
-        d.textContent = e.text ?? '';
+        d.textContent = e.text;
         this.logEl.appendChild(d);
+        // 발동 알림(↳ 각인)은 머리 위에 뜨므로 최근 메시지에는 넣지 않는다
+        if (e.cls !== 'trigger') this.ticker.push({ text: e.text, cls: e.cls ?? '', at: now });
       }
-      if (e.type === 'trigger' && e.text) this.lit.set(e.text, performance.now());
+      if (e.type === 'trigger' && e.text) this.lit.set(e.text, now);
     }
-    while (this.logEl.children.length > 120) this.logEl.firstChild!.remove();
+    while (this.logEl.children.length > 150) this.logEl.firstChild!.remove();
     this.logEl.scrollTop = this.logEl.scrollHeight;
+    this.ticker = this.ticker.slice(-4);
   }
 
   setHint(text: string, targeting = false) {
@@ -51,53 +72,157 @@ export class Hud {
     this.hint.classList.toggle('target', targeting);
   }
 
+  toggleLog() {
+    this.logEl.hidden = !this.logEl.hidden;
+    this.logEl.scrollTop = this.logEl.scrollHeight;
+  }
+
   render(g: Game) {
+    this.game = g;
     const p = g.player;
     const s = g.st(p);
-    // 상단
-    this.depth.innerHTML = `<b>${esc(g.depthLabel)}</b> <span style="color:var(--dim)">· 체류 ${g.floorTurns}턴</span>`;
-    this.alert.innerHTML = `경보 ${[0, 1, 2].map((i) => `<span class="pip ${g.alert > i ? 'on' : ''}"></span>`).join('')}`;
-    const order = g.turnOrder(12);
-    this.order.innerHTML = order
-      .map((a, i) => `<div class="tok ${a.isPlayer ? 'player' : a.faction === 'player' ? 'ally' : 'enemy'} ${i === 0 ? 'first' : ''}" title="${esc(a.name)}">${a.isPlayer ? '나' : esc(a.name[0])}</div>`)
+    // 왼쪽 위: 임무
+    const fuel = g.zone + (g.isBossFloor && !g.actors.some((a) => a.boss && !a.dead) ? 1 : 0);
+    this.tl.innerHTML = `<div class="cap amber">회수 임무</div><div class="big">연료 결정을 회수하라</div><div class="num">${fuel} / 2</div>
+      <div class="sub2">${esc(g.depthLabel)}</div><div class="sub2">LV ${g.plevel} <span class="xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></span> · 마석 ${g.ash}</div>`;
+    // 오른쪽 위
+    this.trinfo.innerHTML = `<div class="big">체류 ${g.floorTurns}턴</div><div class="sub2">탐사 깊이 ${g.zone * 4 + g.floor + 1} · [Tab] 구역 지도</div><div class="sub2">[I] 슈트 · [L] 기록</div>`;
+    this.drawMap(this.minimap, g, 0);
+    // 위 가운데: 적이 보일 때만 행동 순서
+    const foes = g.visibleEnemies().length > 0;
+    this.order.hidden = !foes;
+    if (foes)
+      this.order.innerHTML = g
+        .turnOrder(10)
+        .map((a, i) => `<div class="tok ${a.isPlayer ? 'player' : a.faction === 'player' ? 'ally' : 'enemy'} ${i === 0 ? 'first' : ''}" title="${esc(a.name)}">${a.isPlayer ? '0' : esc(a.name[0])}</div>`)
+        .join('');
+    // 왼쪽 아래: 이름 · 생체 · 장갑 · 상태
+    const origin = p.name;
+    this.vname.textContent = origin;
+    this.hpnum.innerHTML = `${Math.max(0, p.hp)}<small>/${s.maxHp}</small>${p.shield ? ` <span class="shield">+${p.shield}</span>` : ''}`;
+    this.armor.innerHTML = (['body', 'arm', 'leg', 'sense'] as Slot[])
+      .map((k) => {
+        const max = partArmorMax(p, k);
+        const cur = Math.max(0, p.partArmor[k]);
+        const broken = isBroken(p, k);
+        const segs = Array.from({ length: 10 }, (_, i) => `<i class="${max && cur > (i * max) / 10 ? 'on' : ''}"></i>`).join('');
+        return `<div class="vrow"><span class="vl">${SLOT_NAME[k]}</span><span class="seg ${broken ? 'broken' : ''}">${segs}</span><span class="vv ${broken ? 'bad' : ''}">${broken ? '파손' : `${cur}/${max}`}</span></div>`;
+      })
       .join('');
-
-    // 왼쪽: 체력 + 능력치 + 부산물
-    const hpPct = Math.max(0, (p.hp / s.maxHp) * 100);
-    const shPct = Math.min(100, (p.shield / s.maxHp) * 100);
-    let html = `<h3>체력</h3>
-      <div class="bar"><i style="width:${hpPct}%"></i>${p.shield ? `<b style="width:${shPct}%"></b>` : ''}<span>${p.hp} / ${s.maxHp}${p.shield ? ` (+${p.shield} 보호막)` : ''}</span></div>
-      <div class="bar xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></div>
-      <h3>손</h3>${p.hands
-        .map((w, i) => `<div class="slot ${i === p.activeHand ? '' : 'dormant'}" ${w ? `data-byproduct="${w.uid}"` : ''}><span class="k">손${i + 1}</span><span class="n">${w ? `⚔ ${esc(w.def.name)}` : '맨주먹'}<div class="sub">${w ? `피해 ${w.def.damage} · ${w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}` : ''}</div></span>${w?.def.mag !== undefined ? `<span class="badge ${w.ammo ? 'ready' : 'bad'}">${w.ammo}/${w.def.mag}</span>` : ''}${i === p.activeHand ? '<span class="badge fixed">사용 중</span>' : ''}</div>`)
-        .join('')}
-      <div class="stats">
-        <span>레벨 <b>${g.plevel}</b></span><span>마석 <b>${g.ash}</b></span>
-        <span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span><span>회피 <b>${s.dodge}%</b></span>
-        <span>피해 <b>${s.damage}</b></span><span>시야 <b>${s.sight}</b></span>
-        <span>이동 <b>${speed(s.moveCost)}칸/턴</b></span><span>공격 <b>${speed(s.attackCost)}회/턴</b></span>
-        <span>부담 <b class="${s.burden > s.burdenCap ? 'over' : ''}">${s.burden}/${s.burdenCap}</b></span><span>응급 키트 <b>${g.kits}</b></span>
-      </div>`;
+    const st = Object.entries(p.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
+    if (p.aura) st.push(`${ELEMENT_NAME[p.aura.element]} 잔류`);
+    if (p.imbue) st.push(`다음 공격 ${ELEMENT_NAME[p.imbue]}`);
+    if (p.haste) st.push(`가속 ${p.haste}%`);
+    this.statusRow.innerHTML = `<span class="vl">이상</span><span class="${st.length ? 'bad' : 'dim'}">${st.length ? st.join(' · ') : '없음'}</span>`;
+    // 가운데 아래: 경보 게이지
+    const last = ALERT_THRESHOLDS[ALERT_THRESHOLDS.length - 1]!;
+    const segs = 24;
+    const filled = Math.min(segs, Math.round((g.floorTurns / last) * segs));
+    const marks = ALERT_THRESHOLDS.map((t) => Math.round((t / last) * segs));
+    this.alertBar.innerHTML = `<span class="lbl">ALERT ${g.alert}</span><span class="segs">${Array.from({ length: segs }, (_, i) => `<i class="${i < filled ? (g.alert >= 2 ? 'hot' : 'on') : ''} ${marks.includes(i + 1) ? 'mk' : ''}"></i>`).join('')}</span>`;
+    const warns: string[] = [];
     const over = s.burden - s.burdenCap;
     if (over > 0) {
       const sleeping = Object.values(p.slots).flat().filter((r) => r?.dormant).length;
-      html += `<div class="warnline">부담 초과 ${over}: 절전 ${sleeping}개 · 회피 −${over * 3}%</div>`;
+      warns.push(`부담 초과 ${over}: 절전 ${sleeping}개 · 회피 −${over * 3}%`);
     }
-    const st = Object.entries(p.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
-    if (p.aura) st.push(`${ELEMENT_NAME[p.aura.element]} 잔류`);
-    if (p.imbue) st.push(`다음 공격: ${ELEMENT_NAME[p.imbue]}`);
-    if (p.haste) st.push(`가속 ${p.haste}%`);
-    if (st.length) html += `<div style="margin-top:4px;color:#e0a050;font-size:12px">${st.join(' · ')}</div>`;
+    const here = g.mode === 'play' ? g.groundHere() : [];
+    if (here.length) warns.push(`발밑: ${here.map((r) => esc(r.def.name)).join(', ')} — [G] 줍기 · [C] 과부하`);
+    this.warn.innerHTML = warns.map((w) => `<div>${w}</div>`).join('');
+    // 오른쪽 아래: 무기 · 탄약 · 퀵슬롯
+    const w = p.hands[p.activeHand];
+    const spare = p.hands[1 - p.activeHand];
+    const ammo = w?.def.mag !== undefined ? `<span class="ammo ${w.ammo ? '' : 'bad'}">${w.ammo}</span><span class="mag">/ ${w.def.mag}</span>` : `<span class="mag">근접</span>`;
+    const actives = g.equippedActives(p);
+    const quick = actives
+      .map((r, i) => {
+        const a = r.def.active!;
+        return `<div class="qs ${r.cd ? 'cd' : ''} ${r.dormant ? 'off' : ''}" data-byproduct="${r.uid}"><span class="k">${i + 1}</span><span class="n">${a.element ? ELEMENT_NAME[a.element] : ''}${FORM_NAME[a.form]}</span>${r.cd ? `<span class="c">${r.cd}</span>` : ''}</div>`;
+      })
+      .join('');
+    this.br.innerHTML = `<div class="wrow"><span class="wname" ${w ? `data-byproduct="${w.uid}"` : ''}>${w ? esc(w.def.name) : '맨주먹'}</span>${ammo}</div>
+      <div class="sub2">[E] 예비: ${spare ? esc(spare.def.name) : '맨주먹'}${w?.def.mag !== undefined ? ' · [R] 재장전 · [F] 사격' : ''}</div>
+      <div class="quick">${quick}<div class="qs"><span class="k">Q</span><span class="n">응급 ×${g.kits}</span></div><div class="qs"><span class="k">C</span><span class="n">과부하</span></div></div>`;
+  }
 
+  /** 매 프레임: 심전도와 최근 메시지 */
+  tick() {
+    const now = performance.now();
+    const dt = Math.min(0.1, (now - this.lastTick) / 1000);
+    this.lastTick = now;
+    this.tickerEl.innerHTML = this.ticker
+      .filter((t) => now - t.at < 5000)
+      .map((t) => `<div class="${t.cls}" style="opacity:${Math.min(1, (5000 - (now - t.at)) / 1200).toFixed(2)}">${esc(t.text)}</div>`)
+      .join('');
+    const g = this.game;
+    if (!g) return;
+    const p = g.player;
+    const max = g.st(p).maxHp;
+    const r = Math.max(0, Math.min(1, p.hp / max));
+    const bpm = 55 + (1 - r) * 95;
+    this.phase += (dt * bpm) / 60;
+    drawEcg(this.ecg, r, this.phase, p.dead || p.hp <= 0);
+  }
+
+  /** 미니맵 (scale 0이면 캔버스 크기에 맞춤) */
+  drawMap(c: HTMLCanvasElement, g: Game, scale: number) {
+    const lv = g.level;
+    const k = scale || Math.max(1, Math.floor(Math.min(c.width / lv.w, c.height / lv.h)));
+    const ox = Math.floor((c.width - lv.w * k) / 2),
+      oy = Math.floor((c.height - lv.h * k) / 2);
+    const ctx = c.getContext('2d')!;
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (let y = 0; y < lv.h; y++)
+      for (let x = 0; x < lv.w; x++) {
+        const i = lv.idx(x, y);
+        if (!lv.explored[i] || !lv.isFloor(x, y)) continue;
+        ctx.fillStyle = lv.visible[i] ? '#6f8a8a' : '#33403f';
+        ctx.fillRect(ox + x * k, oy + y * k, k, k);
+      }
+    const dot = (x: number, y: number, color: string, big = 0) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(ox + x * k - big, oy + y * k - big, k + big * 2, k + big * 2);
+    };
+    for (const [i, items] of g.ground) if (items.length && lv.explored[i]) dot(i % lv.w, (i / lv.w) | 0, '#c77dff');
+    for (const f of lv.features) if (lv.explored[lv.idx(f.x, f.y)]) dot(f.x, f.y, f.kind === 'exit' ? '#ffd76a' : '#ff8a3a', 1);
+    for (const a of g.actors) if (!a.dead && a.faction === 'enemy' && lv.visible[lv.idx(a.x, a.y)]) dot(a.x, a.y, '#ff4a3a');
+    dot(g.player.x, g.player.y, '#5dfff0', 1);
+  }
+
+  showTooltip(html: string | null, x = 0, y = 0) {
+    if (!html) {
+      this.tooltip.hidden = true;
+      return;
+    }
+    this.tooltip.hidden = false;
+    this.tooltip.innerHTML = html;
+    const w = this.tooltip.offsetWidth,
+      h = this.tooltip.offsetHeight;
+    this.tooltip.style.left = `${Math.min(window.innerWidth - w - 8, x + 16)}px`;
+    this.tooltip.style.top = `${Math.min(window.innerHeight - h - 8, y + 12)}px`;
+  }
+
+  /** [I] 슈트 화면: 부위별 장갑·부산물, 손, 능력치, 부위별 각인, 신앙 */
+  suitScreen(g: Game): string {
+    const p = g.player;
+    const s = g.st(p);
+    let left = `<div class="stats">
+        <span>슈트 장갑 <b>${s.armor}/${s.armorMax}</b></span><span>회피 <b>${s.dodge}%</b></span>
+        <span>피해 <b>${s.damage}</b></span><span>시야 <b>${s.sight}</b></span>
+        <span>이동 <b>${speed(s.moveCost)}칸/턴</b></span><span>공격 <b>${speed(s.attackCost)}회/턴</b></span>
+        <span>부담 <b class="${s.burden > s.burdenCap ? 'over' : ''}">${s.burden}/${s.burdenCap}</b></span><span>마석 <b>${g.ash}</b></span>
+      </div>
+      <h3>손</h3>${p.hands
+        .map((w, i) => `<div class="slot ${i === p.activeHand ? '' : 'dormant'}" ${w ? `data-byproduct="${w.uid}"` : ''}><span class="k">손${i + 1}</span><span class="n">${w ? esc(w.def.name) : '맨주먹'}<div class="sub">${w ? `피해 ${w.def.damage} · ${w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}` : ''}</div></span>${w?.def.mag !== undefined ? `<span class="badge ${w.ammo ? 'ready' : 'bad'}">${w.ammo}/${w.def.mag}</span>` : ''}${i === p.activeHand ? '<span class="badge fixed">사용 중</span>' : ''}</div>`)
+        .join('')}`;
     let armIdx = 0;
     for (const slot of ['arm', 'body', 'leg', 'sense'] as Slot[]) {
       const amax = partArmorMax(p, slot);
       const broken = isBroken(p, slot);
-      html += `<h3>${SLOT_NAME[slot]} <span class="armor ${broken ? 'broken' : ''}">${broken ? '파손 · 효과 ½' : `장갑 ${p.partArmor[slot]}/${amax}`}</span></h3>
-        <div class="bar armor"><i style="width:${amax ? (p.partArmor[slot] / amax) * 100 : 0}%"></i></div>`;
+      left += `<h3>${SLOT_NAME[slot]} <span class="armor ${broken ? 'broken' : ''}">${broken ? '파손 · 효과 ½' : `장갑 ${p.partArmor[slot]}/${amax}`}</span></h3>`;
       p.slots[slot].forEach((r, i) => {
         if (!r) {
-          html += `<div class="slot empty"><span class="k">${SLOT_NAME[slot]}${i + 1}</span><span class="n">비어 있음</span></div>`;
+          left += `<div class="slot empty"><span class="k">${SLOT_NAME[slot]}${i + 1}</span><span class="n">비어 있음</span></div>`;
           return;
         }
         const badges: string[] = [];
@@ -113,58 +238,77 @@ export class Hud {
           sub = `${a.element ? ELEMENT_NAME[a.element] + ' ' : ''}${FORM_NAME[a.form]} ${a.power}`;
         }
         if (slot === 'body' && r.def.stats.integrity) sub = `몸 장갑 +${r.def.stats.integrity}`;
-        html += `<div class="slot ${broken ? 'damaged' : ''} ${r.dormant ? 'dormant' : ''}" data-byproduct="${r.uid}">
-          <span class="k">${SLOT_NAME[slot]}${i + 1}</span>
-          <span class="n">${byproductName(r)}${sub ? `<div class="sub">${sub}</div>` : ''}</span><span>${badges.join('')}</span></div>`;
+        left += `<div class="slot ${broken ? 'damaged' : ''} ${r.dormant ? 'dormant' : ''}" data-byproduct="${r.uid}"><span class="k">${SLOT_NAME[slot]}${i + 1}</span><span class="n">${byproductName(r)}${sub ? `<div class="sub">${sub}</div>` : ''}</span><span>${badges.join('')}</span></div>`;
       });
     }
-    this.left.innerHTML = html;
-
-    // 오른쪽: 각인 + 신앙 + 발밑
     const now = performance.now();
-    let rh = `<h3>각인 ${p.engravings.length} / ${g.engravingCap()}</h3>`;
-    // 행동별로 묶어서: "공격할 때" 아래에 그 행동에 붙은 각인들
+    let right = `<h3>각인 ${p.engravings.length} / ${g.engravingCap()}</h3>`;
     for (const trig of TRIGGERS) {
       const list = p.engravings.filter((e) => e.trigger === trig);
       if (!list.length) continue;
-      rh += `<div class="trig-head">${TRIGGER_NAME[trig]}</div>`;
+      right += `<div class="trig-head">${TRIGGER_NAME[trig]}</div>`;
       for (const e of list) {
         const t = this.lit.get(e.name);
-        const lit = t !== undefined && now - t < 700;
-        rh += `<div class="eng ${lit ? 'lit' : ''}"><div class="nm">${esc(e.name)}</div><div class="ds">→ ${esc(describeEffect(e.effect))}</div></div>`;
+        right += `<div class="eng ${t !== undefined && now - t < 700 ? 'lit' : ''}"><div class="nm">${esc(e.name)}</div><div class="ds">→ ${esc(describeEffect(e.effect))}</div></div>`;
       }
     }
     if (g.god) {
       const god = GODS.find((x) => x.id === g.god!.id)!;
       const tier = g.godTier();
-      rh += `<h3>신앙</h3><div><b style="color:var(--brass)">${esc(god.name)}</b> · 신앙 ${g.god.piety}</div>
+      right += `<h3>신앙</h3><div><b style="color:var(--brass)">${esc(god.name)}</b> · 신앙 ${g.god.piety}</div>
         <div style="color:var(--dim);font-size:11.5px">${esc(god.law)}</div>
         ${god.boons.map((b, i) => `<div style="font-size:12px;color:${tier > i ? 'var(--good)' : '#5a4c3a'}">${'Ⅰ Ⅱ Ⅲ'.split(' ')[i]} ${esc(b)} <span style="color:var(--dim)">(${[3, 7, 12][i]})</span></div>`).join('')}`;
     }
-    const here = g.mode === 'play' ? g.groundHere() : [];
-    if (here.length) {
-      rh += `<h3>발밑</h3>`;
-      for (const r of here)
-        rh += r.kind === 'weapon'
-          ? `<div class="slot" data-byproduct="${r.uid}"><span class="n">⚔ ${esc(r.def.name)}<div class="sub">피해 ${r.def.damage} · ${r.def.range > 1 ? `사거리 ${r.def.range}` : '근접'}</div></span></div>`
-          : `<div class="slot" data-byproduct="${r.uid}"><span class="n">${byproductName(r)}<div class="sub">${esc(describeByproduct(r.def)[1])}</div></span></div>`;
-      rh += `<div style="color:var(--dim);font-size:11.5px">[G] 장착·줍기 · [C] 과부하</div>`;
-    }
-    this.right.innerHTML = rh;
+    return `<div class="box suit"><h2>슈트 — ${esc(p.name)}</h2><div class="cols"><div>${left}</div><div>${right}</div></div>
+      <div class="row"><button class="ghost" data-act="close">닫기 (I / Esc)</button></div></div>`;
   }
+}
 
-  showTooltip(html: string | null, x = 0, y = 0) {
-    if (!html) {
-      this.tooltip.hidden = true;
-      return;
-    }
-    this.tooltip.hidden = false;
-    this.tooltip.innerHTML = html;
-    const w = this.tooltip.offsetWidth,
-      h = this.tooltip.offsetHeight;
-    this.tooltip.style.left = `${Math.min(window.innerWidth - w - 8, x + 16)}px`;
-    this.tooltip.style.top = `${Math.min(window.innerHeight - h - 8, y + 12)}px`;
+/** 심전도: 체력 비율만큼 살아 있는 파형, 나머지는 일자선. 체력이 낮을수록 빠르고 불규칙하고 붉다 */
+function drawEcg(c: HTMLCanvasElement, r: number, phase: number, dead: boolean) {
+  const ctx = c.getContext('2d')!;
+  const W = c.width,
+    H = c.height,
+    mid = H / 2;
+  ctx.clearRect(0, 0, W, H);
+  const split = dead ? 0 : Math.max(2, Math.round(W * r));
+  const color = dead ? '#ff4a3a' : r > 0.6 ? '#5dff8a' : r > 0.3 ? '#ffd04a' : '#ff4a3a';
+  // 나머지: 어두운 일자선
+  ctx.strokeStyle = dead ? '#ff4a3a' : '#3a4a44';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(split, mid);
+  ctx.lineTo(W, mid);
+  ctx.stroke();
+  if (dead) return;
+  const beatsShown = 3;
+  const wave = (u: number, beat: number) => {
+    // 낮은 체력: 박동마다 세기가 흔들리고, 가끔 박동이 빠진다
+    const jitter = r < 0.35 ? (1 - r / 0.35) : 0;
+    const h = Math.sin(beat * 12.9898) * 43758.5453;
+    const rnd = h - Math.floor(h);
+    if (jitter && rnd < jitter * 0.3) return 0;
+    const amp = 1 - jitter * rnd * 0.6;
+    const bump = (c0: number, w: number, a: number) => a * Math.exp(-(((u - c0) / w) ** 2));
+    return amp * (bump(0.12, 0.04, 0.12) - bump(0.27, 0.012, 0.18) + bump(0.3, 0.018, 1) - bump(0.33, 0.014, 0.3) + bump(0.55, 0.06, 0.25));
+  };
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 4;
+  ctx.beginPath();
+  for (let x = 0; x <= split; x++) {
+    const t = phase - ((split - x) / W) * beatsShown;
+    const beat = Math.floor(t);
+    const y = mid - wave(t - beat, beat) * (H * 0.42);
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // 쓰는 점
+  ctx.fillStyle = color;
+  ctx.fillRect(split - 1, mid - 1, 3, 3);
 }
 
 export function byproductTooltip(r: ByproductInst): string {
@@ -179,7 +323,7 @@ export function actorTooltip(g: Game, a: Actor): string {
   if (a.aura) st.push(`${ELEMENT_NAME[a.aura.element]} 잔류`);
   if (a.marked) st.push('표식');
   return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
-    <div class="r">체력 ${a.hp}/${s.maxHp} · 슈트 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${s.moveCost}</div>
+    <div class="r">체력 ${a.hp}/${s.maxHp} · 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${speed(s.moveCost)}칸/턴</div>
     ${st.length ? `<div style="color:#e0a050">${st.join(' · ')}</div>` : ''}
     ${byproducts.map((r) => `<div>${byproductName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
     ${a.engravings.length ? `<div class="r">각인: ${a.engravings.map((e) => esc(e.name)).join(', ')}</div>` : ''}

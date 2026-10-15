@@ -156,6 +156,10 @@ export class GridRuntime {
   showPath(cells: { x: number; y: number }[] | null): void {
     this.elements.setPath(cells);
   }
+  /** (MODEL 0 추가) */
+  showMark(c: { x: number; y: number } | null): void {
+    this.elements.setMark(c);
+  }
   showAim(cells: { x: number; y: number }[] | null, ok: boolean): void {
     this.elements.setAim(cells, ok);
   }
