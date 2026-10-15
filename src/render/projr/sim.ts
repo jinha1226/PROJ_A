@@ -54,9 +54,9 @@ export interface Ent {
 }
 
 // 무기: PROJ_R의 무기 그룹 + 권총
-export type WeaponGroup = 'dagger' | 'sword' | 'axe' | 'spear' | 'mace' | 'bow' | 'staff' | 'pistol';
+export type WeaponGroup = 'dagger' | 'sword' | 'axe' | 'spear' | 'mace' | 'bow' | 'staff' | 'pistol' | 'shield';
 /** 렌더러는 이 표의 키로 "무기 이름이 들어간 이벤트"를 알아본다 */
-export const WEAPONS: Record<WeaponGroup, true> = { dagger: true, sword: true, axe: true, spear: true, mace: true, bow: true, staff: true, pistol: true };
+export const WEAPONS: Record<WeaponGroup, true> = { dagger: true, sword: true, axe: true, spear: true, mace: true, bow: true, staff: true, pistol: true, shield: true };
 export interface Weapon { group: WeaponGroup }
 export interface Gear { hands: [Weapon | null, Weapon | null]; active: 0 | 1 }
 export const activeWeapon = (g: Gear): Weapon | null => g.hands[g.active] ?? null;

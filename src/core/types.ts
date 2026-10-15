@@ -50,8 +50,8 @@ export type EffectKind =
 
 export type TargetKind = 'self' | 'target' | 'around' | 'random' | 'marked' | 'nearest';
 
-export type StatusKind = 'burn' | 'slow' | 'stun' | 'blind';
-export const STATUS_NAME: Record<StatusKind, string> = { burn: '화상', slow: '둔화', stun: '기절', blind: '실명' };
+export type StatusKind = 'burn' | 'slow' | 'stun' | 'blind' | 'freeze';
+export const STATUS_NAME: Record<StatusKind, string> = { burn: '화상', slow: '둔화', stun: '기절', blind: '실명', freeze: '빙결' };
 
 export type TerrainKind = 'flame' | 'ice' | 'current';
 
@@ -134,17 +134,44 @@ export interface ByproductInst {
 export type WeaponFamily = 'melee' | 'gun' | 'bow' | 'magic';
 export const FAMILY_NAME: Record<WeaponFamily, string> = { melee: '근접', gun: '총기', bow: '활', magic: '마법' };
 
+/** 성장의 세 갈래 (데드셀의 세 가지 색) */
+export type Color = 'power' | 'tactics' | 'survival';
+export const COLOR_NAME: Record<Color, string> = { power: '화력', tactics: '기술', survival: '생존' };
+
+/** 계열 특성: 무기 종류마다 고정된 성질 */
+export type WeaponTrait =
+  | 'ambush' // 단검: 잠든·기절·빙결한 적에게 치명타
+  | 'parry' // 장검: 근접 공격을 20% 확률로 쳐냄
+  | 'cleave' // 도끼: 주변의 다른 적에게도 절반 피해
+  | 'pierce' // 창: 대상 바로 뒤의 적도 찌름
+  | 'smash' // 철퇴: 1칸 밀침, 막히면 기절
+  | 'block' // 방패: 어느 손에 있든 공격을 25% 확률로 막고, 막으면 다음 공격 치명타
+  | 'fresh' // 활: 상처 없는 적에게 치명타
+  | 'arcane'; // 원소 지팡이: 원소를 남기고 옆의 적에게 절반이 튐
+
+/** 무기 옵션: 적중 효과(맞으면 상태를 만든다) 또는 조건 효과(조건이 맞으면 피해가 커진다) */
+export type OptionId =
+  | 'fire' | 'cold' | 'lightning' | 'impact' | 'leech' | 'blast'
+  | 'burnHunt' | 'iceBreak' | 'ambush' | 'aim' | 'riposte' | 'despair';
+
 export interface WeaponDef {
   id: string;
   name: string;
   family: WeaponFamily;
   grade: Grade;
+  /** 색 1~2개: 레벨업으로 올린 그 색의 레벨만큼 강해진다 (7단계) */
+  colors: Color[];
+  trait?: WeaponTrait;
+  /** 원소 지팡이: 공격 원소 */
+  element?: Element;
   damage: number;
   attackCost: number;
   /** 사거리 (근접 1) */
   range: number;
-  /** 총기: 탄창 크기 */
+  /** 총기: 탄창 크기. 원소 지팡이: 충전 수 */
   mag?: number;
+  /** 원소 지팡이: 이 턴 수마다 1회 충전 (재장전 없음) */
+  recharge?: number;
   burden: number;
 }
 
@@ -152,8 +179,12 @@ export interface WeaponInst {
   kind: 'weapon';
   uid: number;
   def: WeaponDef;
-  /** 총기: 남은 탄 */
+  /** 총기: 남은 탄. 원소 지팡이: 남은 충전 */
   ammo: number;
+  /** 옵션 0~2개 (일반 0~1, 정예 1~2, 금지 2) */
+  options: OptionId[];
+  /** 원소 지팡이: 다음 충전까지 지난 턴 */
+  charging?: number;
 }
 
 /** 바닥에 놓인 것: 부산물 또는 무기 */
@@ -192,6 +223,12 @@ export interface Actor {
   haste: number; // 다음 행동 비용 감소 %
   marked: boolean;
   dead: boolean;
+  /** 직전에 끝낸 행동 (조건 효과 '기습'·'정조준'용) */
+  prevAct?: 'move' | 'wait' | 'attack' | 'other';
+  /** 내 직전 행동 뒤로 적에게 맞았다 (조건 효과 '반격'용) */
+  wasHit?: boolean;
+  /** 방패로 막았다: 다음 공격 치명타 */
+  blockReady?: boolean;
   // AI
   ai?: 'melee' | 'ranged' | 'skirmisher' | 'boss' | 'wraith' | 'dummy';
   awake: boolean;
@@ -209,6 +246,7 @@ export interface GameEvent {
     | 'attack'
     | 'damage'
     | 'dodge'
+    | 'parry'
     | 'death'
     | 'fx'
     | 'log'
@@ -231,6 +269,8 @@ export interface GameEvent {
   fx?: 'blast' | 'chain' | 'shards' | 'shield' | 'heal' | 'blink' | 'combo' | 'overload' | 'line' | 'summon';
   radius?: number;
   cls?: string;
+  /** 치명타 */
+  crit?: boolean;
   /** 이벤트가 일어난 게임 시각 (턴 단위, 행동 비용 100 = 1) */
   t?: number;
 }

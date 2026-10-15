@@ -9,6 +9,11 @@ import type { Cell, Ent, FloorItem, FoeKind, GEvent, GridMap, GridSim, GridState
 /** 우리 무기 → PROJ_R 무기 모양 */
 const WEAPON_LOOK: Record<string, WeaponGroup> = {
   pistol: 'pistol',
+  longbow: 'bow',
+  fire_staff: 'staff',
+  frost_staff: 'staff',
+  storm_staff: 'staff',
+  shield: 'shield',
   dagger: 'dagger',
   longsword: 'sword',
   knight_sword: 'sword',
@@ -121,7 +126,7 @@ export class Bridge {
       group: 0,
       elite: a.elite || a.boss,
       marked: a.marked,
-      status: { burn: a.statuses.burn ? 1 : 0, freeze: a.statuses.slow ? 1 : 0, poison: 0 },
+      status: { burn: a.statuses.burn ? 1 : 0, freeze: a.statuses.slow || a.statuses.freeze ? 1 : 0, poison: 0 },
     };
   }
 
@@ -199,16 +204,23 @@ export class Bridge {
           out.push({ t, type: 'bump', src: id(e.actor), dst: id(e.target), group: e.actor === g.player.id ? heroGroup() : undefined });
           break;
         case 'shoot':
-          out.push({ t, type: 'shoot', src: id(e.actor), dst: id(e.target), to: cell(e.tx, e.ty), group: 'pistol', text: 'pistol' });
+        {
+          // 지팡이는 주문으로, 활은 화살로, 총은 총알로 날아간다
+          const look = WEAPON_LOOK[e.text ?? ''] ?? 'pistol';
+          out.push({ t, type: 'shoot', src: id(e.actor), dst: id(e.target), to: cell(e.tx, e.ty), group: look === 'staff' ? undefined : look, text: look === 'staff' ? 'spell' : look });
+        }
           break;
         case 'reload':
           out.push({ t, type: 'reload', src: id(e.actor) });
           break;
         case 'damage':
-          out.push({ t, type: 'hit', src: id(e.actor), dst: id(e.target), amount: e.amount });
+          out.push({ t, type: 'hit', src: id(e.actor), dst: id(e.target), amount: e.amount, crit: e.crit });
           break;
         case 'dodge':
           out.push(e.target === g.player.id ? { t, type: 'dodge', text: Math.random() < 0.5 ? 'L' : 'R' } : { t, type: 'miss', dst: id(e.target) });
+          break;
+        case 'parry':
+          out.push({ t, type: 'parry', src: id(e.target), dst: id(e.actor), text: e.text });
           break;
         case 'death':
           out.push({ t, type: 'die', dst: id(e.actor) });

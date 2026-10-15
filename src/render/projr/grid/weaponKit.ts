@@ -11,6 +11,8 @@ const MODEL: Partial<Record<WeaponLook, { name: string; length: number; grip: nu
   spear: { name: 'Spear', length: 1.6, grip: 0.3 },
   mace: { name: 'Hammer_Small', length: 0.7, grip: 0.08 },
   bow: { name: 'Bow_Wooden', length: 0.95, grip: 0.5, crosswise: true },
+  // (MODEL 0) 방패
+  shield: { name: 'Shield_Round', length: 0.6, grip: 0.5, crosswise: true },
   // Sci-Fi Essentials guns (a little oversized so they read from above): barrel along x, held near the back
   pistol: { name: 'Gun_Pistol', length: 0.42, grip: 0.3, gun: true },
 };

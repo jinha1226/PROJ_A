@@ -27,6 +27,8 @@ export function weaponMesh(kind: WeaponLook): THREE.Object3D {
     case 'axe': g.add(box(0.05, 0.75, 0.05, wood, 0.3), box(0.05, 0.22, 0.24, metal, 0.6, 0.1)); break;
     case 'spear': g.add(box(0.04, 1.5, 0.04, wood, 0.45), box(0.05, 0.22, 0.08, metal, 1.3)); break;
     case 'mace': g.add(box(0.05, 0.55, 0.05, wood, 0.22), box(0.18, 0.18, 0.18, metal, 0.55)); break;
+    // (MODEL 0) 원소 지팡이: 나무 자루 + 빛나는 구슬
+    case 'staff': g.add(box(0.04, 1.2, 0.04, wood, 0.5), box(0.11, 0.11, 0.11, new THREE.MeshStandardMaterial({ color: '#9fd8ff', emissive: '#4aa8ff', emissiveIntensity: 1.2 }), 1.12)); break;
     case 'bow': g.add(box(0.04, 0.9, 0.04, wood, 0, 0.12), box(0.01, 0.88, 0.01, metal, 0, 0.02)); break;
     case 'crossbow': {
       const stock = box(0.05, 0.05, 0.42, wood, 0, 0.12);

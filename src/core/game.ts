@@ -2,7 +2,7 @@ import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
 import { allByproducts, heldWeapon, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
-  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, EngravingDef, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, Trigger,
+  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, EngravingDef, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, Trigger, OptionId,
 } from './types';
 import { ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
@@ -10,6 +10,7 @@ import { ENGRAVING_BY_ID, ENGRAVING_POOL, ENGRAVINGS } from '../data/engravings'
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
 import { BODIES, GODS, ORIGINS } from '../data/start';
 import { FISTS, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
+import { CRIT_MULT, OPTION_BY_ID, OPTIONS } from '../data/options';
 import { ENEMIES, ENEMY_BY_ID, ZONES, type EnemyTemplate } from '../data/enemies';
 
 export type Mode = 'play' | 'levelup' | 'rest' | 'altar' | 'dead' | 'won';
@@ -51,6 +52,7 @@ interface DamageOpts {
   pierce?: boolean;
   label?: string;
   noTrigger?: boolean;
+  crit?: boolean;
 }
 
 export interface RunStats {
@@ -97,11 +99,13 @@ export class Game {
   private nextId = 1;
   private nextUid = 1;
   private depth = 0;
+  /** 마지막으로 쓰러진 액터 (처치 폭발 판정용) */
+  private lastKill: Actor | null = null;
   /** 지금 실행 중인 플레이어 각인의 기록 줄: 그 각인이 준 피해를 줄 끝에 덧붙인다 */
   private chainLine: { ev: GameEvent; hits: number } | null = null;
   /** 이번 플레이어 행동 동안의 각인 발동·최대 연쇄·준 피해 (실험실 표시용) */
-  private action = { triggers: 0, maxDepth: 0, damage: 0 };
-  lastAction = { triggers: 0, maxDepth: 0, damage: 0 };
+  private action = { triggers: 0, maxDepth: 0, damage: 0, crits: 0 };
+  lastAction = { triggers: 0, maxDepth: 0, damage: 0, crits: 0 };
   private distCache: { key: number; dist: Int32Array } | null = null;
 
   /** 각인 실험실: 허수아비만 있는 방, 경보·레벨업·출구 없음, 각인 자유 편집 */
@@ -121,9 +125,20 @@ export class Game {
     return { kind: 'byproduct', uid: this.nextUid++, def: d, dormant: false, fixed: false, cd: 0, upgrade: 0 };
   }
 
-  makeWeapon(def: WeaponDef | string): WeaponInst {
+  makeWeapon(def: WeaponDef | string, options: OptionId[] = []): WeaponInst {
     const d = typeof def === 'string' ? WEAPON_BY_ID[def] : def;
-    return { kind: 'weapon', uid: this.nextUid++, def: d, ammo: d.mag ?? 0 };
+    return { kind: 'weapon', uid: this.nextUid++, def: d, ammo: d.mag ?? 0, options };
+  }
+
+  /** 떨어지는 무기: 등급별 옵션 수 (일반 0~1, 정예 1~2, 금지 2). 원소 적중 효과는 한 무기에 하나만 */
+  rollWeaponInst(def: WeaponDef = this.rollWeapon()): WeaponInst {
+    const n = def.grade === 'common' ? (this.rng.chance(0.5) ? 1 : 0) : def.grade === 'holy' ? (this.rng.chance(0.5) ? 2 : 1) : 2;
+    const out: OptionId[] = [];
+    for (let i = 0; i < n; i++) {
+      const pool = OPTIONS.filter((o) => !out.includes(o.id) && !(o.element && (def.element || out.some((x) => OPTION_BY_ID[x].element))));
+      out.push(this.rng.pick(pool).id);
+    }
+    return this.makeWeapon(def, out);
   }
 
   private newActor(name: string, faction: Faction, hp: number, dmg: number, slots: Record<Slot, number>): Actor {
@@ -204,6 +219,20 @@ export class Game {
     this.player.engravings = ids.map((id) => ENGRAVING_BY_ID[id]).filter(Boolean);
   }
 
+  /** 실험실: 손 hand의 무기를 바꾼다 (옵션은 비움) */
+  labSetWeapon(hand: number, id: string) {
+    if (!this.lab) return;
+    this.player.hands[hand] = this.makeWeapon(id);
+    this.emit({ type: 'loadout', actor: this.player.id });
+  }
+
+  /** 실험실: 손 hand 무기의 옵션을 켜고 끈다 (개수 제한 없음) */
+  labToggleOption(hand: number, o: OptionId) {
+    const w = this.player.hands[hand];
+    if (!this.lab || !w) return;
+    w.options = w.options.includes(o) ? w.options.filter((x) => x !== o) : [...w.options, o];
+  }
+
   /** 실험실: 허수아비·플레이어 상태 초기화 */
   labReset() {
     if (!this.lab) return;
@@ -221,6 +250,9 @@ export class Game {
     p.hp = this.st(p).maxHp;
     for (const r of allByproducts(p)) r.cd = 0;
     for (const w of p.hands) if (w?.def.mag !== undefined) w.ammo = w.def.mag;
+    p.prevAct = undefined;
+    p.wasHit = false;
+    p.blockReady = false;
     this.refreshFov();
     this.emit({ type: 'floor' });
     this.log('실험실 초기화', 'floor');
@@ -236,7 +268,7 @@ export class Game {
   }
 
   get depthLabel() {
-    if (this.lab) return '각인 실험실';
+    if (this.lab) return '무기 실험실';
     return `${ZONES[this.zone].name} · ${this.isBossFloor ? '보스' : `${this.floor + 1}층`}`;
   }
 
@@ -270,7 +302,7 @@ export class Game {
     if (this.lab) {
       for (const [x, y] of LAB_DUMMIES) this.spawnDummy(x, y);
       p.hands = [this.makeWeapon('pistol'), this.makeWeapon('longsword')];
-      this.log('각인 실험실: [T] 각인 편집 · 허수아비는 반격하지 않고 쓰러지지 않는다', 'floor');
+      this.log('무기 실험실: [T] 무기·옵션·각인 편집 · 허수아비는 반격하지 않고 쓰러지지 않는다 (쓰러뜨리면 처치로 친다)', 'floor');
     } else if (this.isBossFloor) {
       const boss = this.spawnEnemy(ENEMY_BY_ID[ZONES[this.zone].boss], 22, 12);
       boss.awake = false;
@@ -299,7 +331,7 @@ export class Game {
       if (this.rng.chance(0.6)) {
         const room = this.rng.pick(rooms);
         const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
-        if (pos) this.dropItem(pos[0], pos[1], this.makeWeapon(this.rollWeapon()));
+        if (pos) this.dropItem(pos[0], pos[1], this.rollWeaponInst());
       }
     }
     this.worldTime = p.time;
@@ -456,7 +488,7 @@ export class Game {
       // 원거리 무기를 든 채 부딪히면 개머리판 타격 (약함)
       const ranged = this.st(p).range > 1;
       this.basicAttack(p, other, ranged);
-      this.endPlayerAction(ranged ? 100 : this.st(p).attackCost);
+      this.endPlayerAction(ranged ? 100 : this.st(p).attackCost, 'attack');
       return true;
     }
     if (other) {
@@ -466,7 +498,7 @@ export class Game {
     }
     this.stepActor(p, nx, ny);
     this.afterPlayerStep();
-    this.endPlayerAction(this.st(p).moveCost);
+    this.endPlayerAction(this.st(p).moveCost, 'move');
     return true;
   }
 
@@ -490,7 +522,7 @@ export class Game {
   wait(): boolean {
     if (!this.canAct()) return false;
     this.fire(this.player, 'wait', {});
-    this.endPlayerAction(100);
+    this.endPlayerAction(100, 'wait');
     return true;
   }
 
@@ -505,7 +537,7 @@ export class Game {
       return false;
     }
     if (w.def.mag !== undefined && w.ammo <= 0) {
-      this.log(`${w.def.name}: 탄창이 비었다. [R] 재장전`, 'warn');
+      this.log(w.def.recharge ? `${w.def.name}: 충전 중 (${w.def.recharge}턴마다 1회)` : `${w.def.name}: 탄창이 비었다. [R] 재장전`, 'warn');
       return false;
     }
     const t = this.actorAt(tx, ty);
@@ -518,9 +550,9 @@ export class Game {
       return false;
     }
     if (w.def.mag !== undefined) w.ammo--;
-    this.emit({ type: 'shoot', actor: p.id, target: t.id, x: p.x, y: p.y, tx, ty, element: p.imbue });
+    this.emit({ type: 'shoot', actor: p.id, target: t.id, x: p.x, y: p.y, tx, ty, element: p.imbue ?? w.def.element, text: w.def.id });
     this.basicAttack(p, t, false, true);
-    this.endPlayerAction(s.attackCost);
+    this.endPlayerAction(s.attackCost, 'attack');
     return true;
   }
 
@@ -532,6 +564,10 @@ export class Game {
       this.log('재장전할 총이 없다.');
       return false;
     }
+    if (w.def.recharge) {
+      this.log(`${w.def.name}은(는) 충전식이라 재장전하지 않는다 (${w.def.recharge}턴마다 1회).`);
+      return false;
+    }
     if (w.ammo >= w.def.mag) {
       this.log('탄창이 가득 차 있다.');
       return false;
@@ -540,11 +576,11 @@ export class Game {
     this.log(`${w.def.name} 재장전 (${w.ammo}/${w.def.mag})`, 'skill');
     this.emit({ type: 'reload', actor: this.player.id });
     this.fire(this.player, 'wait', {});
-    this.endPlayerAction(100);
+    this.endPlayerAction(100, 'wait');
     return true;
   }
 
-  /** 손 2칸 사이에서 무기 교체 (1턴) */
+  /** 손 2칸 사이에서 무기 교체. 시간이 들지 않는다: 두 무기를 바꿔 들며 상태를 만들고 이용하는 것이 조합의 기본이라서 (데드셀) */
   swapWeapon(): boolean {
     if (!this.canAct()) return false;
     const p = this.player;
@@ -552,7 +588,6 @@ export class Game {
     this.recomputeBurden(p);
     this.log(`무기 교체: ${heldWeapon(p)?.def.name ?? FISTS.name}`);
     this.emit({ type: 'loadout', actor: p.id });
-    this.endPlayerAction(100);
     return true;
   }
 
@@ -590,7 +625,7 @@ export class Game {
     }
     const tgt = tx !== undefined && ty !== undefined ? { x: tx, y: ty } : undefined;
     if (!this.performActive(this.player, r, tgt)) return false;
-    this.endPlayerAction(this.st(this.player).attackCost);
+    this.endPlayerAction(this.st(this.player).attackCost, 'attack');
     return true;
   }
 
@@ -740,7 +775,7 @@ export class Game {
         const r = this.makeByproduct(this.rollByproduct());
         return { item: r as GroundItem, price: { common: 5, holy: 10, forbidden: 14 }[r.def.grade] };
       });
-      const w = this.makeWeapon(this.rollWeapon());
+      const w = this.rollWeaponInst();
       this.shop.push({ item: w, price: w.def.grade === 'common' ? 5 : 11 });
     }
     if (this.restService === 'engrave') this.levelChoices = this.rollEngravings(3);
@@ -949,16 +984,19 @@ export class Game {
 
   // ───────────────────────── 턴 진행 ─────────────────────────
 
-  private endPlayerAction(cost: number) {
+  private endPlayerAction(cost: number, act: NonNullable<Actor['prevAct']> = 'other') {
     const p = this.player;
     this.stats.turns++;
+    // 조건 효과용: 방금 끝낸 행동, 그리고 이 뒤로 적에게 맞았는지
+    p.prevAct = act;
+    p.wasHit = false;
     p.time += this.actionCost(p, cost);
     this.refreshFov();
     this.runUntilPlayer();
     p.engravingFires.clear();
     this.refreshFov();
     this.lastAction = this.action;
-    this.action = { triggers: 0, maxDepth: 0, damage: 0 };
+    this.action = { triggers: 0, maxDepth: 0, damage: 0, crits: 0 };
     this.checkLevelUp();
   }
 
@@ -1000,6 +1038,15 @@ export class Game {
     for (const a of this.actors) if (a.shield > 0) a.shield--;
     // 쿨다운
     for (const a of this.actors) if (!a.dead) for (const r of a.slots.arm) if (r && r.cd > 0) r.cd--;
+    // 원소 지팡이 충전 (손에 든 것과 예비 모두)
+    for (const w of this.player.hands)
+      if (w?.def.recharge && w.ammo < w.def.mag!) {
+        w.charging = (w.charging ?? 0) + 1;
+        if (w.charging >= w.def.recharge) {
+          w.charging = 0;
+          w.ammo++;
+        }
+      }
     // 지형
     for (const [i, t] of lv.terrain) {
       const x = i % lv.w,
@@ -1060,7 +1107,7 @@ export class Game {
     // 상태이상 처리
     if (a.statuses.burn) this.dealDamage(null, a, 2 + this.zone, 'fire', { label: '화상', noTrigger: true });
     if (a.dead) return;
-    const stunned = !!a.statuses.stun;
+    const stunned = !!a.statuses.stun || !!a.statuses.freeze;
     for (const k of Object.keys(a.statuses) as StatusKind[]) {
       if (--a.statuses[k]! <= 0) delete a.statuses[k];
     }
@@ -1236,12 +1283,89 @@ export class Game {
 
   private basicAttack(a: Actor, t: Actor, bash = false, shot = false) {
     const s = this.st(a);
-    const el = a.imbue;
+    // 개머리판은 무기 옵션·특성이 붙지 않는다
+    const w = bash ? null : heldWeapon(a);
+    const optEl = w?.options.map((o) => OPTION_BY_ID[o].element).find((e) => e);
+    const el = a.imbue ?? optEl ?? w?.def.element;
     a.imbue = undefined;
     if (!shot) this.emit({ type: 'attack', actor: a.id, target: t.id });
-    const dmg = bash ? s.damage - s.weapon.damage + FISTS.damage : s.damage;
-    this.dealDamage(a, t, Math.max(1, Math.round(dmg * this.dmgMult(a))), el, { dodgeable: true, label: bash ? '개머리판' : undefined });
+    const base = bash ? s.damage - s.weapon.damage + FISTS.damage : s.damage;
+    const m = this.weaponMods(a, t, w);
+    a.blockReady = false;
+    const wasSlow = !!t.statuses.slow;
+    this.lastKill = null;
+    const dmg = Math.max(1, Math.round(base * m.mult * (m.crit ? CRIT_MULT : 1) * this.dmgMult(a)));
+    const dealt = this.dealDamage(a, t, dmg, el, { dodgeable: true, label: bash ? '개머리판' : m.crit ? `치명타 · ${m.crit}` : undefined, crit: !!m.crit });
+    if (m.crit && dealt > 0 && a.isPlayer) this.log(`치명타! ${m.crit} → ${t.name} ${dealt}`, 'skill');
+    if (dealt > 0 && w) this.weaponAfterHit(a, t, w, base, dealt, el, wasSlow);
     this.fire(a, 'attack', { target: t.dead ? undefined : t, element: el, x: t.x, y: t.y });
+  }
+
+  /** 무기 조건 효과와 계열 특성: 피해 배율과 치명타 (치명타는 조건으로만 생긴다) */
+  weaponMods(a: Actor, t: Actor, w: WeaponInst | null): { mult: number; crit: string | null } {
+    let mult = 1;
+    let crit: string | null = null;
+    if (a.blockReady) crit = '막기 반격';
+    if (!w) return { mult, crit };
+    const has = (o: OptionId) => w.options.includes(o);
+    if (has('burnHunt') && t.statuses.burn) crit ??= '화염 사냥';
+    if (has('iceBreak')) {
+      if (t.statuses.freeze) crit ??= '얼음 깨기';
+      else if (t.statuses.slow) mult *= 1.5;
+    }
+    if (has('ambush') && a.prevAct === 'move') mult *= 1.4;
+    if (has('aim') && a.prevAct === 'wait') crit ??= '정조준';
+    if (has('riposte') && a.wasHit) mult *= 1.5;
+    if (has('despair') && a.hp <= this.st(a).maxHp / 2) mult *= 1.3;
+    const tr = w.def.trait;
+    if (tr === 'ambush' && (!t.awake || t.statuses.stun || t.statuses.freeze)) crit ??= '기습';
+    if (tr === 'fresh' && t.hp >= this.st(t).maxHp) crit ??= '첫 발';
+    return { mult, crit };
+  }
+
+  /** 무기가 만든 추가 타격 (튐·휩쓸기·관통·폭발): 조건 효과는 적용되고, 적중 효과는 다시 부르지 않는다 (연쇄 없음) */
+  private weaponStrike(a: Actor, t: Actor, w: WeaponInst, base: number, el: Element | undefined, label: string) {
+    if (t.dead) return;
+    const m = this.weaponMods(a, t, w);
+    const dmg = Math.max(1, Math.round(base * m.mult * (m.crit ? CRIT_MULT : 1) * this.dmgMult(a)));
+    this.dealDamage(a, t, dmg, el, { label: m.crit ? `${label} · 치명타` : label, noTrigger: true, crit: !!m.crit });
+  }
+
+  /** 맞힌 뒤: 적중 효과 옵션과 계열 특성 */
+  private weaponAfterHit(a: Actor, t: Actor, w: WeaponInst, base: number, dealt: number, el: Element | undefined, wasSlow: boolean) {
+    const has = (o: OptionId) => w.options.includes(o);
+    const killed = this.lastKill === t;
+    const tr = w.def.trait;
+    if (has('fire') && !t.dead) this.addStatus(t, 'burn', 3);
+    // 상태는 대상의 차례가 올 때마다 1씩 줄어든다. 다음 내 행동까지 남도록 한 칸 길게 건다
+    if (has('cold') && !t.dead) {
+      if (wasSlow) this.addStatus(t, 'freeze', 2);
+      else this.addStatus(t, 'slow', 3);
+    }
+    if (has('leech')) this.repairArmor(a, Math.max(1, Math.round(dealt / 4)));
+    // 옆의 적에게 튐: 번개 옵션, 원소 지팡이
+    const jump = (power: number, jel: Element | undefined, label: string) => {
+      const n = this.actors.find((b) => !b.dead && b !== t && this.hostile(a, b) && Math.max(Math.abs(b.x - t.x), Math.abs(b.y - t.y)) <= 2);
+      if (!n) return;
+      this.emit({ type: 'fx', fx: 'chain', x: t.x, y: t.y, tx: n.x, ty: n.y, element: jel ?? 'lightning' });
+      this.weaponStrike(a, n, w, power, jel, label);
+    };
+    if (has('lightning')) jump(dealt * 0.5, 'lightning', '번개');
+    if (tr === 'arcane') jump(dealt * 0.5, w.def.element, '원소 튐');
+    if (tr === 'cleave')
+      for (const b of this.hostilesInRadius(a, a.x, a.y, 1)) if (b !== t) this.weaponStrike(a, b, w, base * 0.5, el, '휩쓸기');
+    if (tr === 'pierce') {
+      const bx = t.x + Math.sign(t.x - a.x),
+        by = t.y + Math.sign(t.y - a.y);
+      const b = this.actorAt(bx, by);
+      if (b && this.hostile(a, b)) this.weaponStrike(a, b, w, base, el, '관통');
+    }
+    if (has('blast') && killed) {
+      this.emit({ type: 'fx', fx: 'blast', x: t.x, y: t.y, radius: 1, element: el });
+      for (const b of this.hostilesInRadius(a, t.x, t.y, 1)) if (b !== t) this.weaponStrike(a, b, w, base * 0.5, el, '처치 폭발');
+    }
+    // 밀침: 충격 옵션·강타. 벽이나 다른 액터에 막히면 기절
+    if ((has('impact') || tr === 'smash') && !t.dead && this.knock(a, t, 1) && !t.dead) this.addStatus(t, 'stun', 1);
   }
 
   /** 액티브 실행. 형태 × 원소 × 수치 */
@@ -1338,15 +1462,30 @@ export class Game {
   }
 
   /** 피해 파이프라인: 회피 → 원소 친화 → 복합 반응 → 보호막 → 장갑(몸 부산물) → 체력 */
-  dealDamage(src: Actor | null, t: Actor, amount: number, el: Element | undefined, opts: DamageOpts = {}) {
-    if (t.dead || amount <= 0) return;
+  dealDamage(src: Actor | null, t: Actor, amount: number, el: Element | undefined, opts: DamageOpts = {}): number {
+    if (t.dead || amount <= 0) return 0;
     const ts = this.st(t);
+    // 장검 패링(들고 있을 때, 붙어서 오는 공격) · 방패 막기(어느 손에 있든)
+    if (opts.dodgeable && src && t.hands.length) {
+      const adjacent = Math.max(Math.abs(src.x - t.x), Math.abs(src.y - t.y)) <= 1;
+      if (heldWeapon(t)?.def.trait === 'parry' && adjacent && this.rng.chance(0.2)) {
+        this.emit({ type: 'parry', target: t.id, actor: src.id, x: t.x, y: t.y, text: 'parry' });
+        if (t.isPlayer) this.log(`${src.name}의 공격을 쳐냈다.`);
+        return 0;
+      }
+      if (t.hands.some((h) => h?.def.trait === 'block') && this.rng.chance(0.25)) {
+        t.blockReady = true;
+        this.emit({ type: 'parry', target: t.id, actor: src.id, x: t.x, y: t.y, text: 'block' });
+        if (t.isPlayer) this.log(`방패로 막았다. 다음 공격 치명타.`, 'skill');
+        return 0;
+      }
+    }
     if (opts.dodgeable) {
       const blindMiss = src?.statuses.blind ? 0.35 : 0;
       if (this.rng.next() < ts.dodge / 100 + blindMiss) {
         this.emit({ type: 'dodge', target: t.id, x: t.x, y: t.y });
         if (t.isPlayer) this.log(`${src?.name ?? '공격'}을(를) 피했다.`);
-        return;
+        return 0;
       }
     }
     let dmg = amount;
@@ -1407,19 +1546,23 @@ export class Game {
     if (src?.isPlayer) {
       this.stats.damageDealt += dmg;
       this.action.damage += dmg;
+      if (opts.crit) this.action.crits++;
       const line = this.chainLine;
       if (line && line.hits < 4) line.ev.text += ` → ${t.name} ${dmg}`;
       else if (line && line.hits === 4) line.ev.text += ' …';
       if (line) line.hits++;
     }
     t.hp -= overflow;
-    this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label });
+    this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label, crit: opts.crit });
+    if (t.isPlayer && src && dmg > 0) t.wasHit = true;
     if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}: ${dmg}${el ? ` ${ELEMENT_NAME[el]}` : ''} 피해`, 'bad');
 
     if (el === 'fire' && !t.statuses.burn && this.rng.chance(0.4)) this.addStatus(t, 'burn', 2);
     if (el === 'cold') this.addStatus(t, 'slow', 1);
     if (t.hp <= 0 && t.ai === 'dummy') {
+      // 허수아비는 쓰러지지 않지만, 처치 효과 시험을 위해 처치로 친다
       t.hp = t.baseHp;
+      this.lastKill = t;
     } else if (t.hp <= 0) {
       this.kill(t, src);
     }
@@ -1427,6 +1570,7 @@ export class Game {
     // 피격: 행동하는 적(또는 아군)에게 맞았을 때만. 지형·화상 같은 지속 피해는 제외
     if (!opts.noTrigger && src && !t.dead) this.fire(t, 'hit', { target: src, element: el });
     if (!t.isPlayer) t.awake = true;
+    return dmg;
   }
 
   private comboFx(t: Actor, name: string) {
@@ -1487,6 +1631,7 @@ export class Game {
 
   private kill(t: Actor, src: Actor | null) {
     if (t.dead) return;
+    this.lastKill = t;
     t.dead = true;
     t.hp = 0;
     this.emit({ type: 'death', actor: t.id, x: t.x, y: t.y });
@@ -1520,7 +1665,7 @@ export class Game {
 
   addStatus(a: Actor, s: StatusKind, turns: number) {
     if (a.dead) return;
-    if (s === 'stun' && a.boss) turns = Math.min(turns, 1);
+    if ((s === 'stun' || s === 'freeze') && a.boss) turns = Math.min(turns, 1);
     a.statuses[s] = Math.max(a.statuses[s] ?? 0, turns);
   }
 
@@ -1795,7 +1940,8 @@ export class Game {
     }
   }
 
-  private knock(src: Actor, t: Actor, n: number) {
+  /** 밀치기. 벽이나 다른 액터에 막혔으면 true */
+  private knock(src: Actor, t: Actor, n: number): boolean {
     if (t.boss) n = Math.sign(n);
     const dx = Math.sign(t.x - src.x) * Math.sign(n),
       dy = Math.sign(t.y - src.y) * Math.sign(n);
@@ -1807,10 +1953,11 @@ export class Game {
         const aura = t.aura?.element;
         this.dealDamage(src, t, 3 + this.zone * 2, 'impact', { label: '충돌' });
         if (aura && aura !== 'impact' && !t.dead) this.dealDamage(src, t, 4, aura, { label: `충돌·${ELEMENT_NAME[aura]}` });
-        return;
+        return true;
       }
       this.stepActor(t, nx, ny);
     }
+    return false;
   }
 
   refreshFov() {

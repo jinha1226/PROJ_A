@@ -55,7 +55,8 @@ export function botStep(g: Game): boolean {
     if (d <= 1 && ranged(held) && other && !ranged(other)) return g.swapWeapon();
     if (d >= 3 && !ranged(held) && ranged(other) && other!.ammo > 0) return g.swapWeapon();
     if (ranged(held) && d > 1) {
-      if (held!.def.mag !== undefined && held!.ammo <= 0) return g.reload();
+      // 원소 지팡이는 재장전이 없다: 충전이 비면 다가가서 다른 손으로
+      if (held!.def.mag !== undefined && held!.ammo <= 0 && !held!.def.recharge) return g.reload();
       if (d <= held!.def.range && g.shoot(near.x, near.y)) return true;
     }
     if (d <= 1) {
@@ -66,7 +67,7 @@ export function botStep(g: Game): boolean {
     return g.wait();
   }
   const held = heldWeapon(p);
-  if (held?.def.mag !== undefined && held.ammo < held.def.mag) return g.reload();
+  if (held?.def.mag !== undefined && !held.def.recharge && held.ammo < held.def.mag) return g.reload();
   const here = g.groundHere();
   for (const r of here) {
     if (tryTake(g, r)) return true;

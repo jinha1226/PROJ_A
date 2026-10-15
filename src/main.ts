@@ -1,9 +1,11 @@
 import { Game, OVERLOAD_NAME, REST_NAME, MAX_KITS, type OverloadMode } from './core/game';
 import { describeEffect, describeEngraving } from './core/describe';
-import type { Element, ByproductInst, GroundItem, WeaponInst } from './core/types';
+import type { Element, ByproductInst, GroundItem, OptionId, WeaponInst } from './core/types';
 import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_NAME, TRIGGER_SHORT, TRIGGERS } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
+import { OPTIONS } from './data/options';
+import { TRAIT_TEXT, WEAPONS } from './data/weapons';
 import { loadAssets, View3D, type Pace } from './render/view3d';
 import { actorTooltip, esc, Hud, byproductName, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
 import { heldWeapon } from './core/stats';
@@ -40,7 +42,7 @@ function showTitle() {
     <h3>슈트 프레임 — 부위 슬롯 구성</h3>
     <div class="cards">${BODIES.map((b) => `<div class="card ${b.id === pickBody ? 'sel' : ''}" data-body="${b.id}"><div class="nm">${esc(b.name)}</div><div class="ds">${esc(b.desc)}</div></div>`).join('')}</div>
     <div class="row"><span style="color:var(--dim)">시드</span><input id="seed" value="${esc(seed)}" size="16"/>
-      <button class="ghost" data-act="reseed">무작위</button><span style="flex:1"></span><button class="ghost" data-act="lab">각인 실험실 (테스트)</button><button data-act="start">출격 (Enter)</button></div>
+      <button class="ghost" data-act="reseed">무작위</button><span style="flex:1"></span><button class="ghost" data-act="lab">무기 실험실 (테스트)</button><button data-act="start">출격 (Enter)</button></div>
     ${keysHelp()}
   </div>`;
   bind(modal, {
@@ -73,7 +75,7 @@ function keysHelp() {
     ['m', '기록(메시지) 보기'],
     ['p', 'HD / 도트 전환'],
     ['v', '연출 속도 (보통 · 빠름 · 즉시)'],
-    ['t', '각인 실험실: 각인 편집·초기화'],
+    ['t', '무기 실험실: 무기·옵션 편집, 초기화'],
     ['마우스', '클릭 이동·조준, 휠 확대, 올리면 정보'],
   ];
   return `<div class="keys">${rows.map(([k, d]) => `<div><b>${esc(k)}</b> ${d}</div>`).join('')}</div>`;
@@ -159,7 +161,7 @@ function renderModal() {
   modal.hidden = true;
 }
 
-/** 각인 실험실 편집: 모든 각인을 행동별로 켜고 끈다 */
+/** 무기 실험실 편집: 손마다 무기와 옵션, (정리 예정) 각인 */
 function showLab() {
   const g = game!;
   modal.hidden = false;
@@ -170,18 +172,47 @@ function showLab() {
       .map((e) => `<div class="card ${on.has(e.id) ? 'sel' : ''}" data-eng="${e.id}"><div class="nm">${on.has(e.id) ? '■ ' : '□ '}${esc(e.name)}</div><div class="ds">→ ${esc(describeEffect(e.effect))}</div></div>`)
       .join('')}</div>`;
   }).join('');
+  // 무기: 손마다 무기 고르기 + 옵션 켜고 끄기
+  const hands = [0, 1]
+    .map((h) => {
+      const w = g.player.hands[h];
+      const pick = WEAPONS.map((d) => `<option value="${d.id}" ${w?.def.id === d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('');
+      const opts = OPTIONS.map((o) => {
+        const sel = !!w?.options.includes(o.id);
+        return `<div class="card ${sel ? 'sel' : ''}" data-opt="${h}:${o.id}"><div class="nm">${sel ? '■ ' : '□ '}${o.kind === 'hit' ? '◆' : '◇'} ${esc(o.name)}</div><div class="ds">${esc(o.desc)}</div></div>`;
+      }).join('');
+      return `<h3>손 ${h + 1}${g.player.activeHand === h ? ' (들고 있음)' : ''} <select data-hand="${h}">${pick}</select></h3>
+        ${w?.def.trait ? `<p class="lead">${esc(TRAIT_TEXT[w.def.trait])}</p>` : ''}<div class="cards">${opts}</div>`;
+    })
+    .join('');
   const la = g.lastAction;
-  modal.innerHTML = `<div class="box lab"><h2>각인 실험실</h2>
-    <p class="lead">눌러서 각인을 켜고 끈다 (칸 제한 없음). 피해를 주는 각인(일격·폭발·파편·연쇄)은 그 자체가 '공격'으로 쳐서 공격 각인을 다시 터뜨린다 — 최대 3단계, 같은 각인은 턴당 3회.<br>
-    직전 행동: 각인 발동 <b>${la.triggers}</b> · 최대 연쇄 <b>${la.maxDepth}</b> · 준 피해 <b>${la.damage}</b></p>
-    ${groups}
-    <div class="row"><button class="ghost" data-act="none">모두 끄기</button><button class="ghost" data-act="reset">허수아비·상태 초기화</button><span style="flex:1"></span><button data-act="close">닫기 (T / Esc)</button></div></div>`;
+  modal.innerHTML = `<div class="box lab"><h2>무기 실험실</h2>
+    <p class="lead">손마다 무기를 고르고 옵션을 켜고 끈다(개수 제한 없음). ◆ 적중 효과는 맞으면 상태를 만들고, ◇ 조건 효과는 조건이 맞으면 피해를 키운다. 치명타(×2)는 조건으로만 생긴다.<br>
+    직전 행동: 준 피해 <b>${la.damage}</b></p>
+    ${hands}
+    <details><summary>각인 (정리 예정)</summary>${groups}</details>
+    <div class="row"><button class="ghost" data-act="none">각인 모두 끄기</button><button class="ghost" data-act="reset">허수아비·상태 초기화</button><span style="flex:1"></span><button data-act="close">닫기 (T / Esc)</button></div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-eng]').forEach(
     (el) =>
       (el.onclick = () => {
         const id = el.dataset.eng!;
         const ids = g.player.engravings.map((e) => e.id);
         g.labSetEngravings(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
+        refresh();
+      }),
+  );
+  modal.querySelectorAll<HTMLElement>('[data-opt]').forEach(
+    (el) =>
+      (el.onclick = () => {
+        const [h, o] = el.dataset.opt!.split(':');
+        g.labToggleOption(Number(h), o as OptionId);
+        refresh();
+      }),
+  );
+  modal.querySelectorAll<HTMLSelectElement>('select[data-hand]').forEach(
+    (el) =>
+      (el.onchange = () => {
+        g.labSetWeapon(Number(el.dataset.hand), el.value);
         refresh();
       }),
   );

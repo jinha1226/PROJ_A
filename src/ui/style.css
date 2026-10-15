@@ -175,3 +175,9 @@ input { font: inherit; color: var(--ink); background: #1a130e; border: 1px solid
 .keys div { break-inside: avoid; }
 .keys b { color: var(--ink); display: inline-block; min-width: 190px; font-weight: 600; }
 table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { color: var(--dim); }
+
+/* 무기: 색 · 계열 특성 · 옵션 */
+.col { padding: 0 4px; border: 1px solid currentColor; font-size: 10px; }
+.col.power { color: #ff7a6a; } .col.tactics { color: #c49aff; } .col.survival { color: #7fd99a; }
+.r.trait { color: #d8d0b0; } .r.opt.hit b { color: #ffcf7a; } .r.opt.cond b { color: #9fd8ff; }
+#br .opts { color: #ffcf7a; }
