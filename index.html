@@ -9,10 +9,12 @@
   <body>
     <div id="view"></div>
     <div id="hud" hidden>
-      <div id="tl" class="corner"></div>
+      <div id="tl" class="corner">
+        <canvas id="minimap" width="150" height="104"></canvas>
+        <div id="mission"></div>
+      </div>
       <div id="tr" class="corner">
         <div id="trinfo"></div>
-        <canvas id="minimap" width="200" height="150"></canvas>
         <button id="pxbtn" class="hudbtn"></button>
         <button id="pacebtn" class="hudbtn"></button>
       </div>

@@ -110,9 +110,14 @@ export type GEventType =
   | 'shield' | 'swap' | 'equip' | 'wear' | 'drop' | 'pickup' | 'full' | 'stun' | 'push' | 'use' | 'explode' | 'frozen' | 'status'
   | 'station' | 'suit' | 'energy' | 'upgrade' | 'absorb' | 'record' | 'stairs' | 'core' | 'telegraph' | 'summon' | 'floor' | 'victory' | 'levelUp'
   | 'react' | 'dodge' | 'parry' | 'engrave' | 'combo' | 'trap' | 'disarm' | 'trapFound' | 'root' | 'buff' | 'teleport' | 'search' | 'drink' | 'read'
-  | 'identify' | 'stumble' | 'suitHere' | 'stone' | 'stoneBreak' | 'portal';
+  | 'identify' | 'stumble' | 'suitHere' | 'stone' | 'stoneBreak' | 'portal'
+  /** (MODEL 0) 기록 한 줄: 연출 순서대로 기록에 찍힌다 */
+  | 'log';
 /** t: 행동을 시작한 게임 시각 (렌더러는 이 순서로 재생한다) */
-export interface GEvent { group?: WeaponGroup; t: number; type: GEventType; src?: string; dst?: string; from?: Cell; to?: Cell; amount?: number; crit?: boolean; text?: string }
+export interface GEvent {
+  /** (MODEL 0) 이 각인 연출과 함께 기록(M)에 찍을 줄 */
+  line?: { text: string; cls: string };
+  group?: WeaponGroup; t: number; type: GEventType; src?: string; dst?: string; from?: Cell; to?: Cell; amount?: number; crit?: boolean; text?: string }
 
 /** 렌더러가 읽는 것은 sim.s 뿐 */
 export interface GridSim { s: GridState }

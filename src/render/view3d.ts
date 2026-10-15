@@ -36,6 +36,8 @@ export class View3D {
   private stage: HTMLElement;
   private last = performance.now();
   private lastTime = 0;
+  /** 각인 연출이 재생될 때 기록에 찍을 줄 */
+  onLine: ((line: { text: string; cls: string }) => void) | null = null;
 
   constructor(container: HTMLElement, private readonly assets: Assets) {
     try {
@@ -61,7 +63,9 @@ export class View3D {
     this.rt?.dispose();
     this.stage.replaceChildren();
     this.bridge = new Bridge(g);
-    this.rt = new GridRuntime(this.stage, this.bridge.sim, this.assets.lib, this.assets.kit, false);
+    this.rt = new GridRuntime(this.stage, this.bridge.sim, this.assets.lib, this.assets.kit, false, (e) => {
+      if (e.line) this.onLine?.(e.line);
+    });
     this.rt.pixelated = loadPixel();
     const h = readNumber('model0.zoom');
     if (h > 0) this.rt.setZoom(h);
@@ -71,8 +75,12 @@ export class View3D {
   /** 한 번의 행동이 끝난 뒤: 상태를 다시 채우고 이벤트를 재생한다 */
   handleEvents(events: GameEvent[]) {
     if (!this.bridge || !this.rt) return;
+    const map = this.bridge.sim.s.map;
     this.bridge.update();
-    this.rt.apply(this.bridge.convert(events), this.lastTime);
+    const ev = this.bridge.convert(events);
+    // 층이 바뀌면 렌더러는 이번 연출을 버리므로, 기록 줄은 바로 찍는다
+    if (this.bridge.sim.s.map !== map) for (const e of ev) if (e.line) this.onLine?.(e.line);
+    this.rt.apply(ev, this.lastTime);
     this.lastTime = this.bridge.sim.s.time;
   }
 

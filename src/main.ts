@@ -858,6 +858,7 @@ modal.innerHTML = '<div class="box title"><h1>MODEL 0</h1><div class="sub">ë³µì 
 loadAssets()
   .then((a) => {
     renderer = new View3D(view, a);
+    renderer.onLine = (line) => hud.typeLine(line);
     pixelLabel();
     paceLabel();
     showTitle();

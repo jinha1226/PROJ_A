@@ -33,6 +33,9 @@ function foeKind(a: Actor): FoeKind {
   return a.baseHp >= 25 ? 'brute' : 'minion';
 }
 
+/** 각인 연쇄 기록 줄 (게임이 trigger 이벤트 바로 뒤에 남긴다) */
+export const isChainLine = (cls?: string): boolean => cls === 'trigger' || cls === 'chain';
+
 export const actorId = (g: Game, id: number | undefined): string | undefined =>
   id === undefined ? undefined : id === g.player.id ? 'hero' : `a${id}`;
 
@@ -186,7 +189,7 @@ export class Bridge {
     const id = (n?: number) => actorId(g, n);
     const cell = (x?: number, y?: number): Cell | undefined => (x === undefined || y === undefined ? undefined : { x, y });
     const heroGroup = () => gear(heldWeapon(g.player))?.group;
-    for (const e of events) {
+    events.forEach((e, i) => {
       const t = e.t ?? g.player.time / 100;
       switch (e.type) {
         case 'move':
@@ -210,8 +213,16 @@ export class Bridge {
         case 'death':
           out.push({ t, type: 'die', dst: id(e.actor) });
           break;
-        case 'trigger':
-          out.push({ t, type: 'engrave', src: id(e.actor), text: (e.amount ?? 1) >= 2 ? `연쇄 ${e.amount} · ${e.text}` : e.text });
+        case 'trigger': {
+          // 바로 뒤의 연쇄 기록 줄은 이 연출이 재생될 때 기록에 찍는다 (한꺼번에가 아니라 연쇄를 따라 한 줄씩)
+          const next = events[i + 1];
+          const line = next?.type === 'log' && isChainLine(next.cls) && next.text ? { text: next.text, cls: next.cls! } : undefined;
+          out.push({ t, type: 'engrave', src: id(e.actor), text: (e.amount ?? 1) >= 2 ? `연쇄 ${e.amount} · ${e.text}` : e.text, line });
+          break;
+        }
+        case 'log':
+          // 각인 연쇄 줄은 위 engrave 연출에 붙어 간다
+          if (e.text && !isChainLine(e.cls)) out.push({ t, type: 'log', line: { text: e.text, cls: e.cls ?? '' } });
           break;
         case 'levelup':
           out.push({ t, type: 'levelUp', amount: g.plevel });
@@ -232,7 +243,7 @@ export class Bridge {
           break;
         }
       }
-    }
+    });
     return out;
   }
 }

@@ -5,6 +5,7 @@ import { ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME, TRIGGERS
 import { isBroken, partArmorMax } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
 import { GODS } from '../data/start';
+import { isChainLine } from '../render/bridge';
 
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -16,13 +17,16 @@ export function byproductName(r: ByproductInst) {
   return `<span class="g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</span>`;
 }
 
+/** 연쇄 기록 줄이 찍히는 속도 (글자당 밀리초) */
+const TYPE_MS = 4;
+
 const $ = (id: string) => document.getElementById(id)!;
 
 /** 화면 가장자리 HUD (감시 카메라 녹화 화면풍).
  *  왼쪽 위 임무 · 오른쪽 위 체류·미니맵 · 위 가운데 행동 순서·최근 메시지
  *  왼쪽 아래 MODEL 이름·생체 신호·부위별 슈트 장갑·상태이상 · 가운데 아래 안내·경보 · 오른쪽 아래 무기·탄약·퀵슬롯 */
 export class Hud {
-  private tl = $('tl');
+  private tl = $('mission');
   private trinfo = $('trinfo');
   private order = $('order');
   private tickerEl = $('ticker');
@@ -43,28 +47,36 @@ export class Hud {
   private game: Game | null = null;
   private phase = 0;
   private lastTick = performance.now();
+  /** 타이핑 중인 기록 줄 (글자당 TYPE_MS) */
+  private typing: { el: HTMLElement; text: string; at: number }[] = [];
 
   clearLog() {
     this.logEl.innerHTML = '';
     this.ticker = [];
+    this.typing = [];
   }
 
   handleEvents(events: GameEvent[]) {
     const now = performance.now();
     for (const e of events) {
       if (e.type === 'log' && e.text) {
-        const d = document.createElement('div');
-        d.className = e.cls ?? '';
-        d.textContent = e.text;
-        this.logEl.appendChild(d);
-        // 발동 알림(↳ 각인)은 머리 위에 뜨므로 최근 메시지에는 넣지 않는다
-        if (e.cls !== 'trigger' && e.cls !== 'chain') this.ticker.push({ text: e.text, cls: e.cls ?? '', at: now });
+        // 기록 줄은 연출이 재생될 때 typeLine으로 한 줄씩 찍힌다. 각인 연쇄 줄은 머리 위에 뜨므로 최근 메시지에는 넣지 않는다
+        if (isChainLine(e.cls)) continue;
+        this.ticker.push({ text: e.text, cls: e.cls ?? '', at: now });
       }
       if (e.type === 'trigger' && e.text) this.lit.set(e.text, now);
     }
+    this.ticker = this.ticker.slice(-4);
+  }
+
+  /** 기록 한 줄 (연출 순서대로): 빠르게 타이핑되듯 찍힌다 */
+  typeLine(line: { text: string; cls: string }) {
+    const d = document.createElement('div');
+    d.className = line.cls;
+    this.logEl.appendChild(d);
+    this.typing.push({ el: d, text: line.text, at: performance.now() });
     while (this.logEl.children.length > 150) this.logEl.firstChild!.remove();
     this.logEl.scrollTop = this.logEl.scrollHeight;
-    this.ticker = this.ticker.slice(-4);
   }
 
   setHint(text: string, targeting = false) {
@@ -153,6 +165,12 @@ export class Hud {
 
   /** 매 프레임: 심전도와 최근 메시지 */
   tick() {
+    const tnow = performance.now();
+    if (this.typing.length) {
+      for (const t of this.typing) t.el.textContent = t.text.slice(0, Math.ceil((tnow - t.at) / TYPE_MS));
+      this.typing = this.typing.filter((t) => t.el.textContent!.length < t.text.length);
+      this.logEl.scrollTop = this.logEl.scrollHeight;
+    }
     const now = performance.now();
     const dt = Math.min(0.1, (now - this.lastTick) / 1000);
     this.lastTick = now;
