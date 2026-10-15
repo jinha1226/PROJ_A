@@ -1,5 +1,6 @@
 import { Game, REST_NAME } from './core/game';
 import { josa } from './core/josa';
+import { mountLookdev } from './ui/lookdev';
 import { FLASK } from './data/consumables';
 import type { Color, ByproductInst, GroundItem, OptionId, WeaponInst, WeaponTrait } from './core/types';
 import { COLOR_NAME, SLOT_NAME } from './core/types';
@@ -75,9 +76,9 @@ function randomSeed() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
-function startGame(lab = false) {
-  const seed = (document.getElementById('seed') as HTMLInputElement).value.trim() || randomSeed();
-  game = new Game(seed, { lab });
+function startGame(lab = false, showroom = false) {
+  const seed = (document.getElementById('seed') as HTMLInputElement | null)?.value.trim() || randomSeed();
+  game = new Game(seed, { lab, showroom });
   hud.clearLog();
   renderer.setGame(game);
   // 개발 모드에서만: 브라우저 테스트가 게임 상태를 볼 수 있게
@@ -885,7 +886,11 @@ loadAssets()
     pixelLabel();
     paceLabel();
     viewLabel();
-    showTitle();
+    // 룩데브 데모 페이지: 타이틀 없이 쇼룸으로
+    if (new URLSearchParams(location.search).has('lookdev')) {
+      startGame(false, true);
+      mountLookdev(renderer, hudEl);
+    } else showTitle();
   })
   .catch((err) => {
     modal.innerHTML = `<div class="box"><h2>에셋을 불러오지 못했다</h2><p class="lead">${esc(String(err))}</p></div>`;

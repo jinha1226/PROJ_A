@@ -32,7 +32,7 @@ export function loadAssets(): Promise<Assets> {
 export type { Pace };
 
 export class View3D {
-  private rt: GridRuntime | null = null;
+  rt: GridRuntime | null = null;
   private bridge: Bridge | null = null;
   private stage: HTMLElement;
   private last = performance.now();

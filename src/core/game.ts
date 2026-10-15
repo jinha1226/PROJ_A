@@ -1,6 +1,6 @@
 import { Rng } from './rng';
 import { josa, hitPunct } from './josa';
-import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
+import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints, generateShowroomLevel, SHOWROOM_FOES } from './dungeon';
 import { allByproducts, allOptions, heldWeapon, magOf, traitsOf, weaponName, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
   Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color, ConsumableInst, InjectionId, WeaponTrait,
@@ -116,9 +116,12 @@ export class Game {
 
   /** 무기 실험실: 허수아비만 있는 방, 경보·레벨업·출구 없음, 무기·옵션·색 자유 편집 */
   readonly lab: boolean;
+  /** 룩데브 쇼룸 (실험실 규칙 + 큰 방, 몬스터는 서 있기만 한다) */
+  readonly showroom: boolean;
 
-  constructor(public seed: string, opts: { lab?: boolean } = {}) {
-    this.lab = !!opts.lab;
+  constructor(public seed: string, opts: { lab?: boolean; showroom?: boolean } = {}) {
+    this.lab = !!opts.lab || !!opts.showroom;
+    this.showroom = !!opts.showroom;
     this.rng = Rng.fromString(seed);
     this.createPlayer();
     this.enterFloor();
@@ -276,6 +279,7 @@ export class Game {
   }
 
   get depthLabel() {
+    if (this.showroom) return '룩데브 쇼룸';
     if (this.lab) return '무기 실험실';
     return `${ZONES[this.zone].name} · ${this.isBossFloor ? '보스' : `${this.floor + 1}층`}`;
   }
@@ -288,7 +292,9 @@ export class Game {
     this.floorTurns = 0;
     this.alert = 0;
     this.distCache = null;
-    if (this.lab) {
+    if (this.showroom) {
+      this.level = generateShowroomLevel();
+    } else if (this.lab) {
       this.level = generateLabLevel();
     } else if (this.isBossFloor) {
       this.level = generateBossLevel();
@@ -302,7 +308,12 @@ export class Game {
     const startRoom = lv.roomOf[lv.idx(p.x, p.y)];
     if (startRoom >= 0) lv.rooms[startRoom].visited = true;
 
-    if (this.lab) {
+    if (this.showroom) {
+      for (const [id, x, y] of SHOWROOM_FOES) {
+        this.spawnEnemy(ENEMY_BY_ID[id], x, y).awake = true;
+      }
+      p.hands = [this.makeWeapon('longsword'), this.makeWeapon('pistol')];
+    } else if (this.lab) {
       for (const [x, y] of LAB_DUMMIES) this.spawnDummy(x, y);
       p.hands = [this.makeWeapon('pistol'), this.makeWeapon('longsword')];
       this.log('무기 실험실: [T] 무기·옵션·색 편집 · 허수아비는 반격하지 않고 쓰러지지 않는다 (쓰러뜨리면 처치로 친다)', 'floor');
@@ -1110,6 +1121,7 @@ export class Game {
 
   private enemyAct(e: Actor): number {
     const p = this.player;
+    if (this.showroom) return 100; // 쇼룸: 몬스터는 서 있기만 한다
     const lv = this.level;
     const s = this.st(e);
     const target = this.chooseTarget(e);

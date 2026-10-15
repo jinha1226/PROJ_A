@@ -44,6 +44,8 @@ export const setCameraElevation = (deg: number): void => { ELEVATION = (deg * Ma
 let elevationTarget = ELEVATION;
 export const TOP_DOWN_DEG = 89.5;
 export const setCameraTarget = (deg: number): void => { elevationTarget = (deg * Math.PI) / 180; };
+/** (MODEL 0 룩데브) 지금 카메라 고도각 (도) */
+export const getCameraElevation = (): number => (elevationTarget * 180) / Math.PI;
 const CAM_DIST = 40;
 const CAM_K = 8;
 /** Draws a grid sortie: the map, models chasing their cells, and each turn's events replayed as a quick overlapping show. */
@@ -65,7 +67,8 @@ export class GridRuntime {
   /** rough pixel look on/off */
   pixelated = true;
   private playback = new Playback();
-  private readonly hemi = new THREE.HemisphereLight('#aab0c8', '#1a1410', 0.85);
+  /** (MODEL 0 룩데브: 패널이 세기를 조절) */
+  readonly hemi = new THREE.HemisphereLight('#aab0c8', '#1a1410', 0.85);
   private readonly light = new THREE.PointLight('#ffd6a0', 14, 8, 1.6);
   /** (MODEL 0) 달빛: 벽이 바닥에 그림자를 드리운다. 주인공을 따라다니는 그림자 범위 */
   private readonly sun = new THREE.DirectionalLight('#9ab8ea', 1.15);

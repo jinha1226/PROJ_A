@@ -109,7 +109,9 @@ export class Hud {
     const p = g.player;
     const s = g.st(p);
     // 왼쪽 위: 미니맵 아래 현재 위치와 체류 턴
-    if (g.lab) {
+    if (g.showroom) {
+      this.tl.innerHTML = `<div class="cap amber">데모</div><div class="big">룩데브 쇼룸</div><div class="sub2">오른쪽 패널에서 카메라·조명 조절</div>`;
+    } else if (g.lab) {
       const la = g.lastAction;
       this.tl.innerHTML = `<div class="cap amber">테스트</div><div class="big">무기 실험실</div><div class="sub2">[T] 무기·옵션 편집·초기화 · [E] 손 바꾸기</div>
         <div class="labstat">직전 행동<br>준 피해 <b>${la.damage}</b> · 치명타 <b>${la.crits}</b></div>`;

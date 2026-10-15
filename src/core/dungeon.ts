@@ -163,6 +163,32 @@ export function generateLabLevel(): Level {
   return lv;
 }
 
+/** 룩데브 쇼룸: 큰 방(28×20) + 기둥 4 + 남쪽 복도와 작은 방 */
+export function generateShowroomLevel(): Level {
+  const lv = new Level(34, 34);
+  const hall: Room = { id: 0, x: 3, y: 3, w: 28, h: 20, visited: true };
+  const side: Room = { id: 1, x: 12, y: 26, w: 9, h: 5, visited: true };
+  lv.rooms.push(hall, side);
+  carveRoom(lv, hall);
+  carveRoom(lv, side);
+  for (let y = 23; y < 26; y++) lv.tiles[lv.idx(16, y)] = Tile.Floor;
+  for (const [px, py] of [[9, 8], [24, 8], [9, 17], [24, 17]]) {
+    lv.tiles[lv.idx(px, py)] = Tile.Wall;
+    lv.roomOf[lv.idx(px, py)] = -1;
+  }
+  for (let i = 0; i < lv.explored.length; i++) lv.explored[i] = 1;
+  lv.startX = 16;
+  lv.startY = 13;
+  lv.features.push({ kind: 'exit', x: 5, y: 5 });
+  return lv;
+}
+
+/** 쇼룸에 세워 둘 몬스터 (id, x, y) */
+export const SHOWROOM_FOES: [string, number, number][] = [
+  ['husk', 13, 10], ['husk', 14, 9], ['brass_hound', 19, 10], ['ember_acolyte', 21, 14], ['frost_novice', 12, 16],
+  ['bone_reaper', 18, 17], ['maul_templar', 26, 12], ['cinder_zealot', 6, 13], ['glacier_monk', 16, 28],
+];
+
 /** 실험실 허수아비 자리: 붙어 있는 무리(연쇄·범위용) + 떨어진 둘 */
 export const LAB_DUMMIES: [number, number][] = [[11, 6], [12, 6], [11, 7], [12, 7], [11, 8], [15, 4], [15, 10]];
 

@@ -278,3 +278,16 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 /* 부위 장갑 줄 옆: 그 칸에 끼운 부산물 (마우스를 올리면 툴팁) */
 #bl .vmod { font-size: 11px; color: var(--hud-dim); white-space: nowrap; pointer-events: auto; cursor: default; }
 #bl .vmod:hover { color: var(--hud-text, #fff); }
+
+/* 룩데브 패널 */
+#lookdev { position: fixed; right: 16px; top: 60px; width: 260px; max-height: calc(100vh - 80px); overflow-y: auto; z-index: 30; padding: 10px 12px; background: #0c0b0ae8; border: 1px solid #ffffff22; color: #ddd; font-size: 12px; }
+#lookdev h3 { margin: 0 0 6px; font-size: 14px; color: #ffb060; }
+#lookdev .ld-sec { margin: 10px 0 4px; color: #ffb060; font-size: 11px; letter-spacing: 1px; border-top: 1px solid #ffffff18; padding-top: 6px; }
+#lookdev label { display: block; margin: 4px 0; }
+#lookdev input[type=range] { width: 100%; }
+#lookdev .ld-row { display: flex; gap: 4px; flex-wrap: wrap; margin: 4px 0; }
+#lookdev button { background: #ffffff10; color: #ddd; border: 1px solid #ffffff30; padding: 2px 8px; font-size: 11px; cursor: pointer; }
+#lookdev .ld-shot { display: flex; gap: 6px; align-items: center; margin: 2px 0; }
+#lookdev .ld-shot .x { margin-left: auto; padding: 0 6px; }
+#lookdev .ld-dim { color: #888; font-size: 11px; }
+#lookdev .ld-todo { margin: 2px 0; color: #aaa; } #lookdev .ld-todo.done { color: #8fd18f; }

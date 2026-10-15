@@ -25,7 +25,8 @@ function trimFor(m: GridMap, i: number): { name: DungeonPiece; turn: number } | 
   if (n === 0) return null;
   if (n >= 3) return { name: 'Floor_Trim_All', turn: 0 };
   if (n === 1) return { name: T ? 'Floor_Trim_T' : B ? 'Floor_Trim_B' : L ? 'Floor_Trim_L' : 'Floor_Trim_R', turn: 0 };
-  if (L && R) return { name: 'Floor_Trim_LR', turn: 0 };
+  // 세로 복도: 좌우 테두리 조각은 블록 결이 방과 어긋나 보여서 방과 같은 기본 바닥을 깐다
+  if (L && R) return null;
   if (T && B) return { name: 'Floor_Trim_LR', turn: Math.PI / 2 };
   return { name: T ? (L ? 'Floor_Corner_TL' : 'Floor_Corner_TR') : L ? 'Floor_Corner_BL' : 'Floor_Corner_BR', turn: 0 };
 }
