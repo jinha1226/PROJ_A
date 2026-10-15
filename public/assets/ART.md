@@ -48,6 +48,6 @@
 
 - **Modular Dungeon Kit v1.0** — SigilsVault (Kevin Barany), https://sigilsvault.itch.io/modular-dungeon-kit-v10
 - 라이선스: CC0 1.0 (출처 표기 불필요, 감사 표기 환영). 사본: `models/sigils/LICENSE.txt`
-- 쓰는 조각: floor_small_01, wall_small_01, wall_small_02, pillar_01, pillar_02, door_arched_01_001, stairs_small_01, 소품 crate, pot, coffin, Brazier (GLB 원본 그대로, 가공 없음)
+- 쓰는 조각: floor_small_01, 바닥 테두리 floor_small_trim_01 · trim_T/B/L/R/LR_01 · cornertrim_TL/TR/BL/BR_01, wall_small_01, wall_small_02, pillar_01, pillar_02, door_arched_01_001, stairs_small_01, 소품 crate, pot, coffin, Brazier (GLB 원본 그대로, 가공 없음)
 - 렌더러에서 바닥·벽·기둥·문·계단·상자·항아리 자리를 이 조각으로 바꾼다(`src/render/projr/grid/dungeonKit.ts`의 SIGILS).
 

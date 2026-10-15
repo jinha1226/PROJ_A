@@ -3,7 +3,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export type DungeonPiece =
-  | 'Wall_Modular' | 'Wall_Modular2' | 'Floor_Modular' | 'Column' | 'Column2' | 'Arch_Door' | 'Barrel' | 'Chest' | 'Chest_Gold' | 'Torch' | 'Banner_wall'
+  | 'Wall_Modular' | 'Wall_Modular2' | 'Floor_Modular'
+  | 'Floor_Trim_All' | 'Floor_Trim_T' | 'Floor_Trim_B' | 'Floor_Trim_L' | 'Floor_Trim_R' | 'Floor_Trim_LR'
+  | 'Floor_Corner_TL' | 'Floor_Corner_TR' | 'Floor_Corner_BL' | 'Floor_Corner_BR' | 'Column' | 'Column2' | 'Arch_Door' | 'Barrel' | 'Chest' | 'Chest_Gold' | 'Torch' | 'Banner_wall'
   | 'Cobweb' | 'Cobweb2' | 'Skull' | 'Crate' | 'Stairs_Modular' | 'Trapdoor' | 'Trap_spikes' | 'Vase' | 'Bucket' | 'Brick' | 'Bag_Coins' | 'Sword_WallMount' | 'Coin_Pile'
   | 'Barrel2' | 'Floor_BricksSeparate' | 'Floor_BricksSeparate2' | 'Table_Small' | 'Table_Big' | 'Chair' | 'Banner' | 'Woodfire' | 'Bag_Standing' | 'Pedestal' | 'Statue_Horse';
 
@@ -16,6 +18,17 @@ const LIFT = 1.7;
  */
 const SIGILS: Partial<Record<DungeonPiece, string>> = {
   Floor_Modular: 'floor_small_01',
+  // 바닥 테두리: 이름의 T·B·L·R은 모델의 -z·+z·-x·+x 변 (위에서 볼 때 위·아래·왼쪽·오른쪽)
+  Floor_Trim_All: 'floor_small_trim_01',
+  Floor_Trim_T: 'floor_small_trim_T_01',
+  Floor_Trim_B: 'floor_small_trim_B_01',
+  Floor_Trim_L: 'floor_small_trim_L_01',
+  Floor_Trim_R: 'floor_small_trim_R_01',
+  Floor_Trim_LR: 'floor_small_trim_LR_01',
+  Floor_Corner_TL: 'floor_small_cornertrim_TL_01',
+  Floor_Corner_TR: 'floor_small_cornertrim_TR_01',
+  Floor_Corner_BL: 'floor_small_cornertrim_BL_01',
+  Floor_Corner_BR: 'floor_small_cornertrim_BR_01',
   Wall_Modular: 'wall_small_01',
   Wall_Modular2: 'wall_small_02',
   Column: 'pillar_01',

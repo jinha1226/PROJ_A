@@ -12,6 +12,23 @@ const PANEL_DEPTH = 0.25;
 const CAP = new THREE.Color('#77716a');
 const SEEN = 0.3;
 
+/** (MODEL 0) 구운 AO 띠의 폭 (칸 비율) */
+const AO_DEPTH = 0.42;
+
+/** (MODEL 0) 바닥 칸의 테두리 조각: 위(y-1)·아래(y+1)·왼쪽(x-1)·오른쪽(x+1)이 벽인 변에 테두리 */
+function trimFor(m: GridMap, i: number): { name: DungeonPiece; turn: number } | null {
+  const x = i % m.w, y = Math.floor(i / m.w);
+  const wall = (dx: number, dy: number) => { const nx = x + dx, ny = y + dy; return nx < 0 || ny < 0 || nx >= m.w || ny >= m.h || m.tiles[ny * m.w + nx] === 'wall'; };
+  const T = wall(0, -1), B = wall(0, 1), L = wall(-1, 0), R = wall(1, 0);
+  const n = +T + +B + +L + +R;
+  if (n === 0) return null;
+  if (n >= 3) return { name: 'Floor_Trim_All', turn: 0 };
+  if (n === 1) return { name: T ? 'Floor_Trim_T' : B ? 'Floor_Trim_B' : L ? 'Floor_Trim_L' : 'Floor_Trim_R', turn: 0 };
+  if (L && R) return { name: 'Floor_Trim_LR', turn: 0 };
+  if (T && B) return { name: 'Floor_Trim_LR', turn: Math.PI / 2 };
+  return { name: T ? (L ? 'Floor_Corner_TL' : 'Floor_Corner_TR') : L ? 'Floor_Corner_BL' : 'Floor_Corner_BR', turn: 0 };
+}
+
 export const toWorld = (x: number, y: number): THREE.Vector3 => new THREE.Vector3(x * CELL, 0, y * CELL);
 /** Yaw that turns a model's +z toward `dir` (grid y = world z). */
 export const yawFor = (dir: { x: number; y: number }): number => Math.atan2(dir.x, dir.y);
@@ -44,10 +61,26 @@ export class GridTerrain {
       q.setFromAxisAngle(up, ((i * 7) % 4) * (Math.PI / 2));
       return new THREE.Matrix4().compose(p.setY(-0.1), q, new THREE.Vector3(CELL / pc.size.x, 0.1 / pc.size.y, CELL / pc.size.z));
     };
-    this.instance('Floor_Modular', floors, tile('Floor_Modular'));
+    // (MODEL 0) 바닥 테두리: 벽에 닿은 변에 테두리가 있는 조각을 깐다 (돌려 놓지 않는다)
+    const groups = new Map<DungeonPiece, { cells: number[]; turn: number }>();
+    const plain: number[] = [];
+    for (const i of floors) {
+      const piece = kit.piece('Floor_Trim_T') ? trimFor(m, i) : null;
+      if (!piece) { plain.push(i); continue; }
+      const g = groups.get(piece.name) ?? { cells: [], turn: piece.turn };
+      g.cells.push(i);
+      groups.set(piece.name, g);
+    }
+    this.instance('Floor_Modular', plain, tile('Floor_Modular'));
+    for (const [name, g] of groups) {
+      const pc = kit.piece(name)!;
+      const tq = new THREE.Quaternion().setFromAxisAngle(up, g.turn);
+      this.instance(name, g.cells, (_i, p) => new THREE.Matrix4().compose(p.setY(-0.1), tq, new THREE.Vector3(CELL / pc.size.x, 0.1 / pc.size.y, CELL / pc.size.z)));
+    }
     // loose bricks lie on top of a few flagstones
     if (kit.piece('Floor_BricksSeparate')) this.instance('Floor_BricksSeparate', floors.filter(loose), (i, p) => tile('Floor_BricksSeparate')(i, p).premultiply(new THREE.Matrix4().makeTranslation(0, 0.05, 0)));
     this.instanceFaces(faces);
+    this.bakeOcclusion(faces);
     // a thin stone cap on top of each wall panel only, so walls read as walls and not as solid blocks
     const caps = new THREE.InstancedMesh(new THREE.BoxGeometry(CELL + 0.02, 0.08, PANEL_DEPTH + 0.04), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1 }), faces.length);
     const capQ = new THREE.Quaternion();
@@ -67,6 +100,38 @@ export class GridTerrain {
     this.addProps();
     for (const [cell, obj] of addDecor(m, faces, kit)) this.addProp(cell, obj);
     if (decal) this.addLitter(floors, decal);
+  }
+
+  /** (MODEL 0) 구워 넣은 앰비언트 오클루전: 벽에 닿는 바닥 가장자리에 부드럽게 어두워지는 띠. 구석은 두 띠가 겹쳐 더 어둡다 */
+  private bakeOcclusion(faces: WallFace[]): void {
+    if (!faces.length) return;
+    const c = document.createElement('canvas');
+    c.width = 4;
+    c.height = 64;
+    const g = c.getContext('2d')!;
+    const grad = g.createLinearGradient(0, 0, 0, 64);
+    grad.addColorStop(0, 'rgba(0,0,0,0.72)');
+    grad.addColorStop(0.45, 'rgba(0,0,0,0.3)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 4, 64);
+    const depth = AO_DEPTH;
+    // 평면의 텍스처 위쪽(v=1)이 눕힌 뒤 -z: 벽 쪽이 진하다
+    const geo = new THREE.PlaneGeometry(CELL, depth).rotateX(-Math.PI / 2);
+    const mat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, color: '#ffffff' });
+    const mesh = new THREE.InstancedMesh(geo, mat, faces.length);
+    mesh.renderOrder = 1;
+    const q = new THREE.Quaternion();
+    faces.forEach((f, k) => {
+      // 벽면 바로 앞 바닥 칸의, 벽에 붙은 가장자리
+      const p = toWorld(f.floor.x - f.dir.x * (0.5 - depth / 2), f.floor.y - f.dir.y * (0.5 - depth / 2));
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawFor(f.dir));
+      mesh.setMatrixAt(k, new THREE.Matrix4().compose(p.setY(0.006), q, new THREE.Vector3(1, 1, 1)));
+      mesh.setColorAt(k, new THREE.Color(0, 0, 0));
+    });
+    this.root.add(mesh);
+    // 보이지 않는 칸에서는 꺼지도록 시야 음영을 같이 받는다 (밝기 0이면 투명 띠도 보이지 않는다)
+    this.instanced.push({ mesh, cells: faces.map((f) => idx(this.m, f.floor)) });
   }
 
   /** Floor litter in the zone's colour (puddles, bone chips, moss) on a fixed scatter of cells. */
