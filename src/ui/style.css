@@ -265,3 +265,9 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 #alertbar .thr .hit { color: var(--hud-warn); }
 #vname .lv { font-size: 11px; color: var(--hud-dim); margin-left: 6px; }
 #vname .lv .xp { margin-left: 4px; }
+
+/* 몬스터 툴팁 체력 막대 */
+#tooltip .hpbar { position: relative; height: 14px; background: #ffffff14; border: 1px solid var(--g-line); margin: 4px 0 5px; min-width: 220px; }
+#tooltip .hpbar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(#e8503a, #a02818); }
+#tooltip .hpbar span { position: absolute; inset: 0; text-align: center; font-size: 10.5px; line-height: 13px; color: #fff; text-shadow: 0 1px 2px #000; }
+#tooltip .sub-item, .card .sub-item { padding-left: 12px; }

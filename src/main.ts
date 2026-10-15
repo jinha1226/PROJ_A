@@ -697,6 +697,7 @@ canvas.addEventListener('mousemove', (e) => {
   if (!t) {
     renderer.setPath(null);
     renderer.setMark(null);
+    renderer.setOutline(null);
     return hud.showTooltip(null);
   }
   const g = game;
@@ -708,7 +709,12 @@ canvas.addEventListener('mousemove', (e) => {
   // 몬스터·물건·시설 위: 빨간 테두리 / 빈 칸: 이동 경로
   const foe = a && !a.isPlayer && lv.visible[i];
   const thing = (items?.length || f || lv.barrels.has(i)) && lv.explored[i];
-  if (foe || thing) {
+  // 몬스터 위: 빨간 외곽선 / 물건·시설 위: 빨간 테두리 칸 / 빈 칸: 이동 경로
+  renderer.setOutline(foe ? a!.id : null);
+  if (foe) {
+    renderer.setMark(null);
+    renderer.setPath(null);
+  } else if (thing) {
     renderer.setMark(t[0], t[1]);
     renderer.setPath(null);
   } else {
@@ -733,6 +739,7 @@ canvas.addEventListener(
 canvas.addEventListener('mouseleave', () => {
   renderer?.setPath(null);
   renderer?.setMark(null);
+  renderer?.setOutline(null);
 });
 
 // HD / 도트 전환 (P)

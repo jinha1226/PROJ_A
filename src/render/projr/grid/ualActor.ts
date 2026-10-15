@@ -91,6 +91,8 @@ export class UalActor {
   private shaped: [THREE.Object3D, THREE.Vector3][] = [];
   private hunch: [THREE.Object3D, THREE.Quaternion] | null = null;
   private readonly hunched = new THREE.Quaternion(0, 0, 0, 0);
+  /** (MODEL 0) 마우스를 올렸을 때의 빨간 외곽선: 같은 뼈대를 쓰는 뒷면 메시를 화면 기준으로 살짝 부풀린다 */
+  private outlines: THREE.Mesh[] | null = null;
 
   constructor(private readonly lib: UalLibrary, private readonly look: UalLook) {
     this.idleClip = look.idle;
@@ -266,6 +268,42 @@ export class UalActor {
     for (const m of this.mats) m.color.multiplyScalar(0.08); // linear colour: about a third as bright on screen
     this.dropUpper(0.05);
     this.start(CLIP.death, false, speed, 0.05);
+  }
+
+  /** (MODEL 0) 외곽선 켜기/끄기 (처음 켤 때 만든다) */
+  setOutline(on: boolean): void {
+    if (on && !this.outlines) {
+      // 뒷면만 그리는 부푼 껍질: 몸 바깥으로 삐져나온 테두리만 보인다 (깊이를 남겨야 바닥이 덮어쓰지 않는다)
+      const mat = new THREE.MeshBasicMaterial({ color: '#ff3a2a', side: THREE.BackSide });
+      mat.onBeforeCompile = (sh) => {
+        sh.vertexShader = sh.vertexShader.replace(
+          '#include <project_vertex>',
+          `#include <project_vertex>
+          #ifdef USE_SKINNING
+            vec3 olN = objectNormal;
+          #else
+            vec3 olN = normal;
+          #endif
+          vec4 olC = projectionMatrix * vec4( normalMatrix * olN, 0.0 );
+          gl_Position.xy += normalize( olC.xy + 1e-5 ) * 0.011 * gl_Position.w;`,
+        );
+      };
+      this.outlines = [];
+      const targets: THREE.Mesh[] = [];
+      this.root.traverse((o) => { if ((o as THREE.Mesh).isMesh && !o.userData.outline) targets.push(o as THREE.Mesh); });
+      for (const m of targets) {
+        const sk = m as THREE.SkinnedMesh;
+        const o = sk.isSkinnedMesh ? new THREE.SkinnedMesh(sk.geometry, mat) : new THREE.Mesh(m.geometry, mat);
+        if (sk.isSkinnedMesh) (o as unknown as THREE.SkinnedMesh).bind(sk.skeleton, sk.bindMatrix);
+        o.userData.outline = true;
+        o.position.copy(m.position);
+        o.quaternion.copy(m.quaternion);
+        o.scale.copy(m.scale);
+        m.parent?.add(o);
+        this.outlines.push(o);
+      }
+    }
+    for (const o of this.outlines ?? []) o.visible = on;
   }
 
   /** (MODEL 0) 시체가 사라질 때: 0(보임) → 1(사라짐) */

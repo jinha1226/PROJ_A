@@ -104,6 +104,11 @@ export class View3D {
     this.rt?.showMark(x === null ? null : { x, y: y! });
   }
 
+  /** 마우스를 올린 몬스터에 빨간 외곽선 (게임 액터 id, 없으면 null) */
+  setOutline(actor: number | null) {
+    this.rt?.showOutline(actor === null ? null : `a${actor}`);
+  }
+
   /** 마우스 휠 확대·축소: 보이는 높이(미터)를 바꾼다 */
   zoomBy(dir: number) {
     if (!this.rt) return;

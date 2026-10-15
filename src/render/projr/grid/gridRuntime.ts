@@ -175,6 +175,10 @@ export class GridRuntime {
     this.elements.setPath(cells);
   }
   /** (MODEL 0 추가) */
+  /** (MODEL 0) 마우스를 올린 몬스터의 외곽선 */
+  showOutline(id: string | null): void {
+    this.actors.setOutline(id);
+  }
   showMark(c: { x: number; y: number } | null): void {
     this.elements.setMark(c);
   }

@@ -341,15 +341,17 @@ export function byproductTooltip(r: ByproductInst): string {
   const d = r.def;
   const mod = suitModule(d);
   const star = starOf(d);
+  // 무기에 넣었을 때의 효과도 항목마다 한 줄 (전체 설명)
   const weapon = infuseOptions(d)
-    .map((o) => (OPTION_BY_ID[o].kind === 'hit' ? `${OPTION_ICON[o].g} 부여` : OPTION_ICON[o].g))
-    .join(' · ');
-  const suit = [...mod.pros.map((x) => esc(x)), ...mod.cons.map((x) => `<span style="color:var(--warn)">${esc(x)}</span>`)].join(' · ');
+    .map((o) => `<div class="r sub-item">${esc(OPTION_BY_ID[o].desc)}</div>`)
+    .join('');
+  // 슈트 칸 효과는 항목마다 한 줄 (대가는 경고색)
+  const suit = [...mod.pros.map((x) => `<div class="r sub-item">${esc(x)}</div>`), ...mod.cons.map((x) => `<div class="r sub-item" style="color:var(--warn)">${esc(x)}</div>`)].join('');
   return `<div class="t g-${d.grade}">${elDots(r)} ${esc(d.name)}</div>
     <div class="r">${GRADE_NAME[d.grade]} · 강화 재료</div>
-    <div class="r"><b>무기:</b> ${esc(weapon)}</div>
-    ${star ? `<div class="r trait"><b>★ ${esc(TRAIT_NAME[star] ?? '')}</b> ${esc(TRAIT_TEXT[star])}${SIGNATURE[star] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[star]!.weapon]!.name)}에 넣으면 고유 이름)</span>` : ''}</div>` : ''}
-    <div class="r"><b>슈트(${SLOT_NAME[d.slot]}):</b> ${suit}</div>`;
+    <div class="r"><b>무기:</b></div>
+    ${star ? `<div class="r trait sub-item"><b>★ ${esc(TRAIT_NAME[star] ?? '')}</b> ${esc(TRAIT_TEXT[star])}${SIGNATURE[star] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[star]!.weapon]!.name)}에 넣으면 고유 이름)</span>` : ''}</div>` : ''}${weapon}
+    <div class="r"><b>슈트(${SLOT_NAME[d.slot]}):</b></div>${suit}`;
 }
 
 export function actorTooltip(g: Game, a: Actor): string {
@@ -358,7 +360,8 @@ export function actorTooltip(g: Game, a: Actor): string {
   const st = Object.entries(a.statuses).map(([k, v]) => `${STATUS_NAME[k as keyof typeof STATUS_NAME]} ${v}`);
   if (a.marked) st.push('표식');
   return `<div class="t">${esc(a.name)}${a.boss ? ' (보스)' : a.elite ? ' (정예)' : ''}</div>
-    <div class="r">체력 ${a.hp}/${s.maxHp} · 장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${speed(s.moveCost)}칸/턴</div>
+    <div class="hpbar"><i style="width:${Math.max(0, Math.min(100, (a.hp / s.maxHp) * 100))}%"></i><span>체력 ${Math.max(0, a.hp)} / ${s.maxHp}</span></div>
+    <div class="r">장갑 ${s.armor} · 피해 ${s.damage} · 회피 ${s.dodge}% · 이동 ${speed(s.moveCost)}칸/턴</div>
     ${st.length ? `<div style="color:var(--warn)">${st.join(' · ')}</div>` : ''}
     ${byproducts.map((r) => `<div>${byproductName(r)}${isBroken(a, r.def.slot) ? ' <span class="badge bad">½</span>' : ''}${r.def.active ? ` <span class="r">— ${r.def.active.element ? ELEMENT_NAME[r.def.active.element] : ''} ${FORM_NAME[r.def.active.form]}${r.cd ? ` (${r.cd})` : ''}</span>` : ''}</div>`).join('')}
     ${a.dropChance ? `<div class="r">부산물 회수 확률 ${Math.round(a.dropChance * 100)}%</div>` : ''}`;

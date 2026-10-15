@@ -291,6 +291,16 @@ export class GridActors {
     for (const c of v.actor.root.children) if (c.userData.ring) c.visible = false;
   }
 
+  /** (MODEL 0) 마우스를 올린 액터 하나에만 빨간 외곽선 */
+  private outlined: string | null = null;
+  setOutline(id: string | null): void {
+    if (this.outlined === id) return;
+    if (this.outlined) this.views.get(this.outlined)?.actor.setOutline(false);
+    this.outlined = id;
+    const v = id ? this.views.get(id) : undefined;
+    if (v && !v.dead) v.actor.setOutline(true);
+  }
+
   /** Foes are shown only on tiles the hero can see (the dead stay where they fell once seen). */
   setVisible(id: string, on: boolean): void {
     const v = this.views.get(id);
