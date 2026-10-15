@@ -38,7 +38,11 @@ import { Gore } from './gore';
 import { StrikeCues } from './strikeCues';
 let ELEVATION = (45 * Math.PI) / 180;
 /** Scripted views (the comparison demo) may tilt the camera. */
-export const setCameraElevation = (deg: number): void => { ELEVATION = (deg * Math.PI) / 180; };
+export const setCameraElevation = (deg: number): void => { ELEVATION = (deg * Math.PI) / 180; elevationTarget = ELEVATION; };
+/** (MODEL 0) 시점 전환: 카메라 높이각이 이 값을 향해 부드럽게 움직인다. 완전 탑뷰는 89.5°(90°는 lookAt의 위쪽 방향이 겹친다) */
+let elevationTarget = ELEVATION;
+export const TOP_DOWN_DEG = 89.5;
+export const setCameraTarget = (deg: number): void => { elevationTarget = (deg * Math.PI) / 180; };
 const CAM_DIST = 40;
 const CAM_K = 8;
 /** Draws a grid sortie: the map, models chasing their cells, and each turn's events replayed as a quick overlapping show. */
@@ -340,6 +344,7 @@ export class GridRuntime {
     this.center.z = chase(this.center.z, aim.z, dt, CAM_K);
     this.light.position.set(hero.x, 2.6, hero.z);
     if (this.sim.s.hero.exitTime > 0) this.terrain.pulseExit(this.clock);
+    if (Math.abs(ELEVATION - elevationTarget) > 1e-4) ELEVATION = chase(ELEVATION, elevationTarget, dt, 6);
     this.placeCamera();
     this.fx.setIcons(this.icons.map((i) => ({ ...i, at: this.actors.pos(i.id) ?? this.stationAt.get(i.id) ?? new THREE.Vector3() })));
     if (this.pixelated) this.pixel.render(this.h.scene, this.h.camera);

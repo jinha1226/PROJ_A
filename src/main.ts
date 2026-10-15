@@ -63,6 +63,7 @@ function keysHelp() {
     ['p', 'HD / 도트 전환'],
     ['v', '연출 속도 (보통 · 빠름 · 즉시)'],
     ['c', 'HUD 색 (원본 · 녹색 · 주황)'],
+    ['z', '시점 (45° ↔ 완전 탑뷰)'],
     ['t', '무기 실험실: 무기·옵션·색 편집, 초기화'],
     ['마우스', '클릭 이동·조준, 휠 확대, 올리면 정보'],
   ];
@@ -617,6 +618,9 @@ window.addEventListener('keydown', (e) => {
     case 'c':
       cycleTheme();
       break;
+    case 'z':
+      toggleView();
+      break;
     default:
       if (e.code === 'Numpad5') g.wait();
       else return;
@@ -771,6 +775,17 @@ function cycleTheme() {
   if (game) refresh();
 }
 themebtn.addEventListener('click', cycleTheme);
+
+// 시점 (Z): 45° 비스듬히 ↔ 완전 탑뷰
+const viewbtn = document.getElementById('viewbtn')!;
+function viewLabel() {
+  viewbtn.textContent = renderer?.topDown ? '탑뷰 ▸ 45° (Z)' : '45° ▸ 탑뷰 (Z)';
+}
+function toggleView() {
+  renderer.topDown = !renderer.topDown;
+  viewLabel();
+}
+viewbtn.addEventListener('click', toggleView);
 applyTheme(loadTheme());
 
 // 심전도·최근 메시지 애니메이션
@@ -827,6 +842,7 @@ loadAssets()
     renderer.onLine = (line) => hud.typeLine(line);
     pixelLabel();
     paceLabel();
+    viewLabel();
     showTitle();
   })
   .catch((err) => {

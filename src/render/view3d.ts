@@ -8,6 +8,7 @@ import { GridRuntime } from './projr/grid/gridRuntime';
 import { UalLibrary } from './projr/grid/ualActor';
 import { setWeaponKit, WeaponKit } from './projr/grid/weaponKit';
 import { CELL } from './projr/grid/gridTerrain';
+import { setCameraElevation, setCameraTarget, TOP_DOWN_DEG } from './projr/grid/gridRuntime';
 import { getPace, setPace, type Pace } from './projr/grid/playback';
 import * as THREE from 'three';
 
@@ -67,6 +68,8 @@ export class View3D {
       if (e.line) this.onLine?.(e.line);
     });
     this.rt.pixelated = loadPixel();
+    // 새 런은 기억한 시점에서 바로 시작 (전환 애니메이션 없이)
+    setCameraElevation(this.top ? TOP_DOWN_DEG : 45);
     const h = readNumber('model0.zoom');
     if (h > 0) this.rt.setZoom(h);
     this.lastTime = this.bridge.sim.s.time;
@@ -110,6 +113,21 @@ export class View3D {
       localStorage.setItem('model0.zoom', String(h));
     } catch {
       /* 저장 못 해도 이번 실행에서는 적용 */
+    }
+  }
+
+  /** 시점: 45° 비스듬히 / 완전 탑뷰. 선택은 브라우저에 기억한다 */
+  private top = readNumber('model0.topdown') === 1;
+  get topDown(): boolean {
+    return this.top;
+  }
+  set topDown(on: boolean) {
+    this.top = on;
+    setCameraTarget(on ? TOP_DOWN_DEG : 45);
+    try {
+      localStorage.setItem('model0.topdown', on ? '1' : '0');
+    } catch {
+      /* 이번 실행에서만 */
     }
   }
 
