@@ -1,4 +1,5 @@
-import { Game, REST_NAME, MAX_KITS } from './core/game';
+import { Game, REST_NAME } from './core/game';
+import { FLASK } from './data/consumables';
 import type { Color, ByproductInst, GroundItem, OptionId, WeaponInst } from './core/types';
 import { COLOR_NAME, ELEMENT_NAME, SLOT_NAME } from './core/types';
 import { OPTION_BY_ID, OPTIONS, optionFits } from './data/options';
@@ -54,7 +55,8 @@ function keysHelp() {
     ['f', '사격 (원거리 무기, Tab 대상 변경)'],
     ['r', '재장전 (대기로 침)'],
     ['e', '무기 교체 (손 1 ↔ 2)'],
-    ['q', '응급 키트'],
+    ['q', '체력 플라스크 (보급 지점에서 다시 찬다)'],
+    ['3 4 5', '벨트의 주사제 사용'],
     ['i', '슈트 화면 (손·색·부위 장갑)'],
     ['Tab', '구역 지도'],
     ['m', '기록(메시지) 보기'],
@@ -255,6 +257,10 @@ function showPickup() {
     }
   }
   if (pickItem!.kind === 'weapon') return showTakeWeapon(pickItem as WeaponInst);
+  if (pickItem!.kind === 'consumable') {
+    g.pickConsumable(pickItem);
+    return closeOverlay();
+  }
   const r = pickItem as ByproductInst;
   const p = g.player;
   const opts = infuseOptions(r.def).map((o) => esc(OPTION_BY_ID[o].name)).join(' · ');
@@ -318,9 +324,9 @@ function showRest() {
   modal.hidden = false;
   let body = '';
   if (g.restService === 'shop') {
-    body = `<p class="lead">마석 <b>${g.ash}</b>. 산 무기는 보급 포드 바닥에 놓인다.</p>
+    body = `<p class="lead">마석 <b>${g.ash}</b>. 산 물건은 보급 포드 바닥에 놓인다.</p>
       <div class="cards">${g.shop.map((s, i) => `<div class="card">${itemTooltip(s.item)}<div class="row"><button data-buy="${i}" ${g.ash < s.price ? 'disabled' : ''}>구매 (${s.price})</button></div></div>`).join('')}
-      <div class="card"><div class="nm">응급 키트</div><div class="ds">소지 ${g.kits}/${MAX_KITS}</div><div class="row"><button data-act="kit" ${g.ash < 4 || g.kits >= MAX_KITS ? 'disabled' : ''}>구매 (4)</button></div></div></div>`;
+      <div class="card"><div class="nm">플라스크 충전 +1</div><div class="ds">최대 ${g.flaskMax}/${FLASK.max} · 산 충전도 바로 채운다</div><div class="row"><button data-act="kit" ${g.ash < FLASK.upgradePrice || g.flaskMax >= FLASK.max ? 'disabled' : ''}>구매 (${FLASK.upgradePrice})</button></div></div></div>`;
   } else {
     body = g.restUsed
       ? '<p class="lead">재련을 마쳤다.</p>'
@@ -339,7 +345,7 @@ function showRest() {
   modal.innerHTML = `<div class="box"><h2>보급 지점 — ${REST_NAME[g.restService]}</h2>
     <p class="lead">${esc(g.depthLabel)}을(를) 지났다. 보급 포드가 슈트를 모두 수리했다. (체력 ${g.player.hp}/${g.st(g.player).maxHp})</p>
     ${body}
-    ${items.length ? `<h3>보급 포드 바닥</h3><div class="cards">${items.map((r, i) => `<div class="card">${itemTooltip(r)}<div class="row"><button data-gr="${i}">${r.kind === 'weapon' ? '손에 들기' : '부여 · 분해'}</button></div></div>`).join('')}</div>` : ''}
+    ${items.length ? `<h3>보급 포드 바닥</h3><div class="cards">${items.map((r, i) => `<div class="card">${itemTooltip(r)}<div class="row"><button data-gr="${i}">${r.kind === 'weapon' ? '손에 들기' : r.kind === 'consumable' ? '벨트에 넣기' : '부여 · 분해'}</button></div></div>`).join('')}</div>` : ''}
     <div class="row"><span style="flex:1"></span><button data-act="leave">다음 층으로 (Enter)</button></div></div>`;
   modal.querySelectorAll<HTMLElement>('[data-buy]').forEach((el) => (el.onclick = () => (g.buy(Number(el.dataset.buy)), refresh())));
   modal.querySelectorAll<HTMLElement>('[data-rf]').forEach(
@@ -359,7 +365,7 @@ function showRest() {
       }),
   );
   bind(modal, {
-    kit: () => (g.buyKit(), refresh()),
+    kit: () => (g.buyFlask(), refresh()),
     leave: () => {
       g.leaveRest();
       refresh();
@@ -499,6 +505,9 @@ window.addEventListener('keydown', (e) => {
           g.takeWeapon(pickItem, i);
           closeOverlay();
         }
+      } else if (pickItem?.kind === 'consumable') {
+        g.pickConsumable(pickItem);
+        closeOverlay();
       } else if (pickItem) {
         const done = i <= 1 ? g.infuseWeapon(pickItem, i) : i === 2 ? g.infuseSuit(pickItem) : i === 3 ? g.dismantle(pickItem) : false;
         if (done) closeOverlay();
@@ -562,6 +571,11 @@ window.addEventListener('keydown', (e) => {
     case 'Enter':
       g.descend();
       break;
+    case '3':
+    case '4':
+    case '5':
+      g.useInjection(Number(e.key) - 3);
+      break;
     case 'g':
       if (g.groundHere().length) overlay = 'pickup';
       else g.log('발밑에 주울 것이 없다.');
@@ -575,7 +589,7 @@ window.addEventListener('keydown', (e) => {
       g.swapWeapon();
       break;
     case 'q':
-      g.useKit();
+      g.useFlask();
       break;
     case '?':
       overlay = 'help';
@@ -671,7 +685,7 @@ canvas.addEventListener('mousemove', (e) => {
   const f = lv.featureAt(t[0], t[1]);
   // 몬스터·물건·시설 위: 빨간 테두리 / 빈 칸: 이동 경로
   const foe = a && !a.isPlayer && lv.visible[i];
-  const thing = (items?.length || f) && lv.explored[i];
+  const thing = (items?.length || f || lv.barrels.has(i)) && lv.explored[i];
   if (foe || thing) {
     renderer.setMark(t[0], t[1]);
     renderer.setPath(null);
@@ -681,6 +695,7 @@ canvas.addEventListener('mousemove', (e) => {
   }
   if (foe) return hud.showTooltip(actorTooltip(g, a), e.clientX, e.clientY);
   if (items?.length && lv.explored[i]) return hud.showTooltip(items.map(itemTooltip).join('<hr style="border-color:#4a3a28">'), e.clientX, e.clientY);
+  if (lv.barrels.has(i) && lv.explored[i]) return hud.showTooltip('<div class="t">기름통</div><div class="r">치거나 쏘거나 불이 닿으면 터진다 (주변 1칸 화염, 나도 맞는다)</div>', e.clientX, e.clientY);
   if (f?.kind === 'exit' && lv.explored[i]) return hud.showTooltip('<div class="t">출구</div><div class="r">보급 지점으로 이어진다</div>', e.clientX, e.clientY);
   hud.showTooltip(null);
 });
@@ -743,7 +758,8 @@ canvas.addEventListener('click', (e) => {
   const dx = t[0] - p.x,
     dy = t[1] - p.y;
   const foe = g.actorAt(t[0], t[1]);
-  if (foe && foe.faction === 'enemy' && g.st(p).range > 1 && Math.max(Math.abs(dx), Math.abs(dy)) > 1) {
+  const barrel = g.level.barrels.has(g.level.idx(t[0], t[1]));
+  if ((barrel || (foe && foe.faction === 'enemy')) && g.st(p).range > 1 && Math.max(Math.abs(dx), Math.abs(dy)) > 1) {
     g.shoot(t[0], t[1]);
     return refresh();
   }

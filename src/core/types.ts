@@ -166,8 +166,16 @@ export interface WeaponInst {
   hits?: number;
 }
 
-/** 바닥에 놓인 것: 부산물 또는 무기 */
-export type GroundItem = ByproductInst | WeaponInst;
+/** 슈트 주사제 */
+export type InjectionId = 'haste' | 'ignite' | 'harden' | 'focus';
+export interface ConsumableInst {
+  kind: 'consumable';
+  uid: number;
+  def: { id: InjectionId; name: string; desc: string; rooms: number; color: string };
+}
+
+/** 바닥에 놓인 것: 부산물, 무기, 주사제 */
+export type GroundItem = ByproductInst | WeaponInst | ConsumableInst;
 
 export type Faction = 'player' | 'enemy';
 
@@ -199,6 +207,12 @@ export interface Actor {
   dead: boolean;
   /** 슈트 부여 (플레이어): 부위별 횟수·장갑 증가·원소 저항 */
   suitMods?: Record<Slot, { n: number; armor: number; resist: Element[] }>;
+  /** 벨트 (플레이어): 주사제 3칸 */
+  belt?: (ConsumableInst | null)[];
+  /** 맞고 있는 주사제: 남은 방 수 */
+  injections?: Partial<Record<InjectionId, number>>;
+  /** 마지막으로 들어선 방 (주사제 지속 계산) */
+  lastRoom?: number;
   /** 색 레벨 (플레이어): 레벨업마다 하나를 +1. 무기는 자기 색 레벨만큼 강해진다 */
   colors?: Record<Color, number>;
   /** 직전에 끝낸 행동 (조건 효과 '기습'·'정조준'용) */
@@ -233,6 +247,7 @@ export interface GameEvent {
     | 'damage'
     | 'dodge'
     | 'parry'
+    | 'heal'
     | 'death'
     | 'fx'
     | 'log'

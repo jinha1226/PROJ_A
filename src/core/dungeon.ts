@@ -38,6 +38,8 @@ export class Level {
   rooms: Room[] = [];
   features: Feature[] = [];
   terrain = new Map<number, TerrainCell>();
+  /** 기름통이 놓인 칸 */
+  barrels = new Set<number>();
   startX = 0;
   startY = 0;
   constructor(public w: number, public h: number) {

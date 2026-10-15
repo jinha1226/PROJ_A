@@ -1,6 +1,7 @@
 import { ALERT_THRESHOLDS, BREAK_PENALTY, type Game } from '../core/game';
 import { infuseOptions, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
-import type { Actor, GameEvent, ByproductInst, GroundItem, Slot, WeaponInst } from '../core/types';
+import type { Actor, GameEvent, ByproductInst, GroundItem, InjectionId, Slot, WeaponInst } from '../core/types';
+import { INJECTION_BY_ID } from '../data/consumables';
 import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME } from '../core/types';
 import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
@@ -134,6 +135,7 @@ export class Hud {
     if (p.aura) st.push(`${ELEMENT_NAME[p.aura.element]} 잔류`);
     if (p.imbue) st.push(`다음 공격 ${ELEMENT_NAME[p.imbue]}`);
     if (p.haste) st.push(`가속 ${p.haste}%`);
+    for (const [k, n] of Object.entries(p.injections ?? {})) st.push(`<span class="good">${esc(INJECTION_BY_ID[k as InjectionId].name.replace(' 주사제', ''))} ${n}방</span>`);
     this.statusRow.innerHTML = `<span class="vl">이상</span><span class="${st.length ? 'bad' : 'dim'}">${st.length ? st.join(' · ') : '없음'}</span>`;
     // 가운데 아래: 경보 게이지
     const last = ALERT_THRESHOLDS[ALERT_THRESHOLDS.length - 1]!;
@@ -156,7 +158,9 @@ export class Hud {
     this.br.innerHTML = `<div class="wrow"><span class="wname" ${w ? `data-byproduct="${w.uid}"` : ''}>${w ? esc(w.def.name) : '맨주먹'}</span>${ammo}</div>
       <div class="sub2">[E] 예비: ${spare ? esc(spare.def.name) : '맨주먹'}${keys}</div>
       ${w?.options.length ? `<div class="sub2 opts">${w.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')}</div>` : ''}
-      <div class="quick"><div class="qs"><span class="k">Q</span><span class="n">응급 ×${g.kits}</span></div></div>`;
+      <div class="quick">${p.belt!
+        .map((c, i) => `<div class="qs ${c ? '' : 'off'}" ${c ? `data-byproduct="${c.uid}"` : ''}><span class="k">${i + 3}</span><span class="n">${c ? esc(c.def.name.replace(' 주사제', '')) : '—'}</span></div>`)
+        .join('')}<div class="qs ${g.flask ? '' : 'off'}"><span class="k">Q</span><span class="n">플라스크 ${g.flask}/${g.flaskMax}</span></div></div>`;
   }
 
   /** 매 프레임: 심전도와 최근 메시지 */
@@ -345,6 +349,7 @@ export function weaponTooltip(w: WeaponInst): string {
 }
 
 export function itemTooltip(r: GroundItem): string {
+  if (r.kind === 'consumable') return `<div class="t">✚ ${esc(r.def.name)}</div><div class="r">${esc(r.def.desc)} · ${r.def.rooms}방 동안</div><div class="r" style="color:var(--dim)">밟으면 벨트에 들어간다 (3 · 4 · 5)</div>`;
   return r.kind === 'weapon' ? weaponTooltip(r) : byproductTooltip(r);
 }
 

@@ -2,13 +2,14 @@ import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
 import { allByproducts, allOptions, heldWeapon, magOf, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
-  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color,
+  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color, ConsumableInst, InjectionId,
 } from './types';
 import { COLOR_NAME, ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
 import { FISTS, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
 import { CRIT_MULT, OPTION_BY_ID, OPTIONS, STATUS_TURNS, optionFits } from '../data/options';
+import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
 import { infuseOptions, RESIST_CAP, RESIST_STEP, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
 import { ENEMIES, ENEMY_BY_ID, ZONES, type EnemyTemplate } from '../data/enemies';
 
@@ -22,7 +23,6 @@ export const REST_NAME: Record<RestService, string> = {
 
 export const SHIELD_CAP = 25;
 export const ALERT_THRESHOLDS = [160, 240, 310]; // 층에 머문 턴 수
-export const MAX_KITS = 3;
 const XP_TABLE = [0, 40, 80, 125, 175, 230, 290, 355, 425, 500];
 
 /** 부위 파손 불이익 (플레이어 슈트) */
@@ -79,7 +79,9 @@ export class Game {
   plevel = 1;
   pendingLevelUps = 0;
   ash = 0;
-  kits = 1;
+  /** 체력 플라스크: 남은 충전과 최대 충전 (보급 지점에서 다시 찬다) */
+  flask = FLASK.start;
+  flaskMax = FLASK.start;
   restService: RestService = 'shop';
   shop: { item: GroundItem; price: number }[] = [];
   restItems: GroundItem[] = [];
@@ -121,6 +123,14 @@ export class Game {
     return w;
   }
 
+  makeInjection(id: InjectionId): ConsumableInst {
+    return { kind: 'consumable', uid: this.nextUid++, def: INJECTION_BY_ID[id] };
+  }
+
+  rollInjection(): ConsumableInst {
+    return this.makeInjection(this.rng.pick(INJECTIONS).id);
+  }
+
   /** 떨어지는 무기: 등급별 옵션 수 (일반 0~1, 정예 1~2, 금지 2). 원소 적중 효과는 한 무기에 하나만 */
   rollWeaponInst(def: WeaponDef = this.rollWeapon()): WeaponInst {
     const n = def.grade === 'common' ? (this.rng.chance(0.5) ? 1 : 0) : def.grade === 'holy' ? (this.rng.chance(0.5) ? 2 : 1) : 2;
@@ -151,6 +161,8 @@ export class Game {
     p.suitMods = { body: { n: 0, armor: 0, resist: [] }, arm: { n: 0, armor: 0, resist: [] }, leg: { n: 0, armor: 0, resist: [] }, sense: { n: 0, armor: 0, resist: [] } };
     p.partArmorBase = { ...SUIT.armor };
     p.hands = [this.makeWeapon('pistol'), null];
+    p.belt = new Array(BELT_SLOTS).fill(null);
+    p.injections = {};
     this.player = p;
     this.fillArmor(p);
     p.hp = this.st(p).maxHp;
@@ -301,6 +313,19 @@ export class Game {
         const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
         if (pos) this.dropItem(pos[0], pos[1], this.rollWeaponInst());
       }
+      // 주사제 하나
+      {
+        const room = this.rng.pick(rooms);
+        const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
+        if (pos) this.dropItem(pos[0], pos[1], this.rollInjection());
+      }
+      // 기름통: 방 2~3곳에 1~2개
+      for (const room of this.rng.shuffle([...rooms]).slice(0, this.rng.int(2, 3))) {
+        for (let k = this.rng.int(1, 2); k > 0; k--) {
+          const pos = this.freeTileIn(room.x, room.y, room.w, room.h);
+          if (pos && !this.ground.has(lv.idx(pos[0], pos[1]))) lv.barrels.add(lv.idx(pos[0], pos[1]));
+        }
+      }
     }
     this.worldTime = p.time;
     this.refreshFov();
@@ -425,6 +450,13 @@ export class Game {
     const lv = this.level;
     if (!lv.isFloor(nx, ny)) return false;
     if (dx && dy && (!lv.isFloor(p.x + dx, p.y) || !lv.isFloor(p.x, p.y + dy))) return false;
+    // 기름통: 부딪히면 터뜨린다
+    if (lv.barrels.has(lv.idx(nx, ny))) {
+      this.log('기름통을 걷어찼다!', 'warn');
+      this.explodeBarrel(nx, ny);
+      this.endPlayerAction(this.st(p).attackCost, 'attack');
+      return true;
+    }
     const other = this.actorAt(nx, ny);
     if (other && this.hostile(p, other)) {
       // 원거리 무기를 든 채 부딪히면 개머리판 타격 (약함)
@@ -452,7 +484,19 @@ export class Game {
       lv.rooms[room].visited = true;
       this.gainXp(10);
     }
+    // 주사제: 다른 방에 들어설 때마다 1씩
+    if (room >= 0 && room !== p.lastRoom) {
+      p.lastRoom = room;
+      for (const k of Object.keys(p.injections!) as InjectionId[]) {
+        if (--p.injections![k]! <= 0) {
+          delete p.injections![k];
+          this.log(`${INJECTION_BY_ID[k].name} 효과가 끝났다.`);
+        }
+      }
+    }
     this.itemSeen.add(lv.idx(p.x, p.y));
+    // 주사제는 벨트에 빈칸이 있으면 밟을 때 자동으로 줍는다
+    for (const it of [...this.groundHere()]) if (it.kind === 'consumable') this.pickConsumable(it);
     const items = this.groundHere();
     if (items.length) this.log(`발밑에: ${items.map((r) => r.def.name).join(', ')} — [G] 줍기`, 'item');
     const f = lv.featureAt(p.x, p.y);
@@ -480,7 +524,8 @@ export class Game {
       return false;
     }
     const t = this.actorAt(tx, ty);
-    if (!t || !this.hostile(p, t) || !this.level.visible[this.level.idx(tx, ty)]) {
+    const barrel = this.level.barrels.has(this.level.idx(tx, ty)) && !!this.level.visible[this.level.idx(tx, ty)];
+    if (!barrel && (!t || !this.hostile(p, t) || !this.level.visible[this.level.idx(tx, ty)])) {
       this.log('쏠 대상이 없다.');
       return false;
     }
@@ -489,6 +534,12 @@ export class Game {
       return false;
     }
     if (w.def.mag !== undefined) w.ammo--;
+    if (barrel || !t) {
+      this.emit({ type: 'shoot', actor: p.id, x: p.x, y: p.y, tx, ty, text: w.def.id });
+      this.explodeBarrel(tx, ty);
+      this.endPlayerAction(s.attackCost, 'attack');
+      return true;
+    }
     this.emit({ type: 'shoot', actor: p.id, target: t.id, x: p.x, y: p.y, tx, ty, element: p.imbue ?? w.def.element, text: w.def.id });
     this.basicAttack(p, t, false, true);
     this.endPlayerAction(s.attackCost, 'attack');
@@ -547,15 +598,51 @@ export class Game {
     return true;
   }
 
-  useKit(): boolean {
+  /** 체력 플라스크: 최대 체력 40% 회복 + 가장 깎인 부위 장갑 수리 */
+  useFlask(): boolean {
     if (!this.canAct()) return false;
-    if (this.kits <= 0) {
-      this.log('응급 키트가 없다.');
+    const p = this.player;
+    if (this.flask <= 0) {
+      this.log('플라스크가 비었다. 보급 지점에서 다시 찬다.');
       return false;
     }
-    this.kits--;
-    this.repairAll(this.player, 0.25);
-    this.log('응급 키트: 슈트 수리, 체력 회복.', 'good');
+    this.flask--;
+    const before = p.hp;
+    this.heal(p, Math.round(this.st(p).maxHp * FLASK.heal));
+    this.repairArmor(p, FLASK.repair);
+    this.emit({ type: 'heal', actor: p.id, amount: p.hp - before });
+    this.log(`체력 플라스크: 체력 +${p.hp - before}, 장갑 수리 (${this.flask}/${this.flaskMax})`, 'good');
+    this.endPlayerAction(100);
+    return true;
+  }
+
+  /** 발밑의 주사제를 벨트 빈칸에 넣는다 */
+  pickConsumable(c: ConsumableInst): boolean {
+    const p = this.player;
+    const i = p.belt!.indexOf(null);
+    if (i < 0) {
+      this.log(`벨트가 가득 찼다: ${c.def.name}은(는) 바닥에 둔다.`);
+      return false;
+    }
+    const g = this.groundHere();
+    const gi = g.indexOf(c);
+    if (gi < 0) return false;
+    g.splice(gi, 1);
+    p.belt![i] = c;
+    this.log(`벨트 ${i + 3}: ${c.def.name}`, 'item');
+    return true;
+  }
+
+  /** 벨트 i칸의 주사제를 쓴다 (1턴). 같은 주사제는 지속만 새로 고친다 */
+  useInjection(i: number): boolean {
+    if (!this.canAct()) return false;
+    const p = this.player;
+    const c = p.belt![i];
+    if (!c) return false;
+    p.belt![i] = null;
+    p.injections![c.def.id] = c.def.rooms;
+    this.log(`${c.def.name}: ${c.def.desc} (${c.def.rooms}방)`, 'skill');
+    this.emit({ type: 'loadout', actor: p.id });
     this.endPlayerAction(100);
     return true;
   }
@@ -644,8 +731,9 @@ export class Game {
     this.restUsed = false;
     this.restItems = [];
     const p = this.player;
-    // 보급 지점에서는 항상 슈트를 수리한다
+    // 보급 지점에서는 항상 슈트를 수리하고 플라스크를 채운다
     this.repairAll(p, 0.15);
+    this.flask = this.flaskMax;
     this.restService = this.rng.pick(['shop', 'reforge'] as const);
     if (this.restService === 'shop') {
       // 무기 3자루: 옵션이 붙을수록 비싸다
@@ -653,6 +741,7 @@ export class Game {
         const w = this.rollWeaponInst();
         return { item: w as GroundItem, price: (w.def.grade === 'common' ? 5 : 11) + w.options.length * 3 };
       });
+      this.shop.push({ item: this.rollInjection(), price: 4 });
     }
     this.log(`보급 지점: 슈트 수리 완료. ${REST_NAME[this.restService]}이(가) 열려 있다.`, 'floor');
   }
@@ -667,10 +756,13 @@ export class Game {
     return true;
   }
 
-  buyKit(): boolean {
-    if (this.mode !== 'rest' || this.ash < 4 || this.kits >= MAX_KITS) return false;
-    this.ash -= 4;
-    this.kits++;
+  /** 상점: 플라스크 충전 최대치 +1 (그 충전도 바로 채운다) */
+  buyFlask(): boolean {
+    if (this.mode !== 'rest' || this.ash < FLASK.upgradePrice || this.flaskMax >= FLASK.max) return false;
+    this.ash -= FLASK.upgradePrice;
+    this.flaskMax++;
+    this.flask = this.flaskMax;
+    this.log(`플라스크 충전 최대 ${this.flaskMax}`, 'good');
     return true;
   }
 
@@ -788,7 +880,7 @@ export class Game {
     const lv = this.level;
     const p = this.player;
     if (!lv.isFloor(tx, ty) || !lv.explored[lv.idx(tx, ty)]) return [];
-    const dist = bfs(lv, tx, ty, (x, y) => !!lv.explored[lv.idx(x, y)] || (x === p.x && y === p.y));
+    const dist = bfs(lv, tx, ty, (x, y) => (!!lv.explored[lv.idx(x, y)] && !lv.barrels.has(lv.idx(x, y))) || (x === p.x && y === p.y));
     let d = dist[lv.idx(p.x, p.y)];
     if (d < 0) return [];
     const out: { x: number; y: number }[] = [];
@@ -820,7 +912,7 @@ export class Game {
     const lv = this.level;
     const p = this.player;
     if (p.x === tx && p.y === ty) return 'done';
-    const dist = bfs(lv, tx, ty, (x, y) => !!lv.explored[lv.idx(x, y)] || (x === p.x && y === p.y));
+    const dist = bfs(lv, tx, ty, (x, y) => (!!lv.explored[lv.idx(x, y)] && !lv.barrels.has(lv.idx(x, y))) || (x === p.x && y === p.y));
     let bd = dist[lv.idx(p.x, p.y)];
     if (bd < 0) return 'done';
     let dir: [number, number] | null = null;
@@ -1102,7 +1194,7 @@ export class Game {
     for (const [dx, dy] of DIRS8) {
       const nx = a.x + dx,
         ny = a.y + dy;
-      if (!this.level.isFloor(nx, ny) || this.actorAt(nx, ny) || !this.canStepDiag(a.x, a.y, dx, dy)) continue;
+      if (!this.level.isFloor(nx, ny) || this.actorAt(nx, ny) || this.level.barrels.has(this.level.idx(nx, ny)) || !this.canStepDiag(a.x, a.y, dx, dy)) continue;
       const sc = score(nx, ny) + (dx && dy ? 0.01 : 0);
       if (sc < bs) { bs = sc; best = [nx, ny]; }
     }
@@ -1147,7 +1239,7 @@ export class Game {
     // 개머리판은 무기 옵션·고유 효과가 붙지 않는다
     const w = bash ? null : heldWeapon(a);
     // 부산물 부여의 원소가 먼저, 그다음 무기 옵션의 원소
-    const optEl = w && [...(w.infusion?.options ?? []), ...w.options].map((o) => OPTION_BY_ID[o].element).find((e) => e);
+    const optEl = w && [...(a.injections?.ignite ? (['fire'] as OptionId[]) : []), ...(w.infusion?.options ?? []), ...w.options].map((o) => OPTION_BY_ID[o].element).find((e) => e);
     const el = a.imbue ?? optEl ?? w?.def.element;
     a.imbue = undefined;
     if (!shot) this.emit({ type: 'attack', actor: a.id, target: t.id });
@@ -1169,6 +1261,14 @@ export class Game {
     if (dealt > 0 && w) this.weaponAfterHit(a, t, w, base, dealt, el, before.slow, !!m.crit);
   }
 
+  /** 무기 옵션 + 부여 + 주사제(점화: 화염, 집중: 강화 치명타) */
+  private optsOf(a: Actor, w: WeaponInst): OptionId[] {
+    const out = allOptions(w);
+    const inj = a.injections;
+    if (!inj || (!inj.ignite && !inj.focus)) return out;
+    return [...out, ...(inj.ignite ? (['fire'] as OptionId[]) : []), ...(inj.focus ? (['critDmg'] as OptionId[]) : [])];
+  }
+
   /** 대상 바로 뒤 칸 (공격자 → 대상 방향) */
   private behind(a: Actor, t: Actor): [number, number] {
     return [t.x + Math.sign(t.x - a.x), t.y + Math.sign(t.y - a.y)];
@@ -1180,7 +1280,7 @@ export class Game {
     let crit: string | null = null;
     if (a.blockReady) crit = '막기 반격';
     if (!w) return { mult, crit, critMult: crit ? CRIT_MULT : 1 };
-    const has = (o: OptionId) => allOptions(w).includes(o);
+    const has = (o: OptionId) => this.optsOf(a, w).includes(o);
     const st = t.statuses;
     const hpFrac = (b: Actor) => b.hp / this.st(b).maxHp;
     const dist = Math.max(Math.abs(t.x - a.x), Math.abs(t.y - a.y));
@@ -1246,14 +1346,14 @@ export class Game {
     if (t.dead) return;
     const m = this.weaponMods(a, t, w);
     const crit = m.crit ?? (forceCrit ? label : null);
-    const critMult = m.crit ? m.critMult : forceCrit ? (allOptions(w).includes('critDmg') ? 2.5 : CRIT_MULT) : 1;
+    const critMult = m.crit ? m.critMult : forceCrit ? (this.optsOf(a, w).includes('critDmg') ? 2.5 : CRIT_MULT) : 1;
     const dmg = Math.max(1, Math.round(base * m.mult * critMult * this.dmgMult(a)));
     this.dealDamage(a, t, dmg, el, { label: crit ? `${label} · 치명타` : label, noTrigger: true, crit: !!crit });
   }
 
   /** 맞힌 뒤: 적중·처치 옵션과 고유 효과 */
   private weaponAfterHit(a: Actor, t: Actor, w: WeaponInst, base: number, dealt: number, el: Element | undefined, wasSlow: boolean, crit: boolean) {
-    const has = (o: OptionId) => allOptions(w).includes(o);
+    const has = (o: OptionId) => this.optsOf(a, w).includes(o);
     const killed = this.lastKill === t;
     const tr = w.def.trait;
     const T = STATUS_TURNS;
@@ -1300,6 +1400,7 @@ export class Game {
     if (killed && has('corpseBlast')) {
       this.emit({ type: 'fx', fx: 'blast', x: t.x, y: t.y, radius: 1, element: el });
       for (const b of this.hostilesInRadius(a, t.x, t.y, 1)) if (b !== t) this.weaponStrike(a, b, w, base * 0.5, el, '시체 폭발');
+      if (el === 'fire') this.igniteArea(t.x, t.y, 1);
     }
     if (killed && has('deathFreeze')) for (const b of this.hostilesInRadius(a, t.x, t.y, 1)) if (b !== t) this.addStatus(b, 'freeze', T);
     if (killed && has('deathFlame')) {
@@ -1436,6 +1537,8 @@ export class Game {
     }
     // 몸 파손: 받는 피해 +20%
     if (t.isPlayer && isBroken(t, 'body')) dmg *= 1.2;
+    // 경화 주사제: 받는 피해 −25%
+    if (t.injections?.harden) dmg *= 0.75;
     // 기름: 화염에 맞으면 점화 (그 타격 ×1.5 + 화상 4턴)
     if (el === 'fire' && t.statuses.oil) {
       delete t.statuses.oil;
@@ -1584,6 +1687,7 @@ export class Game {
         this.dropItem(t.x, t.y, r);
         this.log(`잔해에서 ${r.def.name}이(가) 떨어졌다.`, 'item');
       }
+      if (this.rng.chance(0.1)) this.dropItem(t.x, t.y, this.rollInjection());
       // 고유 무기: 보스는 반드시, 정예는 절반 확률
       if (t.boss || (t.elite && this.rng.chance(0.5))) {
         const w = this.rollWeaponInst(this.rng.pick(WEAPONS.filter((d) => d.unique)));
@@ -1594,7 +1698,6 @@ export class Game {
         const loot = ZONES[this.zone].bossLoot;
         if (loot.length) this.dropItem(t.x, t.y, this.makeByproduct(this.rng.pick(loot)));
         this.dropItem(t.x, t.y, this.makeByproduct(this.rollByproduct()));
-        this.kits = Math.min(MAX_KITS, this.kits + 1);
         this.log('연료 결정을 회수했다. 출구가 열렸다.', 'good');
       }
       this.ash += 1;
@@ -1639,8 +1742,26 @@ export class Game {
     this.emit({ type: 'loadout', actor: a.id });
   }
 
+  /** 기름통 폭발: 주변 1칸 화염 피해(플레이어도) + 불길, 옆 기름통으로 이어진다 */
+  explodeBarrel(x: number, y: number) {
+    const lv = this.level;
+    if (!lv.barrels.delete(lv.idx(x, y))) return;
+    this.emit({ type: 'fx', fx: 'blast', x, y, radius: 1, element: 'fire' });
+    this.log('기름통이 터졌다!', 'warn');
+    for (const a of this.actors.filter((b) => !b.dead && Math.max(Math.abs(b.x - x), Math.abs(b.y - y)) <= 1)) {
+      this.dealDamage(null, a, BARREL_DAMAGE(this.zone), 'fire', { label: '기름통 폭발', noTrigger: true });
+    }
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) this.setTerrain(x + dx, y + dy, 'flame', 2 + this.zone, 3, 'enemy');
+  }
+
+  /** 화염 폭발이 닿은 칸의 기름통을 터뜨린다 */
+  private igniteArea(x: number, y: number, r: number) {
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (this.level.barrels.has(this.level.idx(x + dx, y + dy))) this.explodeBarrel(x + dx, y + dy);
+  }
+
   setTerrain(x: number, y: number, kind: 'flame' | 'ice' | 'current', power: number, turns: number, faction: Faction) {
     if (!this.level.isFloor(x, y)) return;
+    if (kind === 'flame' && this.level.barrels.has(this.level.idx(x, y))) this.explodeBarrel(x, y);
     this.level.terrain.set(this.level.idx(x, y), { kind, power, turns, faction });
   }
 
@@ -1692,6 +1813,7 @@ export class Game {
       case 'blast': {
         const [x, y] = pos();
         this.emit({ type: 'fx', fx: 'blast', x, y, radius: spec.radius ?? 1, element: el });
+        if (el === 'fire') this.igniteArea(x, y, spec.radius ?? 1);
         for (const t of this.hostilesInRadius(owner, x, y, spec.radius ?? 1)) this.dealDamage(owner, t, power, el, { label });
         break;
       }

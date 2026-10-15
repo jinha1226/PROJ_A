@@ -186,3 +186,4 @@ table.summary td { padding: 2px 14px 2px 0; } table.summary td:first-child { col
 .labcol { margin-right: 18px; } .labcol button { padding: 0 8px; }
 .r .up { color: #9fe8b0; }
 .r.opt.infused b { color: #9fe8b0; }
+#statusrow .good { color: #7fd99a; }

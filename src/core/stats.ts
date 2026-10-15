@@ -69,9 +69,9 @@ export function computeStats(a: Actor): Stats {
   let hp = a.baseHp,
     // 플레이어 슈트 기본 회피 5% (적은 다리·감각 부산물로)
     dodge = a.isPlayer ? 8 : 0,
-    sight = 7,
+    sight = a.injections?.focus ? 9 : 7,
     // 플레이어 슈트 기본 이동: 비용 75 (1.3칸/턴). 적은 다리 부산물로
-    moveBonus = a.isPlayer ? 25 : 0,
+    moveBonus = (a.isPlayer ? 25 : 0) + (a.injections?.haste ? 25 : 0),
     armor = 0,
     heavy = 0;
   let bestDmg = 0,

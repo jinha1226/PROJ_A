@@ -3,6 +3,7 @@
 import type { Game } from '../core/game';
 import { Tile as LvTile, type Level } from '../core/dungeon';
 import { heldWeapon } from '../core/stats';
+import { INJECTIONS } from '../data/consumables';
 import type { Actor, GameEvent, WeaponInst } from '../core/types';
 import type { Cell, Ent, FloorItem, FoeKind, GEvent, GridMap, GridSim, GridState, Hero, Tile, TileFx, Weapon, WeaponGroup } from './projr/sim';
 
@@ -120,10 +121,11 @@ export class Bridge {
       floorItems: this.items(),
       run: { floor: g.zone * 4 + g.floor + 1 },
       tiles: this.tiles(),
-      barrels: [],
+      barrels: [...lv.barrels].map((i) => ({ x: i % lv.w, y: (i / lv.w) | 0 })),
       telegraphs: [],
       traps: [],
-      lore: { colors: {} },
+      // 주사제 병 색: 렌더러는 물약 이름 → 색 이름 표를 본다
+      lore: { colors: Object.fromEntries(INJECTIONS.map((d) => [d.id, d.color])) },
     };
   }
 
@@ -180,7 +182,9 @@ export class Bridge {
       out.push(
         it.kind === 'weapon'
           ? { pos, item: { kind: 'weapon', group: WEAPON_LOOK[it.def.id] ?? 'sword' } }
-          : { pos, item: { kind: 'stone', id: it.def.grade === 'common' ? 'byproduct' : 'guardian' } },
+          : it.kind === 'consumable'
+            ? { pos, item: { kind: 'potion', p: it.def.id } }
+            : { pos, item: { kind: 'stone', id: it.def.grade === 'common' ? 'byproduct' : 'guardian' } },
       );
     }
     return out;
@@ -234,6 +238,9 @@ export class Bridge {
           break;
         case 'dodge':
           out.push(e.target === g.player.id ? { t, type: 'dodge', text: Math.random() < 0.5 ? 'L' : 'R' } : { t, type: 'miss', dst: id(e.target) });
+          break;
+        case 'heal':
+          out.push({ t, type: 'heal', dst: id(e.actor), amount: e.amount, text: 'flask' });
           break;
         case 'parry':
           out.push({ t, type: 'parry', src: id(e.target), dst: id(e.actor), text: e.text });
