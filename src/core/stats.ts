@@ -1,5 +1,5 @@
-import type { Actor, Color, Element, ByproductInst, OptionId, Slot, WeaponDef, WeaponInst } from './types';
-import { FISTS } from '../data/weapons';
+import type { Actor, Color, Element, ByproductInst, OptionId, Slot, WeaponDef, WeaponInst, WeaponTrait } from './types';
+import { ELITE_DAMAGE, FISTS, SIGNATURE, TRAIT_NAME } from '../data/weapons';
 import { SLOTS } from './types';
 
 /** 장착된 부산물 전부 */
@@ -110,7 +110,7 @@ export function computeStats(a: Actor): Stats {
   if (held || a.isPlayer) {
     weapon = held?.def ?? FISTS;
     // 무기 피해에 그 색의 레벨 배율 (맨주먹은 화력)
-    damage = (a.baseDamage + weapon.damage + (bestDmg + otherDmg) * 0.3) * colorMult(a, weapon);
+    damage = (a.baseDamage + weapon.damage * (held?.elite ? ELITE_DAMAGE : 1) + (bestDmg + otherDmg) * 0.3) * colorMult(a, weapon);
     attackCost = weapon.attackCost;
   } else {
     damage = a.baseDamage + bestDmg + otherDmg * 0.25;
@@ -156,4 +156,26 @@ export function magOf(w: WeaponInst): number {
 /** 무기의 모든 옵션: 떨어질 때 붙은 것 + 부산물 부여 */
 export function allOptions(w: WeaponInst): OptionId[] {
   return w.infusion ? [...w.options, ...w.infusion.options] : w.options;
+}
+
+/** 무기의 ★ 고유 효과: 기본 무기의 동작(막기·원소 튐) + 부산물 부여의 ★ */
+export function traitsOf(w: WeaponInst): WeaponTrait[] {
+  const out: WeaponTrait[] = [];
+  if (w.def.trait) out.push(w.def.trait);
+  if (w.infusion?.trait) out.push(w.infusion.trait);
+  return out;
+}
+
+/** 맞는 짝이면 그 ★ (이름 있는 무기가 되고 치명타 ×3) */
+export function signatureOf(w: WeaponInst): WeaponTrait | null {
+  const t = w.infusion?.trait;
+  return t && SIGNATURE[t]?.weapon === w.def.id ? t : null;
+}
+
+/** 보이는 무기 이름: 맞는 짝이면 고유 이름, ★가 있으면 "효과 + 기본 무기", 정예면 앞에 "정예" */
+export function weaponName(w: WeaponInst): string {
+  const sig = signatureOf(w);
+  const t = w.infusion?.trait;
+  const base = sig ? SIGNATURE[sig]!.name : t ? `${TRAIT_NAME[t] ?? ''} ${w.def.name}` : w.def.name;
+  return w.elite ? `정예 ${base}` : base;
 }

@@ -21,7 +21,7 @@ export function botStep(g: Game): boolean {
       if (g.restService === 'shop') {
         g.buyFlask();
         for (let i = g.shop.length - 1; i >= 0; i--) if (g.shop[i].price <= g.ash) g.buy(i);
-      } else g.reforge(p.activeHand, 0);
+      } else g.reforge(p.activeHand);
       for (const r of [...g.restItems]) tryTake(g, r) || (r.kind === 'byproduct' && useByproduct(g, r));
       g.leaveRest();
       return true;

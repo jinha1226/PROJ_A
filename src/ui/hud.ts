@@ -1,12 +1,12 @@
 import { ALERT_THRESHOLDS, BREAK_PENALTY, type Game } from '../core/game';
-import { infuseOptions, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
+import { infuseOptions, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
 import type { Actor, GameEvent, ByproductInst, GroundItem, InjectionId, Slot, WeaponInst } from '../core/types';
 import { INJECTION_BY_ID } from '../data/consumables';
 import { COLOR_NAME, ELEMENT_NAME, FAMILY_NAME, GRADE_NAME, SLOT_NAME, STATUS_NAME } from '../core/types';
-import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax } from '../core/stats';
+import { COLOR_STEP, colorLevel, isBroken, magOf, partArmorMax, signatureOf, traitsOf, weaponName } from '../core/stats';
 import { FORM_NAME } from '../data/forms';
 import { OPTION_BY_ID } from '../data/options';
-import { TRAIT_TEXT } from '../data/weapons';
+import { ELITE_DAMAGE, RANGED_TRAITS, SIGNATURE, TRAIT_NAME, TRAIT_TEXT, WEAPON_BY_ID } from '../data/weapons';
 import { isChainLine } from '../render/bridge';
 
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -167,9 +167,9 @@ export class Hud {
         ? `<span class="ammo ${w.ammo ? '' : 'bad'}">${w.ammo}</span><span class="mag">/ ${magOf(w)}${w.def.recharge ? ' 충전' : ''}</span>`
         : `<span class="mag">${w && w.def.range > 1 ? `사거리 ${w.def.range}` : '근접'}</span>`;
     const keys = !w || w.def.range <= 1 ? '' : w.def.mag !== undefined && !w.def.recharge ? ' · [R] 재장전 · [F] 사격' : ' · [F] 사격';
-    this.br.innerHTML = `<div class="wrow"><span class="wname" ${w ? `data-byproduct="${w.uid}"` : ''}>${w ? esc(w.def.name) : '맨주먹'}</span>${ammo}</div>
-      <div class="sub2">[E] 예비: ${spare ? esc(spare.def.name) : '맨주먹'}${keys}</div>
-      ${w?.options.length ? `<div class="sub2 opts">${w.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')}</div>` : ''}
+    this.br.innerHTML = `<div class="wrow"><span class="wname" ${w ? `data-byproduct="${w.uid}"` : ''}>${w ? esc(weaponName(w)) : '맨주먹'}</span>${ammo}</div>
+      <div class="sub2">[E] 예비: ${spare ? esc(weaponName(spare)) : '맨주먹'}${keys}</div>
+      ${w && (w.options.length || w.infusion) ? `<div class="sub2 opts">${[...(w.infusion?.trait && TRAIT_NAME[w.infusion.trait] ? [`★${TRAIT_NAME[w.infusion.trait]}`] : []), ...[...w.options, ...(w.infusion?.options ?? [])].map((o) => OPTION_BY_ID[o].name)].map(esc).join(' · ')}</div>` : ''}
       <div class="quick">${p.belt!
         .map((c, i) => `<div class="qs ${c ? '' : 'off'}" ${c ? `data-byproduct="${c.uid}"` : ''}><span class="k">${i + 3}</span><span class="n">${c ? esc(c.def.name.replace(' 주사제', '')) : '—'}</span></div>`)
         .join('')}<div class="qs ${g.flask ? '' : 'off'}"><span class="k">Q</span><span class="n">플라스크 ${g.flask}/${g.flaskMax}</span></div></div>`;
@@ -320,7 +320,8 @@ export function byproductTooltip(r: ByproductInst): string {
   const inf = suitInfusion(r.def);
   return `<div class="t g-${r.def.grade}">${elDots(r)} ${esc(r.def.name)}</div>
     <div class="r">${GRADE_NAME[r.def.grade]} · ${SLOT_NAME[r.def.slot]} 부산물 · 강화 재료</div>
-    <div class="r opt"><b>무기 부여</b> ${infuseOptions(r.def).map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')}</div>
+    <div class="r opt"><b>무기 부여</b> ${[...(starOf(r.def) ? [`★${TRAIT_NAME[starOf(r.def)!]}`] : []), ...infuseOptions(r.def).map((o) => OPTION_BY_ID[o].name)].map(esc).join(' · ')}${starOf(r.def) && SIGNATURE[starOf(r.def)!] ? ` <span style="color:var(--dim)">(${esc(WEAPON_BY_ID[SIGNATURE[starOf(r.def)!]!.weapon]!.name)}과 맞는다)</span>` : ''}</div>
+    ${starOf(r.def) ? `<div class="r trait">★ ${esc(TRAIT_TEXT[starOf(r.def)!])}</div>` : ''}
     <div class="r opt cond"><b>슈트 부여</b> ${SLOT_NAME[inf.slot]} 장갑 +${inf.armor}${inf.resist.length ? ` · ${inf.resist.map((e) => ELEMENT_NAME[e]).join('·')} 저항` : ''}</div>`;
 }
 
@@ -345,19 +346,26 @@ export function weaponTooltip(w: WeaponInst): string {
   const lv = viewer ? colorLevel(viewer, d) : 0;
   const bonus = lv ? ` <span class="up">(색 ${lv}: +${Math.round(COLOR_STEP * 100 * lv)}%)</span>` : '';
   const ammo = d.mag === undefined ? '' : d.recharge ? `충전 ${w.ammo}/${magOf(w)} (${d.recharge}턴마다 1)` : `탄창 ${w.ammo}/${magOf(w)}`;
-  const parts = [`피해 ${d.damage}${bonus}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo].filter(Boolean);
+  const dmg = Math.round(d.damage * (w.elite ? ELITE_DAMAGE : 1));
+  const parts = [`피해 ${dmg}${bonus}`, `공격 ${speed(d.attackCost)}회/턴`, d.range > 1 ? `사거리 ${d.range}` : '근접', ammo].filter(Boolean);
   const colors = d.colors.map((c) => `<span class="col ${c}">${COLOR_NAME[c]}</span>`).join(' ');
-  const trait = d.trait ? `<div class="r trait">★ ${esc(TRAIT_TEXT[d.trait])}</div>` : '';
-  const opts = w.options
+  const sig = signatureOf(w);
+  const traits = traitsOf(w)
+    .map((t) => {
+      const ranged = RANGED_TRAITS.has(t) && d.range <= 1 ? ' <span style="color:var(--warn)">(이 무기에서는 발동하지 않음)</span>' : '';
+      const pair = SIGNATURE[t];
+      const hint = t === sig ? ' <span class="up">— 맞는 짝: 치명타 ×3</span>' : pair && t === w.infusion?.trait ? ` <span style="color:var(--dim)">— ${esc(WEAPON_BY_ID[pair.weapon]!.name)}과 맞는다</span>` : '';
+      return `<div class="r trait">★ ${TRAIT_NAME[t] ? `<b>${esc(TRAIT_NAME[t]!)}</b> ` : ''}${esc(TRAIT_TEXT[t])}${ranged}${hint}</div>`;
+    })
+    .join('');
+  const opts = [...w.options, ...(w.infusion?.options ?? [])]
     .map((o) => {
       const od = OPTION_BY_ID[o];
       return `<div class="r opt ${od.kind}"><b>${od.kind === 'cond' ? '◇' : '◆'} ${esc(od.name)}</b> ${esc(od.desc)}</div>`;
     })
     .join('');
-  const inf = w.infusion
-    ? `<div class="r opt infused"><b>⬡ 부여: ${esc(w.infusion.from)}</b> ${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')}</div>`
-    : `<div class="r" style="color:var(--dim)">⬡ 부여 칸 비어 있음</div>`;
-  return `<div class="t g-${d.grade}">⚔ ${esc(d.name)}</div><div class="r">${GRADE_NAME[d.grade]} · ${FAMILY_NAME[d.family]} · ${colors}</div><div class="r">${parts.join(' · ')}</div>${trait}${opts}${inf}`;
+  const inf = w.infusion ? `<div class="r opt infused"><b>⬡ 부여: ${esc(w.infusion.from)}</b></div>` : `<div class="r" style="color:var(--dim)">⬡ 부여 칸 비어 있음 (정예·보스 부산물을 넣으면 ★)</div>`;
+  return `<div class="t ${w.elite ? 'g-holy' : 'g-common'}">⚔ ${esc(weaponName(w))}</div><div class="r">${w.elite ? '정예' : '일반'} ${esc(d.name)} · ${FAMILY_NAME[d.family]} · ${colors}</div><div class="r">${parts.join(' · ')}</div>${traits}${opts}${inf}`;
 }
 
 export function itemTooltip(r: GroundItem): string {

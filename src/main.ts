@@ -1,13 +1,13 @@
 import { Game, REST_NAME } from './core/game';
 import { FLASK } from './data/consumables';
-import type { Color, ByproductInst, GroundItem, OptionId, WeaponInst } from './core/types';
+import type { Color, ByproductInst, GroundItem, OptionId, WeaponInst, WeaponTrait } from './core/types';
 import { COLOR_NAME, ELEMENT_NAME, SLOT_NAME } from './core/types';
 import { OPTION_BY_ID, OPTIONS, optionFits } from './data/options';
-import { infuseOptions, SUIT_INFUSE_MAX, suitInfusion } from './data/infuse';
-import { TRAIT_TEXT, WEAPONS } from './data/weapons';
+import { infuseOptions, starOf, SUIT_INFUSE_MAX, suitInfusion } from './data/infuse';
+import { SIGNATURE, STAR_TRAITS, TRAIT_NAME, TRAIT_TEXT, WEAPONS } from './data/weapons';
 import { loadAssets, View3D, type Pace } from './render/view3d';
 import { actorTooltip, clearThemeCache, esc, Hud, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
-import { COLOR_STEP, colorLevel, heldWeapon } from './core/stats';
+import { COLOR_STEP, colorLevel, heldWeapon, traitsOf, weaponName } from './core/stats';
 
 const view = document.getElementById('view')!;
 const modal = document.getElementById('modal')!;
@@ -162,8 +162,10 @@ function showLab() {
         const sel = !!w?.options.includes(o.id);
         return `<div class="card ${sel ? 'sel' : ''}" data-opt="${h}:${o.id}"><div class="nm">${sel ? '■ ' : '□ '}${o.kind === 'cond' ? '◇' : '◆'} ${esc(o.name)}</div><div class="ds">${esc(o.desc)}</div></div>`;
       }).join('');
-      return `<h3>손 ${h + 1}${g.player.activeHand === h ? ' (들고 있음)' : ''} <select data-hand="${h}">${pick}</select></h3>
-        ${w?.def.trait ? `<p class="lead">★ ${esc(TRAIT_TEXT[w.def.trait])}</p>` : ''}<div class="cards">${opts}</div>`;
+      const stars = `<option value="">★ 없음</option>${STAR_TRAITS.map((t) => `<option value="${t}" ${w?.infusion?.trait === t ? 'selected' : ''}>★ ${esc(TRAIT_NAME[t]!)}${SIGNATURE[t]?.weapon === w?.def.id ? ' (짝)' : ''}</option>`).join('')}`;
+      return `<h3>손 ${h + 1}${g.player.activeHand === h ? ' (들고 있음)' : ''} <select data-hand="${h}">${pick}</select> <select data-star="${h}">${stars}</select>
+        <label style="font-size:11px"><input type="checkbox" data-elite="${h}" ${w?.elite ? 'checked' : ''}> 정예</label></h3>
+        ${w ? `<p class="lead">⚔ <b>${esc(weaponName(w))}</b>${traitsOf(w).map((t) => `<br>★ ${esc(TRAIT_TEXT[t])}`).join('')}</p>` : ''}<div class="cards">${opts}</div>`;
     })
     .join('');
   const colorRow = COLORS.map(
@@ -172,7 +174,7 @@ function showLab() {
   const la = g.lastAction;
   modal.innerHTML = `<div class="box lab"><h2>무기 실험실</h2>
     <h3>색 레벨 (무기 피해 +${Math.round(COLOR_STEP * 100)}%/레벨)</h3><div class="row">${colorRow}</div>
-    <p class="lead">손마다 무기를 고르고 옵션을 켜고 끈다(개수 제한 없음). ★ 무기 고유 효과가 치명타(×2) 조건을 정하고, ◆ 옵션은 상태를 만들고, ◇ 옵션은 상태·상황에 따라 피해를 키운다. 상태는 내 턴 기준 2턴.<br>
+    <p class="lead">손마다 기본 무기를 고르고, ★(정예·보스 부산물이 주는 고유 효과)를 직접 붙여 본다. ★는 치명타(×2) 조건이고, 맞는 짝(이름 있는 무기)이면 ×3. ◆ 옵션은 상태를 만들고 ◇ 옵션은 상태·상황에 따라 피해를 키운다. 상태는 내 턴 기준 2턴.<br>
     직전 행동: 준 피해 <b>${la.damage}</b></p>
     ${hands}
     <div class="row"><button class="ghost" data-act="reset">허수아비·상태 초기화</button><span style="flex:1"></span><button data-act="close">닫기 (T / Esc)</button></div></div>`;
@@ -189,6 +191,20 @@ function showLab() {
       (el.onclick = () => {
         const [c, d] = el.dataset.col!.split(':');
         g.labSetColor(c as Color, g.player.colors![c as Color] + Number(d));
+        refresh();
+      }),
+  );
+  modal.querySelectorAll<HTMLSelectElement>('select[data-star]').forEach(
+    (el) =>
+      (el.onchange = () => {
+        g.labSetStar(Number(el.dataset.star), (el.value || null) as WeaponTrait | null);
+        refresh();
+      }),
+  );
+  modal.querySelectorAll<HTMLInputElement>('input[data-elite]').forEach(
+    (el) =>
+      (el.onchange = () => {
+        g.labSetElite(Number(el.dataset.elite), el.checked);
         refresh();
       }),
   );
@@ -231,8 +247,8 @@ function showColorPick() {
         const now = colorLevel(p, w.def);
         const after = w.def.colors.includes(c) ? Math.max(now, lv + 1) : now;
         return after > now
-          ? `<div class="gain up">${esc(w.def.name)} 피해 +${Math.round(COLOR_STEP * 100 * (after - now))}% (${Math.round(COLOR_STEP * 100 * now)}% → ${Math.round(COLOR_STEP * 100 * after)}%)</div>`
-          : `<div class="gain">${esc(w.def.name)} 변화 없음</div>`;
+          ? `<div class="gain up">${esc(weaponName(w))} 피해 +${Math.round(COLOR_STEP * 100 * (after - now))}% (${Math.round(COLOR_STEP * 100 * now)}% → ${Math.round(COLOR_STEP * 100 * after)}%)</div>`
+          : `<div class="gain">${esc(weaponName(w))} 변화 없음</div>`;
       })
       .join('');
     return `<div class="card colorpick ${c}" data-color="${c}"><span class="key">${i + 1}</span><div class="nm"><span class="col ${c}">${COLOR_NAME[c]}</span> ${lv} → ${lv + 1}</div><div class="ds">${COLOR_DESC[c]}</div>${gains}</div>`;
@@ -265,15 +281,16 @@ function showPickup() {
   }
   const r = pickItem as ByproductInst;
   const p = g.player;
-  const opts = infuseOptions(r.def).map((o) => esc(OPTION_BY_ID[o].name)).join(' · ');
+  const star = starOf(r.def);
+  const opts = [...(star ? [`★${TRAIT_NAME[star]}`] : []), ...infuseOptions(r.def).map((o) => OPTION_BY_ID[o].name)].map(esc).join(' · ');
   const inf = suitInfusion(r.def);
   const sm = p.suitMods![inf.slot];
   const hands = [0, 1]
     .map((h) => {
       const w = p.hands[h];
       if (!w) return `<div class="card disabled"><div class="nm">손${h + 1} — 비어 있음</div></div>`;
-      return `<div class="card"><span class="key">${h + 1}</span><div class="nm">손${h + 1} ${esc(w.def.name)}에 부여</div>
-        <div class="ds">+ ${opts}${w.infusion ? `<br><span style="color:var(--warn)">덮어씀: ${esc(w.infusion.from)} (${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')})</span>` : ''}</div>
+      return `<div class="card"><span class="key">${h + 1}</span><div class="nm">손${h + 1} ${esc(weaponName(w))}에 부여</div>
+        <div class="ds">→ <b>${esc(weaponName({ ...w, infusion: { from: r.def.name, options: infuseOptions(r.def), trait: starOf(r.def) } }))}</b><br>+ ${opts}${w.infusion ? `<br><span style="color:var(--warn)">덮어씀: ${esc(w.infusion.from)} (${w.infusion.options.map((o) => esc(OPTION_BY_ID[o].name)).join(' · ')})</span>` : ''}</div>
         <div class="row"><button data-inf="${h}">부여 (${h + 1})</button></div></div>`;
     })
     .join('');
@@ -300,7 +317,7 @@ function showPickup() {
 function showTakeWeapon(w: WeaponInst) {
   const g = game!;
   const p = g.player;
-  modal.innerHTML = `<div class="box"><h2>무기 — ${esc(w.def.name)}</h2>
+  modal.innerHTML = `<div class="box"><h2>무기 — ${esc(weaponName(w))}</h2>
     <div class="card" style="cursor:default">${weaponTooltip(w)}</div>
     <p class="lead" style="margin-top:12px">어느 손에 들까? 원래 든 무기는 바닥에 내려놓는다.</p>
     <div class="cards">${[0, 1]
@@ -332,13 +349,11 @@ function showRest() {
   } else {
     body = g.restUsed
       ? '<p class="lead">재련을 마쳤다.</p>'
-      : `<p class="lead">무기 하나의 옵션 하나를 다시 굴린다 (옵션이 없으면 하나를 붙인다). 한 번만.</p>
+      : `<p class="lead">무기 하나를 정예로 재련한다 (피해 ×1.25). 한 번만.</p>
       <div class="cards">${g.player.hands
         .map((w, h) =>
           w
-            ? `<div class="card">${weaponTooltip(w)}<div class="row">${
-                w.options.length ? w.options.map((o, k) => `<button data-rf="${h}:${k}">${esc(OPTION_BY_ID[o].name)} 다시</button>`).join('') : `<button data-rf="${h}:0">옵션 붙이기</button>`
-              }</div></div>`
+            ? `<div class="card">${weaponTooltip(w)}<div class="row"><button data-rf="${h}" ${w.elite ? 'disabled' : ''}>${w.elite ? '이미 정예' : '정예로 재련'}</button></div></div>`
             : '',
         )
         .join('')}</div>`;
@@ -353,8 +368,7 @@ function showRest() {
   modal.querySelectorAll<HTMLElement>('[data-rf]').forEach(
     (el) =>
       (el.onclick = () => {
-        const [h, k] = el.dataset.rf!.split(':').map(Number);
-        g.reforge(h!, k!);
+        g.reforge(Number(el.dataset.rf));
         refresh();
       }),
   );
@@ -389,7 +403,7 @@ function showEnd() {
       <tr><td>처치</td><td>${s.kills}</td></tr>
       <tr><td>색</td><td>${(['power', 'tactics', 'survival'] as const).map((c) => `${COLOR_NAME[c]} ${g.player.colors![c]}`).join(' · ')}</td></tr>
       <tr><td>복합 반응</td><td>${s.combos}</td></tr>
-      <tr><td>무기</td><td>${g.player.hands.map((w) => (w ? esc(w.def.name) : '맨주먹')).join(' / ')}</td></tr>
+      <tr><td>무기</td><td>${g.player.hands.map((w) => (w ? esc(weaponName(w)) : '맨주먹')).join(' / ')}</td></tr>
     </table>
     <div class="row"><button data-act="again">같은 시드로 다시</button><button data-act="title">새 클론 출격 (Enter)</button></div></div>`;
   bind(modal, {

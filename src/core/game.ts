@@ -1,16 +1,16 @@
 import { Rng } from './rng';
 import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
-import { allByproducts, allOptions, heldWeapon, magOf, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
+import { allByproducts, allOptions, heldWeapon, magOf, signatureOf, traitsOf, weaponName, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
-  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color, ConsumableInst, InjectionId,
+  Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, OptionId, Color, ConsumableInst, InjectionId, WeaponTrait,
 } from './types';
 import { COLOR_NAME, ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
-import { FISTS, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
-import { CRIT_MULT, OPTION_BY_ID, OPTIONS, STATUS_TURNS, optionFits } from '../data/options';
+import { FISTS, SIGNATURE_CRIT, TRAIT_NAME, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
+import { CRIT_MULT, OPTION_BY_ID, STATUS_TURNS } from '../data/options';
 import { BARREL_DAMAGE, BELT_SLOTS, FLASK, INJECTION_BY_ID, INJECTIONS } from '../data/consumables';
-import { infuseOptions, RESIST_CAP, RESIST_STEP, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
+import { infuseOptions, RESIST_CAP, RESIST_STEP, starOf, SUIT_INFUSE_MAX, suitInfusion } from '../data/infuse';
 import { ENEMIES, ENEMY_BY_ID, ZONES, type EnemyTemplate } from '../data/enemies';
 
 export type Mode = 'play' | 'levelup' | 'rest' | 'dead' | 'won';
@@ -131,15 +131,11 @@ export class Game {
     return this.makeInjection(this.rng.pick(INJECTIONS).id);
   }
 
-  /** 떨어지는 무기: 등급별 옵션 수 (일반 0~1, 정예 1~2, 금지 2). 원소 적중 효과는 한 무기에 하나만 */
+  /** 떨어지는 무기: 기본 무기, 무작위 옵션 없음 (옵션·★는 부산물에서). 정예는 구역 1 15%, 구역 2 35% */
   rollWeaponInst(def: WeaponDef = this.rollWeapon()): WeaponInst {
-    const n = def.grade === 'common' ? (this.rng.chance(0.5) ? 1 : 0) : def.grade === 'holy' ? (this.rng.chance(0.5) ? 2 : 1) : 2;
-    const out: OptionId[] = [];
-    for (let i = 0; i < n; i++) {
-      const pool = OPTIONS.filter((o) => optionFits(o, def) && !out.includes(o.id) && !(o.element && (def.element || out.some((x) => OPTION_BY_ID[x].element))));
-      out.push(this.rng.pick(pool).id);
-    }
-    return this.makeWeapon(def, out);
+    const w = this.makeWeapon(def);
+    if (this.rng.chance(this.zone === 0 ? 0.15 : 0.35)) w.elite = true;
+    return w;
   }
 
   private newActor(name: string, faction: Faction, hp: number, dmg: number, slots: Record<Slot, number>): Actor {
@@ -213,6 +209,19 @@ export class Game {
     if (!this.lab) return;
     this.player.hands[hand] = this.makeWeapon(id);
     this.emit({ type: 'loadout', actor: this.player.id });
+  }
+
+  /** 실험실: 손 hand 무기에 ★를 직접 붙인다 (부산물 없이). null이면 뗀다 */
+  labSetStar(hand: number, t: WeaponTrait | null) {
+    const w = this.player.hands[hand];
+    if (!this.lab || !w) return;
+    w.infusion = t ? { from: '실험실', options: w.infusion?.options ?? [], trait: t } : undefined;
+  }
+
+  /** 실험실: 손 hand 무기를 정예로 / 일반으로 */
+  labSetElite(hand: number, on: boolean) {
+    const w = this.player.hands[hand];
+    if (this.lab && w) w.elite = on;
   }
 
   /** 실험실: 손 hand 무기의 옵션을 켜고 끈다 (개수 제한 없음) */
@@ -359,8 +368,7 @@ export class Game {
 
   /** 무기 드롭: 등급은 구역이 깊을수록 좋아진다 */
   rollWeapon(): WeaponDef {
-    const pool = WEAPONS.filter((w) => w.id !== 'pistol' && !w.unique);
-    return this.rng.weighted(pool, (w) => (w.grade === 'common' ? 10 : this.zone === 0 ? 2 : 6));
+    return this.rng.pick(WEAPONS.filter((w) => w.id !== 'pistol'));
   }
 
   /** 발밑의 부산물·무기 (보급 지점에서는 보급 포드 바닥) */
@@ -662,8 +670,9 @@ export class Game {
     const w = this.player.hands[hand];
     if (!w || !this.takeByproduct(r)) return false;
     const old = w.infusion;
-    w.infusion = { from: r.def.name, options: infuseOptions(r.def) };
-    this.log(`${w.def.name}에 ${r.def.name} 부여: ${w.infusion.options.map((o) => OPTION_BY_ID[o].name).join(' · ')}${old ? ` (${old.from} 부여는 사라졌다)` : ''}`, 'good');
+    w.infusion = { from: r.def.name, options: infuseOptions(r.def), trait: starOf(r.def) };
+    const star = w.infusion.trait ? `★${TRAIT_NAME[w.infusion.trait]} · ` : '';
+    this.log(`${w.def.name}에 ${r.def.name} 부여 → ${weaponName(w)}: ${star}${w.infusion.options.map((o) => OPTION_BY_ID[o].name).join(' · ')}${old ? ` (${old.from} 부여는 사라졌다)` : ''}`, 'good');
     this.emit({ type: 'loadout', actor: this.player.id });
     if (this.mode === 'play') this.endPlayerAction(100);
     return true;
@@ -739,7 +748,7 @@ export class Game {
       // 무기 3자루: 옵션이 붙을수록 비싸다
       this.shop = [0, 1, 2].map(() => {
         const w = this.rollWeaponInst();
-        return { item: w as GroundItem, price: (w.def.grade === 'common' ? 5 : 11) + w.options.length * 3 };
+        return { item: w as GroundItem, price: w.elite ? 10 : 5 };
       });
       this.shop.push({ item: this.rollInjection(), price: 4 });
     }
@@ -766,19 +775,14 @@ export class Game {
     return true;
   }
 
-  /** 재련: 손 hand 무기의 옵션 하나(index)를 다시 굴린다. 옵션이 없으면 하나를 붙인다 */
-  reforge(hand: number, index = 0): boolean {
+  /** 재련대: 손 hand 무기를 정예로 (피해 ×1.25). 한 번만 */
+  reforge(hand: number): boolean {
     if (this.mode !== 'rest' || this.restService !== 'reforge' || this.restUsed) return false;
     const w = this.player.hands[hand];
-    if (!w) return false;
-    const keep = w.options.filter((_, i) => i !== index);
-    const pool = OPTIONS.filter((o) => optionFits(o, w.def) && !w.options.includes(o.id) && !(o.element && (w.def.element || keep.some((x) => OPTION_BY_ID[x].element))));
-    if (!pool.length) return false;
-    const next = this.rng.pick(pool).id;
-    const old = w.options[index];
-    w.options = w.options.length ? w.options.map((o, i) => (i === index ? next : o)) : [next];
+    if (!w || w.elite) return false;
+    w.elite = true;
     this.restUsed = true;
-    this.log(`${w.def.name} 재련: ${old ? `${OPTION_BY_ID[old].name} → ` : ''}${OPTION_BY_ID[next].name}`, 'good');
+    this.log(`${w.def.name}을(를) 정예로 재련했다. (피해 ×1.25)`, 'good');
     return true;
   }
 
@@ -1290,7 +1294,7 @@ export class Game {
     if (has('poisonDmg') && st.poison) mult *= 1 + 0.15 * st.poison;
     if (has('freezeDmg') && st.freeze) mult *= 2;
     if (has('stunDmg') && st.stun) mult *= 1.6;
-    if (has('fullHp') && a.hp >= this.st(a).maxHp) mult *= 1.4;
+    if (has('fullHp') && SLOTS.every((k) => a.partArmor[k] >= partArmorMax(a, k))) mult *= 1.4;
     if (has('despair') && hpFrac(a) <= 0.5) mult *= 1.3;
     if (has('ambush') && a.prevAct === 'move') mult *= 1.4;
     if (has('aim') && a.prevAct === 'wait') mult *= 1.6;
@@ -1299,45 +1303,52 @@ export class Game {
     if (a.counterReady) mult *= 3;
     // ── 고유 효과: 치명타 조건 ──
     const combo = a.combo?.target === t.id ? a.combo.n : 0;
-    switch (w.def.trait) {
-      case 'ambush': if (!t.awake || st.stun || st.freeze) crit ??= '기습'; break;
-      case 'combo3': if (combo > 0 && combo % 3 === 0) crit ??= '연격'; break;
+    // 기본 무기의 동작 + 부산물 부여의 ★ (둘 다 확인). 맞는 짝이면 그 ★의 치명타는 ×3
+    const sig = signatureOf(w);
+    let sigCrit = false;
+    for (const tr of traitsOf(w)) {
+    const before = crit;
+    switch (tr) {
+      case 'ambush': if (!t.awake || st.stun || st.freeze) crit ??= '사각'; break;
+      case 'combo3': if (combo > 0 && combo % 3 === 0) crit ??= '박자'; break;
       case 'balanced':
         mult *= 1 + 0.15 * Math.min(4, Math.max(0, combo - 1));
-        if (combo >= 5) crit ??= '균형';
+        if (combo >= 5) crit ??= '축적';
         break;
-      case 'grudge': if (a.wasHit) crit ??= '원한'; break;
-      case 'desperate': if (hpFrac(a) < 0.5) crit ??= '필사'; break;
-      case 'execute': if (hpFrac(t) < 0.4) crit ??= '처형'; break;
+      case 'grudge': if (a.wasHit) crit ??= '보복'; break;
+      case 'desperate': if (hpFrac(a) < 0.5 || SLOTS.some((k) => isBroken(a, k))) crit ??= '임계'; break;
+      case 'execute': if (hpFrac(t) < 0.4) crit ??= '단두'; break;
       case 'pierce': {
         const [bx, by] = this.behind(a, t);
         const b = this.actorAt(bx, by);
-        if (b && this.hostile(a, b)) crit ??= '꿰뚫기';
+        if (b && this.hostile(a, b)) crit ??= '일직선';
         break;
       }
       case 'harpoon': {
         const [bx, by] = this.behind(a, t);
-        if (!this.level.isFloor(bx, by) || this.actorAt(bx, by)) crit ??= '벽에 박기';
+        if (!this.level.isFloor(bx, by) || this.actorAt(bx, by)) crit ??= '압착';
         break;
       }
-      case 'fourth': if ((w.hits ?? 0) % 4 === 0) crit ??= '파쇄'; break;
-      case 'nutcracker': if (st.stun || st.freeze) crit ??= '호두까기'; break;
-      case 'cleave': if (this.hostilesInRadius(a, a.x, a.y, 1).length >= 3) crit ??= '포위 휩쓸기'; break;
-      case 'sadist': if (st.bleed || st.poison) crit ??= '가학'; break;
-      case 'giant': if (t.elite || t.boss) crit ??= '거인 살해'; break;
-      case 'flawless': if ((a.hurtAt ?? -99) <= this.stats.turns - 3) crit ??= '완전무결'; break;
-      case 'pyreBlade': if (st.burn) crit ??= '화형'; break;
-      case 'lastShot': if (w.ammo === 0) crit ??= '마지막 한 발'; break;
+      case 'fourth': if ((w.hits ?? 0) % 4 === 0) crit ??= '충전 타격'; break;
+      case 'nutcracker': if (st.stun || st.freeze) crit ??= '쇄빙'; break;
+      case 'cleave': if (this.hostilesInRadius(a, a.x, a.y, 1).length >= 3) crit ??= '포위 돌파'; break;
+      case 'sadist': if (st.bleed || st.poison) crit ??= '개창'; break;
+      case 'giant': if (t.elite || t.boss) crit ??= '대형 표적'; break;
+      case 'flawless': if (SLOTS.every((k) => a.partArmor[k] >= partArmorMax(a, k))) crit ??= '무결'; break;
+      case 'pyreBlade': if (st.burn) crit ??= '소각'; break;
+      case 'lastShot': if (w.ammo === 0) crit ??= '잔탄'; break;
       case 'scatter': if (dist <= 1) crit ??= '근접 산탄'; break;
-      case 'steady': if (a.prevAct === 'wait') crit ??= '조준 사격'; break;
-      case 'marksman': if (dist >= 4) crit ??= '명사수'; break;
-      case 'pointBlank': if (dist <= 1) crit ??= '근접 사격'; break;
-      case 'repeater': if (st.slow || st.freeze) crit ??= '연사'; break;
+      case 'steady': if (a.prevAct === 'wait') crit ??= '정지 사격'; break;
+      case 'marksman': if (dist >= 4) crit ??= '원거리 조준'; break;
+      case 'pointBlank': if (dist <= 1) crit ??= '접사'; break;
+      case 'repeater': if (st.slow || st.freeze) crit ??= '저속 표적'; break;
       case 'pyro': if (st.oil) crit ??= '점화'; break;
+    }
+    if (!before && crit && tr === sig) sigCrit = true;
     }
     // 감각 파손: 치명타가 일반 피해로
     if (crit && a.isPlayer && isBroken(a, 'sense')) crit = null;
-    const critMult = crit ? (has('critDmg') ? 2.5 : CRIT_MULT) : 1;
+    const critMult = crit ? (sigCrit ? SIGNATURE_CRIT : CRIT_MULT) + (has('critDmg') ? 0.5 : 0) : 1;
     return { mult, crit, critMult };
   }
 
@@ -1355,16 +1366,20 @@ export class Game {
   private weaponAfterHit(a: Actor, t: Actor, w: WeaponInst, base: number, dealt: number, el: Element | undefined, wasSlow: boolean, crit: boolean) {
     const has = (o: OptionId) => this.optsOf(a, w).includes(o);
     const killed = this.lastKill === t;
-    const tr = w.def.trait;
+    const trs = traitsOf(w);
+    const is = (x: WeaponTrait) => trs.includes(x);
     const T = STATUS_TURNS;
     const alive = !t.dead;
     // 상태를 거는 것
-    if (alive && (has('fire') || tr === 'torch' || tr === 'pyro')) this.addStatus(t, 'burn', T);
-    if (alive && (has('cold') || tr === 'frost')) {
+    if (alive && (has('fire') || is('torch') || is('pyro'))) this.addStatus(t, 'burn', T);
+    if (alive && (has('cold') || is('frost'))) {
       if (wasSlow) this.addStatus(t, 'freeze', T);
       else this.addStatus(t, 'slow', T);
     }
-    if (alive && (has('bleed') || tr === 'sadist' || tr === 'knives')) this.addStatus(t, 'bleed', T);
+    // 개창: 이미 출혈·중독인 적은 출혈이 1턴 더 길어진다
+    const wasBleeding = !!(t.statuses.bleed || t.statuses.poison);
+    if (alive && (has('bleed') || is('sadist') || is('knives'))) this.addStatus(t, 'bleed', T);
+    if (alive && is('sadist') && wasBleeding) t.statuses.bleed = (t.statuses.bleed ?? 0) + 1;
     if (alive && has('poison')) this.addStatus(t, 'poison', 1);
     if (alive && has('oil')) this.addStatus(t, 'oil', 4);
     if (has('leech')) this.repairArmor(a, Math.max(1, Math.round(dealt / 4)));
@@ -1382,19 +1397,19 @@ export class Game {
       }
     };
     if (has('lightning')) jump(1, dealt * 0.5, 'lightning', '번개');
-    if (tr === 'storm') jump(2, dealt * 0.5, 'lightning', '폭풍');
+    if (is('storm')) jump(2, dealt * 0.5, 'lightning', '폭풍');
     // 범위: 휩쓸기, 산탄
-    if (tr === 'cleave')
+    if (is('cleave'))
       for (const b of this.hostilesInRadius(a, a.x, a.y, 1)) if (b !== t) this.weaponStrike(a, b, w, base * 0.5, el, '휩쓸기');
-    if (tr === 'scatter') {
+    if (is('scatter')) {
       let n = 0;
       for (const b of this.hostilesInRadius(a, t.x, t.y, 1)) if (b !== t && n < 2) (n++, this.weaponStrike(a, b, w, base * 0.6, el, '산탄'));
     }
     // 관통: 창(둘 다 치명타), 관통탄
-    if (tr === 'pierce' || has('pierceShot')) {
+    if (is('pierce') || has('pierceShot')) {
       const [bx, by] = this.behind(a, t);
       const b = this.actorAt(bx, by);
-      if (b && this.hostile(a, b)) this.weaponStrike(a, b, w, base, el, '관통', tr === 'pierce' && crit);
+      if (b && this.hostile(a, b)) this.weaponStrike(a, b, w, base, el, '관통', is('pierce') && crit);
     }
     // 처치 옵션
     if (killed && has('corpseBlast')) {
@@ -1407,7 +1422,7 @@ export class Game {
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) this.setTerrain(t.x + dx, t.y + dy, 'flame', 2 + this.zone, 3, a.faction);
     }
     // 밀침: 충격 옵션·작살·강타. 막히면 기절 (작살은 밀치기만)
-    if ((has('impact') || tr === 'smash' || tr === 'harpoon') && !t.dead && this.knock(a, t, 1) && !t.dead && tr !== 'harpoon') this.addStatus(t, 'stun', T);
+    if ((has('impact') || is('smash') || is('harpoon')) && !t.dead && this.knock(a, t, 1) && !t.dead && !is('harpoon')) this.addStatus(t, 'stun', T);
   }
 
   /** 액티브 실행. 형태 × 원소 × 수치 */
@@ -1688,11 +1703,12 @@ export class Game {
         this.log(`잔해에서 ${r.def.name}이(가) 떨어졌다.`, 'item');
       }
       if (this.rng.chance(0.1)) this.dropItem(t.x, t.y, this.rollInjection());
-      // 고유 무기: 보스는 반드시, 정예는 절반 확률
+      // ★ 부산물: 보스는 반드시 금지 부산물, 정예는 절반 확률로 정예 부산물 (무기에 넣으면 ★ 고유 효과)
       if (t.boss || (t.elite && this.rng.chance(0.5))) {
-        const w = this.rollWeaponInst(this.rng.pick(WEAPONS.filter((d) => d.unique)));
-        this.dropItem(t.x, t.y, w);
-        this.log(`${t.name}이(가) ${w.def.name}을(를) 떨어뜨렸다.`, 'item');
+        const grade = t.boss ? 'forbidden' : 'holy';
+        const r = this.makeByproduct(this.rng.pick(DROP_POOL.filter((d) => d.grade === grade)));
+        this.dropItem(t.x, t.y, r);
+        this.log(`${t.name}에게서 ${r.def.name}을(를) 회수했다. (★ 재료)`, 'item');
       }
       if (t.boss) {
         const loot = ZONES[this.zone].bossLoot;

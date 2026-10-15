@@ -119,7 +119,7 @@ export const COLOR_NAME: Record<Color, string> = { power: '화력', tactics: '�
 export type WeaponTrait =
   | 'ambush' | 'combo3' | 'balanced' | 'grudge' | 'desperate' | 'execute' | 'pierce' | 'harpoon' | 'fourth' | 'nutcracker'
   | 'cleave' | 'sadist' | 'torch' | 'block' | 'smash' | 'giant' | 'flawless' | 'pyreBlade'
-  | 'lastShot' | 'scatter' | 'steady' | 'marksman' | 'pointBlank' | 'repeater' | 'knives' | 'pyro' | 'frost' | 'storm';
+  | 'lastShot' | 'scatter' | 'steady' | 'marksman' | 'pointBlank' | 'repeater' | 'knives' | 'pyro' | 'frost' | 'storm' | 'arcane';
 
 /** 무기 옵션 (데드셀 인챈트 각색): 상태를 만들거나, 상태에 따라 피해를 키운다. 치명타는 만들지 않는다 */
 export type OptionId =
@@ -158,8 +158,10 @@ export interface WeaponInst {
   ammo: number;
   /** 옵션 0~2개 (일반 0~1, 정예 1~2, 금지 2) */
   options: OptionId[];
-  /** 부산물 부여 칸 (1칸, 덮어씀) */
-  infusion?: { from: string; options: OptionId[] };
+  /** 부산물 부여 칸 (1칸, 덮어씀): 옵션과 ★ 고유 효과 */
+  infusion?: { from: string; options: OptionId[]; trait?: WeaponTrait };
+  /** 정예 무기: 피해 ×1.25 */
+  elite?: boolean;
   /** 충전식: 다음 충전까지 지난 턴 */
   charging?: number;
   /** 이 무기로 한 공격 수 (철퇴: 4번째마다 치명타) */
