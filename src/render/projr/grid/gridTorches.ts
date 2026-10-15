@@ -5,7 +5,7 @@ import { torchSpots, type WallFace } from './gridLayout';
 import { CELL, toWorld, yawFor } from './gridTerrain';
 
 const TORCH_Y = 1.05;
-const LIGHT_RANGE = 6.5;
+const LIGHT_RANGE = 7.5;
 
 interface Torch { face: WallFace; model: THREE.Object3D; flame: THREE.Mesh; at: THREE.Vector3; cell: number; phase: number }
 
@@ -83,7 +83,7 @@ export class GridTorches {
     for (const l of this.lights) {
       const t = l.userData.torch as Torch | undefined;
       if (!t) continue;
-      l.intensity = 8 * (1 + Math.sin(this.t * 9 + t.phase) * 0.1 + Math.sin(this.t * 17 + t.phase) * 0.06);
+      l.intensity = 13 * (1 + Math.sin(this.t * 9 + t.phase) * 0.1 + Math.sin(this.t * 17 + t.phase) * 0.06);
     }
   }
 

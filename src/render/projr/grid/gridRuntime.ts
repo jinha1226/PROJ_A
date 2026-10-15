@@ -65,7 +65,9 @@ export class GridRuntime {
   pixelated = true;
   private playback = new Playback();
   private readonly hemi = new THREE.HemisphereLight('#aab0c8', '#1a1410', 0.85);
-  private readonly light = new THREE.PointLight('#fff0dc', 10, 9, 1.4);
+  private readonly light = new THREE.PointLight('#ffd6a0', 14, 8, 1.6);
+  /** (MODEL 0) 달빛: 벽이 바닥에 그림자를 드리운다. 주인공을 따라다니는 그림자 범위 */
+  private readonly sun = new THREE.DirectionalLight('#9ab8ea', 1.15);
   private readonly center = new THREE.Vector3();
   private readonly pending = new Map<string, { ready: boolean; queue: GEvent[] }>();
   private height = 18;
@@ -89,9 +91,16 @@ export class GridRuntime {
     scene.background = new THREE.Color('#0b0b0e');
     scene.fog = null;
     const look = applyZoneLook(this.hemi, sim.s.run.floor, mobile);
-    const sun = new THREE.DirectionalLight('#dfe6ff', 0.5);
+    const sun = this.sun;
     sun.position.set(-10, 30, 14);
-    scene.add(this.hemi, sun, this.light);
+    if (!mobile) {
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(2048, 2048);
+      Object.assign(sun.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 80 });
+      sun.shadow.bias = -0.0008;
+      sun.shadow.normalBias = 0.02;
+    }
+    scene.add(this.hemi, sun, sun.target, this.light);
     this.pixel = new PixelPass(this.h.renderer, 2);
     if (!theme) kit.tint(look.tint);
     this.terrain = theme ? new ShipTerrain(sim.s.map, theme.kit, theme.meta) : new GridTerrain(sim.s.map, kit, look.decal);
@@ -343,6 +352,9 @@ export class GridRuntime {
     this.center.x = chase(this.center.x, aim.x, dt, CAM_K);
     this.center.z = chase(this.center.z, aim.z, dt, CAM_K);
     this.light.position.set(hero.x, 2.6, hero.z);
+    // 달빛 그림자 범위가 화면 중심을 따라간다 (비스듬히 들어와 벽마다 긴 그림자)
+    this.sun.position.set(this.center.x - 9, 26, this.center.z - 6);
+    this.sun.target.position.set(this.center.x, 0, this.center.z);
     if (this.sim.s.hero.exitTime > 0) this.terrain.pulseExit(this.clock);
     if (Math.abs(ELEVATION - elevationTarget) > 1e-4) ELEVATION = chase(ELEVATION, elevationTarget, dt, 6);
     this.placeCamera();

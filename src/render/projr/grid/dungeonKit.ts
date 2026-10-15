@@ -26,7 +26,7 @@ const SIGILS: Partial<Record<DungeonPiece, string>> = {
   Vase: 'pot',
 };
 /** 새 킷은 이미 어두운 손그림 텍스처라 밝기를 덜 올린다 */
-const SIGILS_LIFT = 2.0;
+const SIGILS_LIFT = 1.35;
 
 /** One pack piece, re-centred: footprint centred on the origin, resting on y = 0. */
 export interface Piece { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[]; size: THREE.Vector3 }

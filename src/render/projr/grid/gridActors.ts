@@ -26,7 +26,8 @@ const LOOK: Record<Ent['kind'], UalLook> = {
 };
 const LUNGE = 0.3;
 /** figure size against the cell (1 = a person fills a cell); scripted views may change it */
-let FIGURE_SCALE = 1;
+/** (MODEL 0) 캐릭터 전체 크기: 새 던전 킷의 벽·바닥 비례에 맞춰 조금 작게 */
+let FIGURE_SCALE = 0.8;
 export const setFigureScale = (k: number): void => { FIGURE_SCALE = k; };
 
 /** The coloured ring under each figure (gold hero and elites, red ordinary foes). */
