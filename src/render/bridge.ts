@@ -22,6 +22,7 @@ const gear = (w: WeaponInst | null | undefined): Weapon | null => (w ? { group: 
 
 /** 적의 외형 종류: 마네킹 하나를 색·크기·무기로 구분한다 */
 function foeKind(a: Actor): FoeKind {
+  if (a.ai === 'dummy') return 'minion';
   if (a.boss) return 'champion';
   if (a.elite) return 'brute';
   if (a.ai === 'ranged') {
@@ -210,7 +211,7 @@ export class Bridge {
           out.push({ t, type: 'die', dst: id(e.actor) });
           break;
         case 'trigger':
-          out.push({ t, type: 'engrave', src: id(e.actor), text: e.text });
+          out.push({ t, type: 'engrave', src: id(e.actor), text: (e.amount ?? 1) >= 2 ? `연쇄 ${e.amount} · ${e.text}` : e.text });
           break;
         case 'levelup':
           out.push({ t, type: 'levelUp', amount: g.plevel });

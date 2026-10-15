@@ -1,12 +1,12 @@
 import { Rng } from './rng';
-import { bfs, computeFov, DIRS8, generateBossLevel, generateLevel, hasLos, Level, linePoints } from './dungeon';
+import { bfs, computeFov, DIRS8, generateBossLevel, generateLabLevel, generateLevel, hasLos, LAB_DUMMIES, Level, linePoints } from './dungeon';
 import { allByproducts, heldWeapon, computeStats, HIT_WEIGHT, isBroken, partArmorMax, byproductFactor, type Stats } from './stats';
 import type {
   Actor, GroundItem, WeaponDef, WeaponInst, EffectSpec, Element, EngravingDef, Faction, GameEvent, ByproductDef, ByproductInst, Slot, StatusKind, Trigger,
 } from './types';
 import { ELEMENT_NAME, SLOTS, SLOT_NAME } from './types';
 import { DROP_POOL, BYPRODUCT_BY_ID } from '../data/byproducts';
-import { ENGRAVING_BY_ID, ENGRAVING_POOL } from '../data/engravings';
+import { ENGRAVING_BY_ID, ENGRAVING_POOL, ENGRAVINGS } from '../data/engravings';
 import { FORM_NAME, FORM_RIDERS } from '../data/forms';
 import { BODIES, GODS, ORIGINS } from '../data/start';
 import { FISTS, WEAPONS, WEAPON_BY_ID } from '../data/weapons';
@@ -29,6 +29,10 @@ export const REST_NAME: Record<RestService, string> = {
 };
 
 export const TRIGGER_CAP = 3; // 한 턴에 같은 각인 최대 3회
+/** 연쇄 상한: 각인이 만든 공격이 다시 공격 각인을 부르는 깊이 */
+export const CHAIN_MAX = 3;
+/** 피해를 주는 효과: 각인이 이걸로 공격하면 '공격'으로 쳐서 연쇄가 이어진다 */
+const DAMAGING = new Set(['strike', 'blast', 'shards', 'chain']);
 export const ENGRAVING_SLOTS = 8;
 export const SHIELD_CAP = 25;
 export const ALERT_THRESHOLDS = [160, 240, 310]; // 층에 머문 턴 수
@@ -93,9 +97,16 @@ export class Game {
   private nextId = 1;
   private nextUid = 1;
   private depth = 0;
+  /** 이번 플레이어 행동 동안의 각인 발동·최대 연쇄·준 피해 (실험실 표시용) */
+  private action = { triggers: 0, maxDepth: 0, damage: 0 };
+  lastAction = { triggers: 0, maxDepth: 0, damage: 0 };
   private distCache: { key: number; dist: Int32Array } | null = null;
 
-  constructor(public seed: string, public originId: string, public bodyId: string) {
+  /** 각인 실험실: 허수아비만 있는 방, 경보·레벨업·출구 없음, 각인 자유 편집 */
+  readonly lab: boolean;
+
+  constructor(public seed: string, public originId: string, public bodyId: string, opts: { lab?: boolean } = {}) {
+    this.lab = !!opts.lab;
     this.rng = Rng.fromString(seed);
     this.createPlayer();
     this.enterFloor();
@@ -173,11 +184,57 @@ export class Game {
     return e;
   }
 
+  /** 실험실 허수아비: 행동하지 않고, 체력이 바닥나면 다시 찬다 */
+  private spawnDummy(x: number, y: number): Actor {
+    const d = this.newActor('훈련용 허수아비', 'enemy', 300, 0, { body: 0, arm: 0, leg: 0, sense: 0 });
+    d.ai = 'dummy';
+    d.awake = true;
+    d.x = x;
+    d.y = y;
+    d.time = this.player.time;
+    this.actors.push(d);
+    return d;
+  }
+
+  /** 실험실: 각인을 통째로 바꾼다 (칸 제한 없음) */
+  labSetEngravings(ids: string[]) {
+    if (!this.lab) return;
+    this.player.engravings = ids.map((id) => ENGRAVING_BY_ID[id]).filter(Boolean);
+  }
+
+  /** 실험실: 허수아비·플레이어 상태 초기화 */
+  labReset() {
+    if (!this.lab) return;
+    const p = this.player;
+    // 방을 새로 만든다: 렌더러가 층을 다시 그려 옛 허수아비가 남지 않는다
+    this.level = generateLabLevel();
+    this.ground.clear();
+    this.actors = [p];
+    for (const [x, y] of LAB_DUMMIES) this.spawnDummy(x, y);
+    p.x = this.level.startX;
+    p.y = this.level.startY;
+    p.statuses = {};
+    p.shield = 0;
+    this.fillArmor(p);
+    p.hp = this.st(p).maxHp;
+    for (const r of allByproducts(p)) r.cd = 0;
+    for (const w of p.hands) if (w?.def.mag !== undefined) w.ammo = w.def.mag;
+    this.refreshFov();
+    this.emit({ type: 'floor' });
+    this.log('실험실 초기화', 'floor');
+  }
+
+  /** 실험실에서 쓸 수 있는 모든 각인 */
+  get allEngravings(): EngravingDef[] {
+    return ENGRAVINGS;
+  }
+
   get isBossFloor() {
     return this.floor === 3;
   }
 
   get depthLabel() {
+    if (this.lab) return '각인 실험실';
     return `${ZONES[this.zone].name} · ${this.isBossFloor ? '보스' : `${this.floor + 1}층`}`;
   }
 
@@ -189,7 +246,9 @@ export class Game {
     this.floorTurns = 0;
     this.alert = 0;
     this.distCache = null;
-    if (this.isBossFloor) {
+    if (this.lab) {
+      this.level = generateLabLevel();
+    } else if (this.isBossFloor) {
       this.level = generateBossLevel();
     } else {
       let altarGod: string | undefined;
@@ -206,7 +265,11 @@ export class Game {
     const startRoom = lv.roomOf[lv.idx(p.x, p.y)];
     if (startRoom >= 0) lv.rooms[startRoom].visited = true;
 
-    if (this.isBossFloor) {
+    if (this.lab) {
+      for (const [x, y] of LAB_DUMMIES) this.spawnDummy(x, y);
+      p.hands = [this.makeWeapon('pistol'), this.makeWeapon('longsword')];
+      this.log('각인 실험실: [T] 각인 편집 · 허수아비는 반격하지 않고 쓰러지지 않는다', 'floor');
+    } else if (this.isBossFloor) {
       const boss = this.spawnEnemy(ENEMY_BY_ID[ZONES[this.zone].boss], 22, 12);
       boss.awake = false;
       if (this.zone === 1) {
@@ -322,6 +385,7 @@ export class Game {
   }
 
   engravingCap() {
+    if (this.lab) return 99;
     return ENGRAVING_SLOTS + (this.god?.id === 'furnace' && this.godTier() >= 3 ? 1 : 0);
   }
 
@@ -637,6 +701,10 @@ export class Game {
   /** 출구에서 보급 지점으로 */
   descend(): boolean {
     if (!this.canAct()) return false;
+    if (this.lab) {
+      this.log('실험실에는 출구가 없다. [T] 초기화·각인 편집');
+      return false;
+    }
     const f = this.level.featureAt(this.player.x, this.player.y);
     if (f?.kind !== 'exit') {
       this.log('출구 위에서만 내려갈 수 있다.');
@@ -769,6 +837,7 @@ export class Game {
   }
 
   private gainXp(n: number) {
+    if (this.lab) return;
     this.xp += n;
     while (this.xp >= this.xpToNext()) {
       this.xp -= this.xpToNext();
@@ -886,6 +955,8 @@ export class Game {
     this.runUntilPlayer();
     p.engravingFires.clear();
     this.refreshFov();
+    this.lastAction = this.action;
+    this.action = { triggers: 0, maxDepth: 0, damage: 0 };
     this.checkLevelUp();
   }
 
@@ -951,8 +1022,8 @@ export class Game {
         a.dead = true;
         this.emit({ type: 'death', actor: a.id, x: a.x, y: a.y });
       }
-    // 경보 수준
-    if (!this.isBossFloor) {
+    // 경보 수준 (실험실 제외)
+    if (!this.isBossFloor && !this.lab) {
       const nextAlert = ALERT_THRESHOLDS.filter((t) => this.floorTurns >= t).length;
       if (nextAlert > this.alert) {
         this.alert = nextAlert;
@@ -993,6 +1064,10 @@ export class Game {
     }
     if (a.aura && --a.aura.turns <= 0) a.aura = undefined;
     if (stunned) {
+      a.time += 100;
+      return;
+    }
+    if (a.ai === 'dummy') {
       a.time += 100;
       return;
     }
@@ -1327,14 +1402,19 @@ export class Game {
         if (t.partArmor[part] <= 0) this.breakPart(t, part);
       }
     }
-    if (src?.isPlayer) this.stats.damageDealt += dmg;
+    if (src?.isPlayer) {
+      this.stats.damageDealt += dmg;
+      this.action.damage += dmg;
+    }
     t.hp -= overflow;
     this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label });
     if (t.isPlayer && src) this.log(`${src.name}의 ${opts.label ?? '공격'}: ${dmg}${el ? ` ${ELEMENT_NAME[el]}` : ''} 피해`, 'bad');
 
     if (el === 'fire' && !t.statuses.burn && this.rng.chance(0.4)) this.addStatus(t, 'burn', 2);
     if (el === 'cold') this.addStatus(t, 'slow', 1);
-    if (t.hp <= 0) {
+    if (t.hp <= 0 && t.ai === 'dummy') {
+      t.hp = t.baseHp;
+    } else if (t.hp <= 0) {
       this.kill(t, src);
     }
 
@@ -1518,11 +1598,24 @@ export class Game {
     owner.engravingFires.set(eng.id, n + 1);
     this.stats.triggers++;
     this.depth++;
-    this.stats.maxDepth = Math.max(this.stats.maxDepth, this.depth);
-    this.emit({ type: 'trigger', actor: owner.id, text: eng.name, x: owner.x, y: owner.y });
-    if (owner.isPlayer) this.log(`  ↳ 「${eng.name}」`, 'trigger');
-    const spec = mult === 1 ? eng.effect : { ...eng.effect, power: Math.round(eng.effect.power * mult) };
+    const depth = this.depth;
+    this.stats.maxDepth = Math.max(this.stats.maxDepth, depth);
+    if (owner.isPlayer) {
+      this.action.triggers++;
+      this.action.maxDepth = Math.max(this.action.maxDepth, depth);
+    }
+    this.emit({ type: 'trigger', actor: owner.id, text: eng.name, amount: depth, x: owner.x, y: owner.y });
+    if (owner.isPlayer) this.log(depth >= 2 ? `  ↳ 연쇄 ${depth}: 「${eng.name}」` : `  ↳ 「${eng.name}」`, depth >= 2 ? 'combo' : 'trigger');
+    let power = eng.effect.power * mult;
+    if (eng.effect.chainBonus) power *= 1 + eng.effect.chainBonus * (depth - 1);
+    const spec = power === eng.effect.power ? eng.effect : { ...eng.effect, power: Math.round(power) };
+    const first = this.resolveTargets(owner, eng.effect, ctx)[0];
     this.applyEffect(owner, spec, ctx, eng.name);
+    // 각인이 만든 공격도 '공격'으로 친다: 공격 각인이 한 단계 더 터진다 (최대 CHAIN_MAX)
+    if (DAMAGING.has(eng.effect.kind) && depth < CHAIN_MAX) {
+      const t = first && !first.dead && first !== owner ? first : this.nearestHostile(owner, 7);
+      this.fire(owner, 'attack', { target: t, element: eng.effect.element, x: t?.x, y: t?.y });
+    }
     this.depth--;
   }
 

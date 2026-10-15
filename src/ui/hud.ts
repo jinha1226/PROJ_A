@@ -82,11 +82,17 @@ export class Hud {
     const p = g.player;
     const s = g.st(p);
     // 왼쪽 위: 임무
+    if (g.lab) {
+      const la = g.lastAction;
+      this.tl.innerHTML = `<div class="cap amber">테스트</div><div class="big">각인 실험실</div><div class="sub2">[T] 각인 편집·초기화 · [E] 권총 ↔ 장검</div>
+        <div class="labstat">직전 행동<br>각인 발동 <b>${la.triggers}</b> · 최대 연쇄 <b>${la.maxDepth}</b> · 준 피해 <b>${la.damage}</b></div>`;
+    } else {
     const fuel = g.zone + (g.isBossFloor && !g.actors.some((a) => a.boss && !a.dead) ? 1 : 0);
     this.tl.innerHTML = `<div class="cap amber">회수 임무</div><div class="big">연료 결정을 회수하라</div><div class="num">${fuel} / 2</div>
       <div class="sub2">${esc(g.depthLabel)}</div><div class="sub2">LV ${g.plevel} <span class="xp"><i style="width:${(g.xp / g.xpToNext()) * 100}%"></i></span> · 마석 ${g.ash}</div>`;
+    }
     // 오른쪽 위
-    this.trinfo.innerHTML = `<div class="big">체류 ${g.floorTurns}턴</div><div class="sub2">탐사 깊이 ${g.zone * 4 + g.floor + 1} · [Tab] 구역 지도</div><div class="sub2">[I] 슈트 · [L] 기록</div>`;
+    this.trinfo.innerHTML = `<div class="big">체류 ${g.floorTurns}턴</div><div class="sub2">탐사 깊이 ${g.zone * 4 + g.floor + 1} · [Tab] 구역 지도</div><div class="sub2">[I] 슈트 · [M] 기록</div>`;
     this.drawMap(this.minimap, g, 0);
     // 위 가운데: 적이 보일 때만 행동 순서
     const foes = g.visibleEnemies().length > 0;

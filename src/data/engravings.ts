@@ -1,7 +1,8 @@
 import type { EngravingDef } from '../core/types';
 
 // 각인 = [행동] 할 때 → [효과]. 행동은 공격 · 이동 · 피격 · 대기 네 가지뿐이다.
-// 공격: 기본 공격과 액티브 모두. 피격: 회피하지 못하고 맞았을 때. 대기: 제자리에서 턴을 넘길 때.
+// 공격: 기본 공격과 액티브 모두. 피격: 회피하지 못하고 맞았을 때. 대기: 제자리에서 턴을 넘길 때(재장전 포함).
+// 연쇄: 피해를 주는 각인(일격·폭발·파편·연쇄)은 그 자체가 '공격'으로 쳐서 공격 각인을 다시 터뜨린다 (최대 3단계).
 export const ENGRAVINGS: EngravingDef[] = [
   // ── MODEL 라인 고유 (라인마다 다른 행동에 붙는다) ──
   { id: 'aux_fire', name: '보조 사격', unique: true, trigger: 'wait', effect: { kind: 'strike', target: 'nearest', power: 4 } },
@@ -15,6 +16,16 @@ export const ENGRAVINGS: EngravingDef[] = [
   { id: 'frost_claw', name: '냉각 탄두', trigger: 'attack', effect: { kind: 'status', target: 'target', status: 'slow', duration: 2, power: 0, element: 'cold' } },
   { id: 'hunters_brand', name: '표적 지정', trigger: 'attack', effect: { kind: 'mark', target: 'target', power: 0 } },
   { id: 'scavenger_creed', name: '잡식 분석기', trigger: 'attack', effect: { kind: 'shards', target: 'around', element: 'impact', power: 2, count: 1, radius: 4, perElementKind: true } },
+
+  // ── 연쇄용: 피해를 주며 다음 공격 각인으로 이어진다 ──
+  { id: 'chain_shot', name: '연계 사격', trigger: 'attack', effect: { kind: 'strike', target: 'random', power: 3 } },
+  { id: 'echo_round', name: '반향 탄', trigger: 'attack', effect: { kind: 'chain', target: 'target', element: 'lightning', power: 3, count: 1 } },
+  { id: 'amp_circuit', name: '증폭 회로', trigger: 'attack', effect: { kind: 'strike', target: 'target', element: 'impact', power: 2, chainBonus: 1 } },
+  { id: 'overheat', name: '과열 분사', trigger: 'attack', effect: { kind: 'blast', target: 'target', element: 'fire', power: 3, radius: 1 } },
+  { id: 'retarget', name: '표적 갱신', trigger: 'attack', effect: { kind: 'mark', target: 'random', power: 0 } },
+  { id: 'afterimage', name: '잔상 사격', trigger: 'move', effect: { kind: 'strike', target: 'random', power: 2 } },
+  { id: 'return_fire', name: '반격 사격', trigger: 'hit', effect: { kind: 'strike', target: 'target', power: 4 } },
+  { id: 'steady_aim', name: '조준 대기', trigger: 'wait', effect: { kind: 'strike', target: 'nearest', power: 6 } },
 
   // ── 이동할 때 ──
   { id: 'pilgrim_step', name: '방전 보행', trigger: 'move', effect: { kind: 'strike', target: 'random', element: 'lightning', power: 3 } },

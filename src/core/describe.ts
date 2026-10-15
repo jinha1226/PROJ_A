@@ -12,6 +12,10 @@ const TARGET: Record<EffectSpec['target'], string> = {
 };
 
 export function describeEffect(e: EffectSpec): string {
+  return describeEffectBase(e) + (e.chainBonus ? ` (연쇄 단계마다 +${Math.round(e.chainBonus * 100)}%)` : '');
+}
+
+function describeEffectBase(e: EffectSpec): string {
   const el = e.inheritElement ? '같은 원소' : e.element ? ELEMENT_NAME[e.element] : '물리';
   const kinds = e.perElementKind ? ' (보유 원소 종류 수만큼)' : '';
   const t = TARGET[e.target];

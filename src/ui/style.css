@@ -99,6 +99,10 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); 
 #log .trigger { color: var(--brass); font-style: italic; } #log .combo { color: #fff; font-weight: 700; } #log .overload { color: var(--fire); }
 #log .floor { color: var(--brass); text-align: center; letter-spacing: 2px; } #log .skill { color: var(--cold); }
 .box.suit { width: min(980px, 96vw); }
+.box.lab { width: min(1100px, 96vw); }
+.box.lab .cards { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+#hud .labstat { margin-top: 8px; font-size: 13px; line-height: 1.6; }
+#hud .labstat b { color: var(--hud-amber); font-size: 15px; }
 .box.suit .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .mapbox canvas { display: block; margin: 10px auto; background: #000; image-rendering: pixelated; max-width: 100%; }
 /* ── 슈트 화면·모달·툴팁 공용 ── */

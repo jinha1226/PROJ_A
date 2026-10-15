@@ -147,6 +147,23 @@ export function generateLevel(rng: Rng, opts: { altarGod?: string }): Level {
   throw new Error('level generation failed');
 }
 
+/** 각인 실험실: 방 하나. 왼쪽에 플레이어, 오른쪽에 허수아비들 */
+export function generateLabLevel(): Level {
+  const lv = new Level(24, 15);
+  const room: Room = { id: 0, x: 2, y: 2, w: 19, h: 11, visited: true };
+  lv.rooms.push(room);
+  carveRoom(lv, room);
+  for (let i = 0; i < lv.explored.length; i++) lv.explored[i] = 1;
+  lv.startX = 7;
+  lv.startY = 7;
+  // 출구는 쓰지 않지만 렌더러가 계단 위치를 필요로 한다
+  lv.features.push({ kind: 'exit', x: 3, y: 3 });
+  return lv;
+}
+
+/** 실험실 허수아비 자리: 붙어 있는 무리(연쇄·범위용) + 떨어진 둘 */
+export const LAB_DUMMIES: [number, number][] = [[11, 6], [12, 6], [11, 7], [12, 7], [11, 8], [15, 4], [15, 10]];
+
 /** 보스층: 대기실 → 투기장 */
 export function generateBossLevel(): Level {
   const lv = new Level(36, 26);

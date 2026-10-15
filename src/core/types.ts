@@ -70,6 +70,8 @@ export interface EffectSpec {
   terrain?: TerrainKind;
   /** 잡식: 보유 원소 종류 수만큼 count/power 배수 */
   perElementKind?: boolean;
+  /** 연쇄 단계마다 위력 배율 증가 (0.5 = 단계마다 +50%) */
+  chainBonus?: number;
 }
 
 export interface EngravingDef {
@@ -191,7 +193,7 @@ export interface Actor {
   marked: boolean;
   dead: boolean;
   // AI
-  ai?: 'melee' | 'ranged' | 'skirmisher' | 'boss' | 'wraith';
+  ai?: 'melee' | 'ranged' | 'skirmisher' | 'boss' | 'wraith' | 'dummy';
   awake: boolean;
   lifetime?: number; // 소환물
   boss?: boolean;

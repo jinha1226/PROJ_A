@@ -1,7 +1,7 @@
 import { Game, OVERLOAD_NAME, REST_NAME, MAX_KITS, type OverloadMode } from './core/game';
-import { describeEngraving } from './core/describe';
+import { describeEffect, describeEngraving } from './core/describe';
 import type { Element, ByproductInst, GroundItem, WeaponInst } from './core/types';
-import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_SHORT } from './core/types';
+import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_NAME, TRIGGER_SHORT, TRIGGERS } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
 import { loadAssets, View3D } from './render/view3d';
@@ -17,7 +17,7 @@ const hud = new Hud();
 let game: Game | null = null;
 /** arm = -1 이면 무기 사격 조준 */
 let targeting: { arm: number; x: number; y: number } | null = null;
-let overlay: null | 'install' | 'overload' | 'help' | 'suit' | 'map' = null;
+let overlay: null | 'install' | 'overload' | 'help' | 'suit' | 'map' | 'lab' = null;
 let installItem: GroundItem | null = null;
 let overloadSel: ByproductInst | null = null;
 let engraveSel: string | null = null;
@@ -40,11 +40,12 @@ function showTitle() {
     <h3>슈트 프레임 — 부위 슬롯 구성</h3>
     <div class="cards">${BODIES.map((b) => `<div class="card ${b.id === pickBody ? 'sel' : ''}" data-body="${b.id}"><div class="nm">${esc(b.name)}</div><div class="ds">${esc(b.desc)}</div></div>`).join('')}</div>
     <div class="row"><span style="color:var(--dim)">시드</span><input id="seed" value="${esc(seed)}" size="16"/>
-      <button class="ghost" data-act="reseed">무작위</button><span style="flex:1"></span><button data-act="start">출격 (Enter)</button></div>
+      <button class="ghost" data-act="reseed">무작위</button><span style="flex:1"></span><button class="ghost" data-act="lab">각인 실험실 (테스트)</button><button data-act="start">출격 (Enter)</button></div>
     ${keysHelp()}
   </div>`;
   bind(modal, {
-    start: startGame,
+    start: () => startGame(),
+    lab: () => startGame(true),
     reseed: () => {
       (document.getElementById('seed') as HTMLInputElement).value = randomSeed();
     },
@@ -69,8 +70,9 @@ function keysHelp() {
     ['q', '응급 키트'],
     ['i', '슈트 화면 (부산물·각인)'],
     ['Tab', '구역 지도'],
-    ['l', '기록(로그) 보기'],
+    ['m', '기록(메시지) 보기'],
     ['p', 'HD / 도트 전환'],
+    ['t', '각인 실험실: 각인 편집·초기화'],
     ['마우스', '클릭 이동·조준, 휠 확대, 올리면 정보'],
   ];
   return `<div class="keys">${rows.map(([k, d]) => `<div><b>${esc(k)}</b> ${d}</div>`).join('')}</div>`;
@@ -80,9 +82,9 @@ function randomSeed() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
-function startGame() {
+function startGame(lab = false) {
   const seed = (document.getElementById('seed') as HTMLInputElement).value.trim() || randomSeed();
-  game = new Game(seed, pickOrigin, pickBody);
+  game = new Game(seed, pickOrigin, pickBody, { lab });
   hud.clearLog();
   renderer.setGame(game);
   // 개발 모드에서만: 브라우저 테스트가 게임 상태를 볼 수 있게
@@ -125,6 +127,7 @@ function renderModal() {
   if (g.mode === 'altar') return showAltar();
   if (overlay === 'install') return showInstall();
   if (overlay === 'overload') return showOverload();
+  if (overlay === 'lab') return showLab();
   if (overlay === 'suit') {
     modal.hidden = false;
     modal.innerHTML = hud.suitScreen(g);
@@ -153,6 +156,39 @@ function renderModal() {
   }
   if (g.mode === 'rest') return showRest();
   modal.hidden = true;
+}
+
+/** 각인 실험실 편집: 모든 각인을 행동별로 켜고 끈다 */
+function showLab() {
+  const g = game!;
+  modal.hidden = false;
+  const on = new Set(g.player.engravings.map((e) => e.id));
+  const groups = TRIGGERS.map((t) => {
+    const list = g.allEngravings.filter((e) => e.trigger === t);
+    return `<h3>${TRIGGER_NAME[t]}</h3><div class="cards">${list
+      .map((e) => `<div class="card ${on.has(e.id) ? 'sel' : ''}" data-eng="${e.id}"><div class="nm">${on.has(e.id) ? '■ ' : '□ '}${esc(e.name)}</div><div class="ds">→ ${esc(describeEffect(e.effect))}</div></div>`)
+      .join('')}</div>`;
+  }).join('');
+  const la = g.lastAction;
+  modal.innerHTML = `<div class="box lab"><h2>각인 실험실</h2>
+    <p class="lead">눌러서 각인을 켜고 끈다 (칸 제한 없음). 피해를 주는 각인(일격·폭발·파편·연쇄)은 그 자체가 '공격'으로 쳐서 공격 각인을 다시 터뜨린다 — 최대 3단계, 같은 각인은 턴당 3회.<br>
+    직전 행동: 각인 발동 <b>${la.triggers}</b> · 최대 연쇄 <b>${la.maxDepth}</b> · 준 피해 <b>${la.damage}</b></p>
+    ${groups}
+    <div class="row"><button class="ghost" data-act="none">모두 끄기</button><button class="ghost" data-act="reset">허수아비·상태 초기화</button><span style="flex:1"></span><button data-act="close">닫기 (T / Esc)</button></div></div>`;
+  modal.querySelectorAll<HTMLElement>('[data-eng]').forEach(
+    (el) =>
+      (el.onclick = () => {
+        const id = el.dataset.eng!;
+        const ids = g.player.engravings.map((e) => e.id);
+        g.labSetEngravings(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
+        refresh();
+      }),
+  );
+  bind(modal, {
+    none: () => (g.labSetEngravings([]), refresh()),
+    reset: () => (g.labReset(), closeOverlay()),
+    close: closeOverlay,
+  });
 }
 
 function closeOverlay() {
@@ -516,7 +552,7 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (overlay) {
-    if (e.key === 'Escape' || (overlay === 'suit' && e.key === 'i') || (overlay === 'map' && e.key === 'Tab')) {
+    if (e.key === 'Escape' || (overlay === 'suit' && e.key === 'i') || (overlay === 'map' && e.key === 'Tab') || (overlay === 'lab' && e.key === 't')) {
       e.preventDefault();
       return closeOverlay();
     }
@@ -634,7 +670,10 @@ window.addEventListener('keydown', (e) => {
     case 'i':
       overlay = 'suit';
       break;
-    case 'l':
+    case 't':
+      if (g.lab) overlay = 'lab';
+      break;
+    case 'm':
       hud.toggleLog();
       break;
     case 'p':
