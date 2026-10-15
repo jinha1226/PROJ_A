@@ -20,7 +20,7 @@ export interface Feel {
   flash: number;
 }
 export const FEELS: Record<'classic' | 'kata', Feel> = {
-  classic: { engraveSlow: [0.5, 0.45], chainSlow: [1.4, 0.35], engraveHold: 0.12, shotHold: 0, dieHold: 0, dashHold: 0.1, hitStop: 0.06, killStop: 0.06, shotKick: 0, bolt: 1, flash: 22 },
+  classic: { engraveSlow: null, chainSlow: null, engraveHold: 0.12, shotHold: 0, dieHold: 0, dashHold: 0.1, hitStop: 0.06, killStop: 0.06, shotKick: 0, bolt: 1, flash: 22 },
   kata: { engraveSlow: null, chainSlow: null, engraveHold: 0.03, shotHold: 0.05, dieHold: 0.08, dashHold: 0.12, hitStop: 0.04, killStop: 0.11, shotKick: 0.12, bolt: 2.2, flash: 40 },
 };
 let current: Feel = FEELS.classic;

@@ -96,7 +96,7 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); 
 #log { position: absolute; left: 22px; bottom: 190px; width: 420px; max-height: 40vh; overflow-y: auto; pointer-events: auto; background: #000c; border: 1px solid #ffffff22; padding: 8px 10px; font-size: 12px; font-family: "Noto Sans KR", sans-serif; }
 #log[hidden] { display: none !important; }
 #log .warn { color: #e0a050; } #log .bad { color: #e08070; } #log .good { color: var(--good); } #log .item { color: #d8c890; }
-#log .trigger { color: var(--brass); font-style: italic; } #log .combo { color: #fff; font-weight: 700; } #log .overload { color: var(--fire); }
+#log .trigger { color: var(--brass); font-style: italic; } #log .combo { color: #fff; font-weight: 700; } #log .chain { color: #fff; } #log .overload { color: var(--fire); }
 #log .floor { color: var(--brass); text-align: center; letter-spacing: 2px; } #log .skill { color: var(--cold); }
 .box.suit { width: min(980px, 96vw); }
 .box.lab { width: min(1100px, 96vw); }

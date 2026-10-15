@@ -4,7 +4,7 @@ import type { Element, ByproductInst, GroundItem, WeaponInst } from './core/type
 import { ELEMENTS, ELEMENT_NAME, SLOT_NAME, SLOTS, TRIGGER_NAME, TRIGGER_SHORT, TRIGGERS } from './core/types';
 import { FORM_NEEDS_TARGET } from './data/forms';
 import { BODIES, GODS, ORIGINS } from './data/start';
-import { loadAssets, View3D } from './render/view3d';
+import { loadAssets, View3D, type Pace } from './render/view3d';
 import { actorTooltip, esc, Hud, byproductName, byproductTooltip, itemTooltip, weaponTooltip } from './ui/hud';
 import { heldWeapon } from './core/stats';
 
@@ -72,6 +72,7 @@ function keysHelp() {
     ['Tab', '구역 지도'],
     ['m', '기록(메시지) 보기'],
     ['p', 'HD / 도트 전환'],
+    ['v', '연출 속도 (보통 · 빠름 · 즉시)'],
     ['t', '각인 실험실: 각인 편집·초기화'],
     ['마우스', '클릭 이동·조준, 휠 확대, 올리면 정보'],
   ];
@@ -526,6 +527,8 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   const g = game;
+  // 아무 키나 누르면 남은 연출을 바로 끝낸다
+  renderer?.skip();
   if (auto) {
     auto = null;
     refresh();
@@ -679,6 +682,9 @@ window.addEventListener('keydown', (e) => {
     case 'p':
       togglePixel();
       break;
+    case 'v':
+      cyclePace();
+      break;
     default:
       if (e.code === 'Numpad5') g.wait();
       else return;
@@ -789,6 +795,19 @@ function togglePixel() {
 }
 pxbtn.addEventListener('click', togglePixel);
 
+// 연출 속도 (V): 각인 연쇄 사이 간격
+const pacebtn = document.getElementById('pacebtn')!;
+const PACE_NAME: Record<Pace, string> = { normal: '보통', fast: '빠름', instant: '즉시' };
+function paceLabel() {
+  pacebtn.textContent = `연출 ${PACE_NAME[renderer?.pace ?? 'normal']} (V)`;
+}
+function cyclePace() {
+  const order: Pace[] = ['normal', 'fast', 'instant'];
+  renderer.pace = order[(order.indexOf(renderer.pace) + 1) % order.length]!;
+  paceLabel();
+}
+pacebtn.addEventListener('click', cyclePace);
+
 // 심전도·최근 메시지 애니메이션
 function hudLoop() {
   hud.tick();
@@ -840,6 +859,7 @@ loadAssets()
   .then((a) => {
     renderer = new View3D(view, a);
     pixelLabel();
+    paceLabel();
     showTitle();
   })
   .catch((err) => {

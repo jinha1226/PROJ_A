@@ -58,7 +58,7 @@ export class Hud {
         d.textContent = e.text;
         this.logEl.appendChild(d);
         // 발동 알림(↳ 각인)은 머리 위에 뜨므로 최근 메시지에는 넣지 않는다
-        if (e.cls !== 'trigger') this.ticker.push({ text: e.text, cls: e.cls ?? '', at: now });
+        if (e.cls !== 'trigger' && e.cls !== 'chain') this.ticker.push({ text: e.text, cls: e.cls ?? '', at: now });
       }
       if (e.type === 'trigger' && e.text) this.lit.set(e.text, now);
     }

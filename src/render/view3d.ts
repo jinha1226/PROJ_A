@@ -8,6 +8,7 @@ import { GridRuntime } from './projr/grid/gridRuntime';
 import { UalLibrary } from './projr/grid/ualActor';
 import { setWeaponKit, WeaponKit } from './projr/grid/weaponKit';
 import { CELL } from './projr/grid/gridTerrain';
+import { getPace, setPace, type Pace } from './projr/grid/playback';
 import * as THREE from 'three';
 
 const BASE = '/';
@@ -27,6 +28,8 @@ export function loadAssets(): Promise<Assets> {
   return assets;
 }
 
+export type { Pace };
+
 export class View3D {
   private rt: GridRuntime | null = null;
   private bridge: Bridge | null = null;
@@ -35,6 +38,12 @@ export class View3D {
   private lastTime = 0;
 
   constructor(container: HTMLElement, private readonly assets: Assets) {
+    try {
+      const p = localStorage.getItem('model0.pace');
+      if (p === 'normal' || p === 'fast' || p === 'instant') setPace(p);
+    } catch {
+      /* 기본값 */
+    }
     this.stage = document.createElement('div');
     this.stage.className = 'stage3d';
     container.appendChild(this.stage);
@@ -93,6 +102,24 @@ export class View3D {
       localStorage.setItem('model0.zoom', String(h));
     } catch {
       /* 저장 못 해도 이번 실행에서는 적용 */
+    }
+  }
+
+  /** 남은 연출을 바로 끝낸다 (키 입력) */
+  skip() {
+    this.rt?.skip();
+  }
+
+  /** 연출 속도. 선택은 브라우저에 기억한다 */
+  get pace(): Pace {
+    return getPace();
+  }
+  set pace(p: Pace) {
+    setPace(p);
+    try {
+      localStorage.setItem('model0.pace', p);
+    } catch {
+      /* 이번 실행에서만 */
     }
   }
 

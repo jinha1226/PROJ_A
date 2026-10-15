@@ -117,7 +117,7 @@ export class GridRuntime {
   /** A new turn's events: hurry the last show, queue this one, and update what is seen. */
   apply(events: GEvent[], startTime: number): void {
     if (this.sim.s.map !== this.mapRef) { this.newFloor(); return; }
-    this.playback.hurry();
+    this.skip();
     this.playback.push(events, startTime);
     this.actors.sync(this.sim.s);
     this.refresh();
@@ -165,6 +165,10 @@ export class GridRuntime {
   }
   hurry(): void {
     this.playback.hurry();
+  }
+  /** (MODEL 0) 남은 연출을 바로 끝낸다 (입력이 들어왔을 때) */
+  skip(): void {
+    for (const e of this.playback.flush()) this.cue(e);
   }
   get busy(): boolean {
     return this.playback.busy;
@@ -248,7 +252,7 @@ export class GridRuntime {
           this.particles.spray(p, e.dst === 'hero' ? '#ff4a30' : '#ffe6a8', e.crit ? 12 : 6);
           if (e.dst !== 'hero') this.gore(p, e.crit ? 8 : 4, at(e.src));
         }
-        this.fx.hitStop(feel().hitStop);
+        if (!this.playback.chaining) this.fx.hitStop(feel().hitStop);
         if (e.dst === 'hero') this.fx.hurt();
         if (e.crit) this.punch = 0.16;
         if (e.crit || e.dst === 'hero') this.fx.shake(e.crit ? 0.14 : 0.1, e.crit ? 0.22 : 0.14);

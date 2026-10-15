@@ -97,6 +97,8 @@ export class Game {
   private nextId = 1;
   private nextUid = 1;
   private depth = 0;
+  /** 지금 실행 중인 플레이어 각인의 기록 줄: 그 각인이 준 피해를 줄 끝에 덧붙인다 */
+  private chainLine: { ev: GameEvent; hits: number } | null = null;
   /** 이번 플레이어 행동 동안의 각인 발동·최대 연쇄·준 피해 (실험실 표시용) */
   private action = { triggers: 0, maxDepth: 0, damage: 0 };
   lastAction = { triggers: 0, maxDepth: 0, damage: 0 };
@@ -1405,6 +1407,10 @@ export class Game {
     if (src?.isPlayer) {
       this.stats.damageDealt += dmg;
       this.action.damage += dmg;
+      const line = this.chainLine;
+      if (line && line.hits < 4) line.ev.text += ` → ${t.name} ${dmg}`;
+      else if (line && line.hits === 4) line.ev.text += ' …';
+      if (line) line.hits++;
     }
     t.hp -= overflow;
     this.emit({ type: 'damage', actor: src?.id, target: t.id, amount: dmg, element: el, x: t.x, y: t.y, text: opts.label });
@@ -1605,7 +1611,13 @@ export class Game {
       this.action.maxDepth = Math.max(this.action.maxDepth, depth);
     }
     this.emit({ type: 'trigger', actor: owner.id, text: eng.name, amount: depth, x: owner.x, y: owner.y });
-    if (owner.isPlayer) this.log(depth >= 2 ? `  ↳ 연쇄 ${depth}: 「${eng.name}」` : `  ↳ 「${eng.name}」`, depth >= 2 ? 'combo' : 'trigger');
+    // 기록은 연쇄 구조대로 들여쓴다: 단계마다 한 칸씩, 줄 끝에 그 각인이 준 피해
+    const prevLine = this.chainLine;
+    if (owner.isPlayer) {
+      const ev: GameEvent = { type: 'log', text: `${'\u00a0\u00a0\u00a0'.repeat(depth)}└ 「${eng.name}」`, cls: depth >= 2 ? 'chain' : 'trigger' };
+      this.emit(ev);
+      this.chainLine = { ev, hits: 0 };
+    }
     let power = eng.effect.power * mult;
     if (eng.effect.chainBonus) power *= 1 + eng.effect.chainBonus * (depth - 1);
     const spec = power === eng.effect.power ? eng.effect : { ...eng.effect, power: Math.round(power) };
@@ -1616,6 +1628,7 @@ export class Game {
       const t = first && !first.dead && first !== owner ? first : this.nearestHostile(owner, 7);
       this.fire(owner, 'attack', { target: t, element: eng.effect.element, x: t?.x, y: t?.y });
     }
+    this.chainLine = prevLine;
     this.depth--;
   }
 
