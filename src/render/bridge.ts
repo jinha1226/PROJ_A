@@ -39,6 +39,9 @@ export class Bridge {
   readonly sim: GridSim;
   private level: Level | null = null;
   private map!: GridMap;
+  /** 이 층에서 죽은 적: 게임은 목록에서 빼지만, 렌더러에는 죽은 채로 계속 넘긴다 (HP 바·시체) */
+  private graves = new Map<string, Ent>();
+  private lastFoes: Ent[] = [];
 
   constructor(private game: Game) {
     this.sim = { s: this.build() };
@@ -69,7 +72,14 @@ export class Bridge {
     if (this.level !== g.level) {
       this.level = g.level;
       this.map = this.buildMap(g.level);
+      this.graves.clear();
+      this.lastFoes = [];
     }
+    const live = g.actors.filter((a) => a.faction === 'enemy').map((a) => this.ent(a));
+    const ids = new Set(live.map((e) => e.id));
+    for (const e of this.lastFoes) if (!ids.has(e.id) && !this.graves.has(e.id)) this.graves.set(e.id, { ...e, alive: false, hp: 0 });
+    for (const e of live) if (!e.alive) this.graves.delete(e.id);
+    this.lastFoes = live;
     const lv = g.level;
     const visible = new Set<number>();
     for (let i = 0; i < lv.visible.length; i++) if (lv.visible[i]) visible.add(i);
@@ -77,7 +87,7 @@ export class Bridge {
       time: g.player.time / 100,
       map: this.map,
       hero: this.hero(),
-      foes: g.actors.filter((a) => a.faction === 'enemy').map((a) => this.ent(a)),
+      foes: [...live, ...this.graves.values()],
       chests: [],
       seen: lv.explored,
       visible,

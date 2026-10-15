@@ -725,6 +725,15 @@ canvas.addEventListener('mousemove', (e) => {
   if (f && lv.explored[i]) return hud.showTooltip(f.kind === 'exit' ? '<div class="t">출구</div><div class="r">보급 지점으로 이어진다</div>' : `<div class="t">제단</div><div class="r">${esc(GODS.find((x) => x.id === f.godId)!.name)}</div>`, e.clientX, e.clientY);
   hud.showTooltip(null);
 });
+canvas.addEventListener(
+  'wheel',
+  (e) => {
+    if (!game || !modal.hidden) return;
+    e.preventDefault();
+    renderer.zoomBy(Math.sign(e.deltaY));
+  },
+  { passive: false },
+);
 canvas.addEventListener('mouseleave', () => {
   renderer?.setPath(null);
   renderer?.setMark(null);

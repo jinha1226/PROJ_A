@@ -54,6 +54,8 @@ export class View3D {
     this.bridge = new Bridge(g);
     this.rt = new GridRuntime(this.stage, this.bridge.sim, this.assets.lib, this.assets.kit, false);
     this.rt.pixelated = loadPixel();
+    const h = readNumber('model0.zoom');
+    if (h > 0) this.rt.setZoom(h);
     this.lastTime = this.bridge.sim.s.time;
   }
 
@@ -80,6 +82,18 @@ export class View3D {
   /** 마우스를 올린 몬스터·물건 칸의 빨간 테두리 */
   setMark(x: number | null, y?: number) {
     this.rt?.showMark(x === null ? null : { x, y: y! });
+  }
+
+  /** 마우스 휠 확대·축소: 보이는 높이(미터)를 바꾼다 */
+  zoomBy(dir: number) {
+    if (!this.rt) return;
+    const h = Math.min(32, Math.max(6, this.rt.zoom * (dir > 0 ? 1.12 : 1 / 1.12)));
+    this.rt.setZoom(h);
+    try {
+      localStorage.setItem('model0.zoom', String(h));
+    } catch {
+      /* 저장 못 해도 이번 실행에서는 적용 */
+    }
   }
 
   /** HD / 도트 전환. 선택은 브라우저에 기억한다 */
@@ -114,5 +128,13 @@ function loadPixel(): boolean {
     return localStorage.getItem('model0.pixel') !== '0';
   } catch {
     return true;
+  }
+}
+
+function readNumber(key: string): number {
+  try {
+    return Number(localStorage.getItem(key)) || 0;
+  } catch {
+    return 0;
   }
 }
